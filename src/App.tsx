@@ -1,29 +1,643 @@
-'use client'
+"use client";
 
-import { useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Bookmark, Home, MapPin, Menu, MessageCircle, MoreHorizontal, Navigation, Plus, Search, Share2, Sparkles, TrendingUp, UserRound, Users, X, ZoomIn, ZoomOut, LocateFixed, RotateCcw, Layers3, Flame, ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ChatPage } from '@/components/chat-page'
-import { ProfilePage } from '@/components/profile-page'
-import { activitySpots, currentLocation, defaultRadius, hotspots, nearbyPosts, radiusOptions, radiusPostLimit, radiusScale, trending, type NearbyPost } from '@/lib/mock-nearby'
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Bell,
+  Bookmark,
+  Home,
+  MapPin,
+  Menu,
+  MessageCircle,
+  MoreHorizontal,
+  Navigation,
+  Plus,
+  Search,
+  Share2,
+  Sparkles,
+  TrendingUp,
+  UserRound,
+  Users,
+  X,
+  ZoomIn,
+  ZoomOut,
+  LocateFixed,
+  RotateCcw,
+  Layers3,
+  Flame,
+  ArrowLeft,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChatPage } from "@/components/chat-page";
+import { ProfilePage } from "@/components/profile-page";
+import {
+  activitySpots,
+  currentLocation,
+  defaultRadius,
+  hotspots,
+  nearbyPosts,
+  radiusOptions,
+  radiusPostLimit,
+  radiusScale,
+  trending,
+  type NearbyPost,
+} from "@/lib/mock-nearby";
 
-const navItems = [{ label: 'Home', icon: Home }, { label: 'Explore', icon: Search }, { label: 'Notifications', icon: Bell, count: 3 }, { label: 'Messages', icon: MessageCircle }, { label: 'Saved posts', icon: Bookmark }, { label: 'Profile', icon: UserRound }]
+const navItems = [
+  { label: "Home", icon: Home },
+  { label: "Explore", icon: Search },
+  { label: "Notifications", icon: Bell, count: 3 },
+  { label: "Messages", icon: MessageCircle },
+  { label: "Saved posts", icon: Bookmark },
+  { label: "Profile", icon: UserRound },
+];
 
-function Sidebar({ page, setPage, onCreate }: { page: string; setPage: (page: string) => void; onCreate: () => void }) {
-  return <aside className="group hidden w-[72px] shrink-0 flex-col border-r border-border/70 bg-white/80 px-3 py-7 transition-[width] duration-200 hover:w-64 lg:flex"><div className="mb-11 flex items-center gap-2 px-2"><div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Navigation className="size-4" /></div><span className="max-w-0 overflow-hidden whitespace-nowrap text-xl font-semibold tracking-tight opacity-0 transition-all group-hover:max-w-40 group-hover:opacity-100">nearby<span className="text-primary">.</span></span></div><nav aria-label="Primary navigation" className="flex flex-col gap-1">{navItems.map(({ label, icon: Icon, count }) => <button key={label} aria-label={label} onClick={() => setPage(label === 'Explore' ? 'Explore' : label === 'Messages' ? 'Messages' : label === 'Profile' ? 'Profile' : 'Home')} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors ${page === label ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}><Icon className="size-[18px] shrink-0" /><span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all group-hover:max-w-40 group-hover:opacity-100">{label}</span>{count && <span className="ml-auto hidden size-5 items-center justify-center rounded-full bg-white/20 text-[11px] group-hover:flex">{count}</span>}</button>)}</nav><Button aria-label="Create Post" onClick={onCreate} className="mt-8 size-11 shrink-0 rounded-xl px-0 group-hover:w-full group-hover:px-4"><Plus data-icon="inline-start" /><span className="hidden group-hover:inline">Create Post</span></Button><div className="mt-auto max-h-0 overflow-hidden rounded-2xl border border-border bg-muted/40 p-0 opacity-0 transition-all group-hover:max-h-40 group-hover:p-4 group-hover:opacity-100"><div className="mb-2 flex items-center gap-2 text-sm font-semibold"><Sparkles className="size-4 shrink-0 text-primary" /> Your neighborhood</div><p className="text-xs leading-5 text-muted-foreground">Stay in the loop with what people nearby are talking about.</p></div></aside>
+function Sidebar({
+  page,
+  setPage,
+  onCreate,
+}: {
+  page: string;
+  setPage: (page: string) => void;
+  onCreate: () => void;
+}) {
+  return (
+    <aside className="group hidden w-[72px] shrink-0 flex-col border-r border-border/70 bg-white/80 px-3 py-7 transition-[width] duration-200 hover:w-64 lg:flex">
+      <div className="mb-11 flex items-center gap-2 px-2">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <Navigation className="size-4" />
+        </div>
+        <span className="max-w-0 overflow-hidden whitespace-nowrap text-xl font-semibold tracking-tight opacity-0 transition-all group-hover:max-w-40 group-hover:opacity-100">
+          nearby<span className="text-primary">.</span>
+        </span>
+      </div>
+      <nav aria-label="Primary navigation" className="flex flex-col gap-1">
+        {navItems.map(({ label, icon: Icon, count }) => (
+          <button
+            key={label}
+            aria-label={label}
+            onClick={() =>
+              setPage(
+                label === "Explore"
+                  ? "Explore"
+                  : label === "Messages"
+                    ? "Messages"
+                    : label === "Profile"
+                      ? "Profile"
+                      : "Home",
+              )
+            }
+            className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors ${page === label ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+          >
+            <Icon className="size-[18px] shrink-0" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all group-hover:max-w-40 group-hover:opacity-100">
+              {label}
+            </span>
+            {count && (
+              <span className="ml-auto hidden size-5 items-center justify-center rounded-full bg-white/20 text-[11px] group-hover:flex">
+                {count}
+              </span>
+            )}
+          </button>
+        ))}
+      </nav>
+      <Button
+        aria-label="Create Post"
+        onClick={onCreate}
+        className="mt-8 size-11 shrink-0 rounded-xl px-0 group-hover:w-full group-hover:px-4"
+      >
+        <Plus data-icon="inline-start" />
+        <span className="hidden group-hover:inline">Create Post</span>
+      </Button>
+      <div className="mt-auto max-h-0 overflow-hidden rounded-2xl border border-border bg-muted/40 p-0 opacity-0 transition-all group-hover:max-h-40 group-hover:p-4 group-hover:opacity-100">
+        <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+          <Sparkles className="size-4 shrink-0 text-primary" /> Your
+          neighborhood
+        </div>
+        <p className="text-xs leading-5 text-muted-foreground">
+          Stay in the loop with what people nearby are talking about.
+        </p>
+      </div>
+    </aside>
+  );
 }
 
-function MobileHeader({ onCreate }: { onCreate: () => void }) { return <div className="flex items-center justify-between border-b border-border/70 bg-white/90 px-4 py-3 lg:hidden"><div className="flex items-center gap-2 font-semibold"><div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Navigation className="size-4" /></div> nearby<span className="text-primary">.</span></div><Button size="sm" onClick={onCreate}><Plus /> Post</Button></div> }
+function MobileHeader({ onCreate }: { onCreate: () => void }) {
+  return (
+    <div className="flex items-center justify-between border-b border-border/70 bg-white/90 px-4 py-3 lg:hidden">
+      <div className="flex items-center gap-2 font-semibold">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Navigation className="size-4" />
+        </div>{" "}
+        nearby<span className="text-primary">.</span>
+      </div>
+      <Button size="sm" onClick={onCreate}>
+        <Plus /> Post
+      </Button>
+    </div>
+  );
+}
 
-function PostCard({ post }: { post: NearbyPost }) { const [liked, setLiked] = useState(false); return <article className="rounded-2xl border border-border bg-card p-5 shadow-[0_8px_30px_-26px_rgba(15,23,42,0.35)]"><div className="flex items-start gap-3"><div className={`flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${post.color}`}>{post.initials}</div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div><p className="text-sm font-semibold">{post.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{post.handle} <span className="px-1">·</span> {post.time} <span className="px-1">·</span> {post.location}</p></div><MoreHorizontal className="size-4 text-muted-foreground" /></div><p className="mt-4 text-[15px] leading-6 text-foreground/90">{post.text}</p><p className="mt-3 text-xs font-semibold text-primary">{post.topic}</p></div></div><div className="mt-4 flex items-center gap-5 border-t border-border pt-3 pl-[52px] text-xs text-muted-foreground"><button onClick={() => setLiked(!liked)} className={liked ? 'font-medium text-rose-500' : ''}>{liked ? '♥' : '♡'} {liked ? Number(post.likes) + 1 : post.likes}</button><button><MessageCircle className="mr-1 inline size-4" />{post.comments}</button><button><Share2 className="mr-1 inline size-4" />Share</button></div></article> }
+function PostCard({ post }: { post: NearbyPost }) {
+  const [liked, setLiked] = useState(false);
+  return (
+    <article className="rounded-2xl border border-border bg-card p-5 shadow-[0_8px_30px_-26px_rgba(15,23,42,0.35)]">
+      <div className="flex items-start gap-3">
+        <div
+          className={`flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${post.color}`}
+        >
+          {post.initials}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold">{post.name}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {post.handle} <span className="px-1">·</span> {post.time}{" "}
+                <span className="px-1">·</span> {post.location}
+              </p>
+            </div>
+            <MoreHorizontal className="size-4 text-muted-foreground" />
+          </div>
+          <p className="mt-4 text-[15px] leading-6 text-foreground/90">
+            {post.text}
+          </p>
+          <p className="mt-3 text-xs font-semibold text-primary">
+            {post.topic}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 flex items-center gap-5 border-t border-border pt-3 pl-[52px] text-xs text-muted-foreground">
+        <button
+          onClick={() => setLiked(!liked)}
+          className={liked ? "font-medium text-rose-500" : ""}
+        >
+          {liked ? "♥" : "♡"} {liked ? Number(post.likes) + 1 : post.likes}
+        </button>
+        <button>
+          <MessageCircle className="mr-1 inline size-4" />
+          {post.comments}
+        </button>
+        <button>
+          <Share2 className="mr-1 inline size-4" />
+          Share
+        </button>
+      </div>
+    </article>
+  );
+}
 
-function MapView({ radius, heatmap, selected, setSelected, zoom, setZoom }: { radius: string; heatmap: boolean; selected: string | null; setSelected: (value: string | null) => void; zoom: number; setZoom: (value: number) => void }) { const scale = radiusScale[radius]; return <div className="relative min-h-[470px] overflow-hidden rounded-2xl border border-border bg-[#edf2ef] shadow-inner"><div className="absolute inset-0 opacity-70" style={{ backgroundImage: 'linear-gradient(30deg, transparent 48%, rgba(111,133,125,.18) 49%, transparent 51%), linear-gradient(120deg, transparent 48%, rgba(111,133,125,.14) 49%, transparent 51%)', backgroundSize: '86px 86px' }} /><div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(255,255,255,.28)_75%)]" />{heatmap && activitySpots.map((spot) => <div key={`${spot.x}-${spot.y}`} className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-xl ${spot.color}`} style={{ left: `${spot.x}%`, top: `${spot.y}%`, width: spot.size * zoom, height: spot.size * zoom }} />)}<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary/35 bg-primary/10" style={{ width: scale * zoom, height: scale * zoom }} /><div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"><div className="flex size-12 items-center justify-center rounded-full border-4 border-white bg-primary text-primary-foreground shadow-lg"><MapPin className="size-5" /></div><div className="mt-2 whitespace-nowrap rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold shadow-sm">You are here</div></div>{hotspots.map((spot) => <button key={spot.id} onClick={() => setSelected(spot.id)} aria-label={`Focus ${spot.name}`} className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white px-2 py-1 text-[10px] font-bold shadow-md transition-transform hover:scale-110 ${spot.level === 'high' ? 'bg-orange-500 text-white' : spot.level === 'medium' ? 'bg-amber-400 text-amber-950' : 'bg-sky-500 text-white'}`} style={{ left: `${spot.x}%`, top: `${spot.y}%` }}><Flame className="mr-1 inline size-3" />{spot.name}</button>)}{trending.map((item) => <button key={item.tag} onClick={() => setSelected(item.tag)} className="absolute z-10 flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-white text-primary shadow-md hover:scale-110" style={{ left: `${item.marker.x}%`, top: `${item.marker.y}%` }} aria-label={`Show ${item.tag}`}><TrendingUp className="size-4" /></button>)}<div className="absolute bottom-4 left-4 rounded-xl border border-white/80 bg-white/90 px-3 py-2 text-[11px] shadow-sm"><p className="mb-1 font-semibold">Social activity</p><div className="flex items-center gap-2 text-muted-foreground"><span className="h-2 w-20 rounded-full bg-gradient-to-r from-sky-300 via-amber-300 to-orange-500" /><span>Low</span><span>High</span></div></div><div className="absolute right-4 top-4 flex flex-col gap-1 rounded-xl border border-border bg-white/90 p-1 shadow-sm"><button onClick={() => setZoom(Math.min(1.35, zoom + .1))} className="flex size-8 items-center justify-center rounded-lg hover:bg-muted" aria-label="Zoom in"><ZoomIn className="size-4" /></button><button onClick={() => setZoom(Math.max(.8, zoom - .1))} className="flex size-8 items-center justify-center rounded-lg hover:bg-muted" aria-label="Zoom out"><ZoomOut className="size-4" /></button><button onClick={() => { setZoom(1); setSelected(null) }} className="flex size-8 items-center justify-center rounded-lg hover:bg-muted" aria-label="Reset map"><RotateCcw className="size-4" /></button></div></div> }
+function MapView({
+  radius,
+  heatmap,
+  selected,
+  setSelected,
+  zoom,
+  setZoom,
+}: {
+  radius: string;
+  heatmap: boolean;
+  selected: string | null;
+  setSelected: (value: string | null) => void;
+  zoom: number;
+  setZoom: (value: number) => void;
+}) {
+  const scale = radiusScale[radius];
+  return (
+    <div className="relative min-h-[470px] overflow-hidden rounded-2xl border border-border bg-[#edf2ef] shadow-inner">
+      <div
+        className="absolute inset-0 opacity-70"
+        style={{
+          backgroundImage:
+            "linear-gradient(30deg, transparent 48%, rgba(111,133,125,.18) 49%, transparent 51%), linear-gradient(120deg, transparent 48%, rgba(111,133,125,.14) 49%, transparent 51%)",
+          backgroundSize: "86px 86px",
+        }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(255,255,255,.28)_75%)]" />
+      {heatmap &&
+        activitySpots.map((spot) => (
+          <div
+            key={`${spot.x}-${spot.y}`}
+            className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-xl ${spot.color}`}
+            style={{
+              left: `${spot.x}%`,
+              top: `${spot.y}%`,
+              width: spot.size * zoom,
+              height: spot.size * zoom,
+            }}
+          />
+        ))}
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary/35 bg-primary/10"
+        style={{ width: scale * zoom, height: scale * zoom }}
+      />
+      <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+        <div className="flex size-12 items-center justify-center rounded-full border-4 border-white bg-primary text-primary-foreground shadow-lg">
+          <MapPin className="size-5" />
+        </div>
+        <div className="mt-2 whitespace-nowrap rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold shadow-sm">
+          You are here
+        </div>
+      </div>
+      {hotspots.map((spot) => (
+        <button
+          key={spot.id}
+          onClick={() => setSelected(spot.id)}
+          aria-label={`Focus ${spot.name}`}
+          className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white px-2 py-1 text-[10px] font-bold shadow-md transition-transform hover:scale-110 ${spot.level === "high" ? "bg-orange-500 text-white" : spot.level === "medium" ? "bg-amber-400 text-amber-950" : "bg-sky-500 text-white"}`}
+          style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
+        >
+          <Flame className="mr-1 inline size-3" />
+          {spot.name}
+        </button>
+      ))}
+      {trending.map((item) => (
+        <button
+          key={item.tag}
+          onClick={() => setSelected(item.tag)}
+          className="absolute z-10 flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-white text-primary shadow-md hover:scale-110"
+          style={{ left: `${item.marker.x}%`, top: `${item.marker.y}%` }}
+          aria-label={`Show ${item.tag}`}
+        >
+          <TrendingUp className="size-4" />
+        </button>
+      ))}
+      <div className="absolute bottom-4 left-4 rounded-xl border border-white/80 bg-white/90 px-3 py-2 text-[11px] shadow-sm">
+        <p className="mb-1 font-semibold">Social activity</p>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <span className="h-2 w-20 rounded-full bg-gradient-to-r from-sky-300 via-amber-300 to-orange-500" />
+          <span>Low</span>
+          <span>High</span>
+        </div>
+      </div>
+      <div className="absolute right-4 top-4 flex flex-col gap-1 rounded-xl border border-border bg-white/90 p-1 shadow-sm">
+        <button
+          onClick={() => setZoom(Math.min(1.35, zoom + 0.1))}
+          className="flex size-8 items-center justify-center rounded-lg hover:bg-muted"
+          aria-label="Zoom in"
+        >
+          <ZoomIn className="size-4" />
+        </button>
+        <button
+          onClick={() => setZoom(Math.max(0.8, zoom - 0.1))}
+          className="flex size-8 items-center justify-center rounded-lg hover:bg-muted"
+          aria-label="Zoom out"
+        >
+          <ZoomOut className="size-4" />
+        </button>
+        <button
+          onClick={() => {
+            setZoom(1);
+            setSelected(null);
+          }}
+          className="flex size-8 items-center justify-center rounded-lg hover:bg-muted"
+          aria-label="Reset map"
+        >
+          <RotateCcw className="size-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
-function Explore({ onBack, onNavigate }: { onBack: () => void; onNavigate: (page: string) => void }) { const [radius, setRadius] = useState(defaultRadius); const [heatmap, setHeatmap] = useState(true); const [selected, setSelected] = useState<string | null>(null); const [zoom, setZoom] = useState(1); const visiblePosts = useMemo(() => nearbyPosts.slice(0, radiusPostLimit[radius]), [radius]); const selectedHotspot = hotspots.find((item) => item.id === selected); const selectedTrend = trending.find((item) => item.tag === selected); return <main className="min-h-screen bg-[#fafbfc] text-foreground"><div className="mx-auto flex min-h-screen max-w-[1440px]"><div className="hidden lg:block"><Sidebar page="Explore" setPage={onNavigate} onCreate={() => {}} /></div><div className="min-w-0 flex-1"><MobileHeader onCreate={() => {}} /><div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-10 lg:py-8"><header className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><button onClick={onBack} className="mb-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" /> Home feed</button><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Discover nearby</p><h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Explore</h1></div><div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm"><MapPin className="size-4 text-primary" /> {currentLocation.name}<select value={radius} onChange={(event) => setRadius(event.target.value)} className="border-0 bg-transparent text-xs font-semibold outline-none"><option disabled>Radius</option>{radiusOptions.map((item) => <option key={item}>{item}</option>)}</select></div></header><div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]"><section className="min-w-0"><div className="mb-3 flex items-center justify-between"><p className="text-sm text-muted-foreground">Live activity around your location</p><button onClick={() => setHeatmap(!heatmap)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${heatmap ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-muted-foreground'}`}><Layers3 className="size-3.5" /> Heatmap {heatmap ? 'on' : 'off'}</button></div><MapView radius={radius} heatmap={heatmap} selected={selected} setSelected={setSelected} zoom={zoom} setZoom={setZoom} /><div className="mt-5 rounded-2xl border border-border bg-card p-5"><div className="mb-4 flex items-center justify-between"><div><h2 className="font-semibold tracking-tight">{selectedHotspot ? `Activity around ${selectedHotspot.name}` : selectedTrend ? `${selectedTrend.tag} near you` : 'Nearby posts'}</h2><p className="mt-1 text-xs text-muted-foreground">{selectedTrend ? `${selectedTrend.posts} related posts · most recent today` : 'Posts from people in the places that matter.'}</p></div><LocateFixed className="size-4 text-primary" /></div><div className="flex flex-col gap-4">{visiblePosts.filter((post) => !selectedTrend || post.topic === selectedTrend.tag || selectedTrend.tag === '#TrafficJam').map((post) => <PostCard key={post.id} post={post} />)}</div></div></section><aside className="flex flex-col gap-5"><section className="rounded-2xl border border-border bg-card p-5"><div className="mb-5 flex items-center justify-between"><h2 className="font-semibold tracking-tight">Trending near you</h2><TrendingUp className="size-4 text-primary" /></div><div className="flex flex-col gap-4">{trending.map((item, index) => <button key={item.tag} onClick={() => setSelected(item.tag)} className={`rounded-xl p-2 text-left transition-colors hover:bg-muted ${selected === item.tag ? 'bg-primary/10' : ''}`}><div className="flex items-start gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-semibold text-primary">{String(index + 1).padStart(2, '0')}</span><div><p className="text-sm font-semibold">{item.tag}</p><p className="mt-1 text-xs text-muted-foreground">{item.posts.toLocaleString()} posts · {item.location}</p></div></div></button>)}</div></section><section className="rounded-2xl border border-border bg-card p-5"><div className="mb-4 flex items-center gap-2"><Flame className="size-4 text-orange-500" /><h2 className="font-semibold tracking-tight">Hot areas</h2></div><div className="flex flex-col gap-3">{hotspots.map((spot) => <button key={spot.id} onClick={() => setSelected(spot.id)} className="flex items-center justify-between rounded-xl p-2 text-left hover:bg-muted"><div><p className="text-sm font-semibold">{spot.name}</p><p className="mt-1 text-xs text-muted-foreground">{spot.activity}</p></div><span className="text-xs font-semibold text-primary">{spot.posts}</span></button>)}</div></section></aside></div></div></div></div></main> }
+function Explore({
+  onBack,
+  onNavigate,
+}: {
+  onBack: () => void;
+  onNavigate: (page: string) => void;
+}) {
+  const [radius, setRadius] = useState(defaultRadius);
+  const [heatmap, setHeatmap] = useState(true);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const visiblePosts = useMemo(
+    () => nearbyPosts.slice(0, radiusPostLimit[radius]),
+    [radius],
+  );
+  const selectedHotspot = hotspots.find((item) => item.id === selected);
+  const selectedTrend = trending.find((item) => item.tag === selected);
+  return (
+    <main className="min-h-screen bg-[#fafbfc] text-foreground">
+      <div className="mx-auto flex min-h-screen max-w-[1440px]">
+        <div className="hidden lg:block">
+          <Sidebar page="Explore" setPage={onNavigate} onCreate={() => {}} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <MobileHeader onCreate={() => {}} />
+          <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
+            <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <button
+                  onClick={onBack}
+                  className="mb-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="size-3.5" /> Home feed
+                </button>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  Discover nearby
+                </p>
+                <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Explore
+                </h1>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm">
+                <MapPin className="size-4 text-primary" />{" "}
+                {currentLocation.name}
+                <select
+                  value={radius}
+                  onChange={(event) => setRadius(event.target.value)}
+                  className="border-0 bg-transparent text-xs font-semibold outline-none"
+                >
+                  <option disabled>Radius</option>
+                  {radiusOptions.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+            </header>
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+              <section className="min-w-0">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Live activity around your location
+                  </p>
+                  <button
+                    onClick={() => setHeatmap(!heatmap)}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${heatmap ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"}`}
+                  >
+                    <Layers3 className="size-3.5" /> Heatmap{" "}
+                    {heatmap ? "on" : "off"}
+                  </button>
+                </div>
+                <MapView
+                  radius={radius}
+                  heatmap={heatmap}
+                  selected={selected}
+                  setSelected={setSelected}
+                  zoom={zoom}
+                  setZoom={setZoom}
+                />
+                <div className="mt-5 rounded-2xl border border-border bg-card p-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <h2 className="font-semibold tracking-tight">
+                        {selectedHotspot
+                          ? `Activity around ${selectedHotspot.name}`
+                          : selectedTrend
+                            ? `${selectedTrend.tag} near you`
+                            : "Nearby posts"}
+                      </h2>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {selectedTrend
+                          ? `${selectedTrend.posts} related posts · most recent today`
+                          : "Posts from people in the places that matter."}
+                      </p>
+                    </div>
+                    <LocateFixed className="size-4 text-primary" />
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    {visiblePosts
+                      .filter(
+                        (post) =>
+                          !selectedTrend ||
+                          post.topic === selectedTrend.tag ||
+                          selectedTrend.tag === "#TrafficJam",
+                      )
+                      .map((post) => (
+                        <PostCard key={post.id} post={post} />
+                      ))}
+                  </div>
+                </div>
+              </section>
+              <aside className="flex flex-col gap-5">
+                <section className="rounded-2xl border border-border bg-card p-5">
+                  <div className="mb-5 flex items-center justify-between">
+                    <h2 className="font-semibold tracking-tight">
+                      Trending near you
+                    </h2>
+                    <TrendingUp className="size-4 text-primary" />
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    {trending.map((item, index) => (
+                      <button
+                        key={item.tag}
+                        onClick={() => setSelected(item.tag)}
+                        className={`rounded-xl p-2 text-left transition-colors hover:bg-muted ${selected === item.tag ? "bg-primary/10" : ""}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-semibold text-primary">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                          <div>
+                            <p className="text-sm font-semibold">{item.tag}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {item.posts.toLocaleString()} posts ·{" "}
+                              {item.location}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+                <section className="rounded-2xl border border-border bg-card p-5">
+                  <div className="mb-4 flex items-center gap-2">
+                    <Flame className="size-4 text-orange-500" />
+                    <h2 className="font-semibold tracking-tight">Hot areas</h2>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {hotspots.map((spot) => (
+                      <button
+                        key={spot.id}
+                        onClick={() => setSelected(spot.id)}
+                        className="flex items-center justify-between rounded-xl p-2 text-left hover:bg-muted"
+                      >
+                        <div>
+                          <p className="text-sm font-semibold">{spot.name}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {spot.activity}
+                          </p>
+                        </div>
+                        <span className="text-xs font-semibold text-primary">
+                          {spot.posts}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
 
-function HomeFeed({ onExplore, onMessages, onProfile, composerOpen, setComposerOpen }: { onExplore: () => void; onMessages: () => void; onProfile: () => void; composerOpen: boolean; setComposerOpen: (open: boolean) => void }) { return <main className="min-h-screen bg-[#fafbfc] text-foreground"><div className="mx-auto flex min-h-screen max-w-[1440px]"><Sidebar page="Home" setPage={(page) => { if (page === 'Explore') onExplore(); if (page === 'Messages') onMessages(); if (page === 'Profile') onProfile() }} onCreate={() => setComposerOpen(true)} /><div className="min-w-0 flex-1"><MobileHeader onCreate={() => setComposerOpen(true)} /><div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-8"><section><header className="mb-7"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Your local pulse</p><h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Home feed</h1></header><div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm font-medium text-muted-foreground">What&apos;s happening around you?</p><div className="mt-2 flex items-center gap-2 text-lg font-semibold"><MapPin className="size-5 text-primary" /> Cầu Giấy, Hanoi</div></div>{composerOpen && <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/[0.025] p-4"><div className="flex items-center justify-between text-sm font-semibold"><span>Share an update</span><button onClick={() => setComposerOpen(false)}><X className="size-4" /></button></div><textarea autoFocus className="mt-3 min-h-20 w-full rounded-xl border border-border bg-white p-3 text-sm" placeholder="What's happening nearby?" /><Button className="mt-3" onClick={() => setComposerOpen(false)}>Post update</Button></div>}<div className="mt-5 flex flex-col gap-4">{nearbyPosts.map((post) => <PostCard key={post.id} post={post} />)}</div></section><aside className="hidden flex-col gap-5 lg:flex lg:pt-[76px]"><section className="rounded-2xl border border-border bg-card p-5"><h2 className="mb-5 font-semibold">Trending near you</h2>{trending.map((item) => <button key={item.tag} onClick={onExplore} className="mb-4 block text-left"><p className="text-sm font-semibold">{item.tag}</p><p className="mt-1 text-xs text-muted-foreground">{item.posts.toLocaleString()} posts · {item.location}</p></button>)}</section><section className="rounded-2xl border border-border bg-card p-5"><div className="flex items-center gap-2"><Users className="size-4 text-primary" /><h2 className="font-semibold">People nearby</h2></div><p className="mt-3 text-xs leading-5 text-muted-foreground">24 people you may know are active around Cầu Giấy.</p></section></aside></div></div></div></main> }
+function HomeFeed({
+  onExplore,
+  onMessages,
+  onProfile,
+  composerOpen,
+  setComposerOpen,
+}: {
+  onExplore: () => void;
+  onMessages: () => void;
+  onProfile: () => void;
+  composerOpen: boolean;
+  setComposerOpen: (open: boolean) => void;
+}) {
+  return (
+    <main className="min-h-screen bg-[#fafbfc] text-foreground">
+      <div className="mx-auto flex min-h-screen max-w-[1440px]">
+        <Sidebar
+          page="Home"
+          setPage={(page) => {
+            if (page === "Explore") onExplore();
+            if (page === "Messages") onMessages();
+            if (page === "Profile") onProfile();
+          }}
+          onCreate={() => setComposerOpen(true)}
+        />
+        <div className="min-w-0 flex-1">
+          <MobileHeader onCreate={() => setComposerOpen(true)} />
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-8">
+            <section>
+              <header className="mb-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  Your local pulse
+                </p>
+                <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Home feed
+                </h1>
+              </header>
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-sm font-medium text-muted-foreground">
+                  What&apos;s happening around you?
+                </p>
+                <div className="mt-2 flex items-center gap-2 text-lg font-semibold">
+                  <MapPin className="size-5 text-primary" /> Cầu Giấy, Hanoi
+                </div>
+              </div>
+              {composerOpen && (
+                <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/[0.025] p-4">
+                  <div className="flex items-center justify-between text-sm font-semibold">
+                    <span>Share an update</span>
+                    <button onClick={() => setComposerOpen(false)}>
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                  <textarea
+                    autoFocus
+                    className="mt-3 min-h-20 w-full rounded-xl border border-border bg-white p-3 text-sm"
+                    placeholder="What's happening nearby?"
+                  />
+                  <Button
+                    className="mt-3"
+                    onClick={() => setComposerOpen(false)}
+                  >
+                    Post update
+                  </Button>
+                </div>
+              )}
+              <div className="mt-5 flex flex-col gap-4">
+                {nearbyPosts.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            </section>
+            <aside className="hidden flex-col gap-5 lg:flex lg:pt-[76px]">
+              <section className="rounded-2xl border border-border bg-card p-5">
+                <h2 className="mb-5 font-semibold">Trending near you</h2>
+                {trending.map((item) => (
+                  <button
+                    key={item.tag}
+                    onClick={onExplore}
+                    className="mb-4 block text-left"
+                  >
+                    <p className="text-sm font-semibold">{item.tag}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {item.posts.toLocaleString()} posts · {item.location}
+                    </p>
+                  </button>
+                ))}
+              </section>
+              <section className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2">
+                  <Users className="size-4 text-primary" />
+                  <h2 className="font-semibold">People nearby</h2>
+                </div>
+                <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                  24 people you may know are active around Cầu Giấy.
+                </p>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
 
-export default function Page() { const navigate = useNavigate(); const { pathname } = useLocation(); const [composerOpen, setComposerOpen] = useState(false); const page = pathname === '/messages' ? 'Messages' : pathname === '/explore' ? 'Explore' : pathname === '/profile' ? 'Profile' : 'Home'; if (page === 'Messages') return <main className="min-h-screen bg-[#fafbfc] text-foreground"><div className="mx-auto flex min-h-screen max-w-[1440px]"><Sidebar page="Messages" setPage={(next) => { if (next === 'Home') navigate('/'); if (next === 'Explore') navigate('/explore'); if (next === 'Profile') navigate('/profile') }} onCreate={() => setComposerOpen(true)} /><ChatPage onHome={() => navigate('/')} /></div></main>; if (page === 'Profile') return <ProfilePage onNavigate={(next) => { if (next === 'Home') navigate('/'); if (next === 'Explore') navigate('/explore'); if (next === 'Messages') navigate('/messages') }} />; return page === 'Explore' ? <Explore onBack={() => navigate('/')} onNavigate={(next) => { if (next === 'Home') navigate('/'); if (next === 'Messages') navigate('/messages'); if (next === 'Profile') navigate('/profile') }} /> : <HomeFeed onExplore={() => navigate('/explore')} onMessages={() => navigate('/messages')} onProfile={() => navigate('/profile')} composerOpen={composerOpen} setComposerOpen={setComposerOpen} /> }
+export default function Page() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [composerOpen, setComposerOpen] = useState(false);
+  const page =
+    pathname === "/messages"
+      ? "Messages"
+      : pathname === "/explore"
+        ? "Explore"
+        : pathname === "/profile"
+          ? "Profile"
+          : "Home";
+  if (page === "Messages")
+    return (
+      <main className="min-h-screen bg-[#fafbfc] text-foreground">
+        <div className="mx-auto flex min-h-screen max-w-[1440px]">
+          <Sidebar
+            page="Messages"
+            setPage={(next) => {
+              if (next === "Home") navigate("/");
+              if (next === "Explore") navigate("/explore");
+              if (next === "Profile") navigate("/profile");
+            }}
+            onCreate={() => setComposerOpen(true)}
+          />
+          <ChatPage onHome={() => navigate("/")} />
+        </div>
+      </main>
+    );
+  if (page === "Profile")
+    return (
+      <ProfilePage
+        onNavigate={(next) => {
+          if (next === "Home") navigate("/");
+          if (next === "Explore") navigate("/explore");
+          if (next === "Messages") navigate("/messages");
+          if (next === "Profile") navigate("/profile");
+        }}
+      />
+    );
+  return page === "Explore" ? (
+    <Explore
+      onBack={() => navigate("/")}
+      onNavigate={(next) => {
+        if (next === "Home") navigate("/");
+        if (next === "Messages") navigate("/messages");
+        if (next === "Profile") navigate("/profile");
+      }}
+    />
+  ) : (
+    <HomeFeed
+      onExplore={() => navigate("/explore")}
+      onMessages={() => navigate("/messages")}
+      onProfile={() => navigate("/profile")}
+      composerOpen={composerOpen}
+      setComposerOpen={setComposerOpen}
+    />
+  );
+}
 
-export { PostCard }
+export { PostCard };
