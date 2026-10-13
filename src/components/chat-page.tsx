@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { useIsDesktop } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 import {
   type ChatMessage,
@@ -29,6 +31,7 @@ export function ChatPage() {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [groupOpen, setGroupOpen] = useState(false)
   const [reportOpen, setReportOpen] = useState(false)
+  const isDesktop = useIsDesktop()
 
   useEffect(() => {
     saveChatState(state)
@@ -79,6 +82,7 @@ export function ChatPage() {
     setActiveId(group.id)
     setMobileChatOpen(true)
     setGroupOpen(false)
+    toast.success(`Group “${name}” created`)
   }
 
   function deleteActive() {
@@ -91,6 +95,7 @@ export function ChatPage() {
     setActiveId(remaining[0]?.id ?? null)
     setMobileChatOpen(false)
     setDetailsOpen(false)
+    toast.success('Conversation deleted')
   }
 
   function resetDemo() {
@@ -134,16 +139,26 @@ export function ChatPage() {
               onBack={() => setMobileChatOpen(false)}
               onToggleDetails={() => setDetailsOpen((open) => !open)}
             />
-            {detailsOpen && (
-              <DetailsPanel
-                conversation={active}
-                onMute={() => updateActive({ muted: !active.muted })}
-                onBlock={() => updateActive({ blocked: !active.blocked })}
-                onReport={() => setReportOpen(true)}
-                onDelete={deleteActive}
-                onClose={() => setDetailsOpen(false)}
-              />
-            )}
+            <DetailsPanel
+              conversation={active}
+              asSheet={!isDesktop}
+              open={detailsOpen}
+              onOpenChange={setDetailsOpen}
+              onMute={() => {
+                updateActive({ muted: !active.muted })
+                toast(active.muted ? 'Notifications unmuted' : 'Notifications muted')
+              }}
+              onBlock={() => {
+                updateActive({ blocked: !active.blocked })
+                toast(active.blocked ? 'Chat unblocked' : 'Chat blocked')
+              }}
+              onReport={() => {
+                // Close the mobile sheet first so two modal layers never stack.
+                if (!isDesktop) setDetailsOpen(false)
+                setReportOpen(true)
+              }}
+              onDelete={deleteActive}
+            />
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">

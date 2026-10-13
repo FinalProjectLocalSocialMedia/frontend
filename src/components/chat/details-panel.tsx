@@ -2,17 +2,27 @@ import type { ReactNode } from 'react'
 import { Ban, BellOff, Flag, Trash2, Volume2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { type Conversation, userById } from '@/lib/mock-chat'
 import { cn } from '@/lib/utils'
 import { Avatar } from './avatar'
 
 type Props = {
   conversation: Conversation
+  /** true → bottom/side sheet (mobile); false → inline column (desktop). */
+  asSheet: boolean
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onMute: () => void
   onBlock: () => void
   onReport: () => void
   onDelete: () => void
-  onClose: () => void
 }
 
 function Action({
@@ -38,25 +48,16 @@ function Action({
   )
 }
 
-export function DetailsPanel({
+function DetailsBody({
   conversation,
   onMute,
   onBlock,
   onReport,
   onDelete,
-  onClose,
-}: Props) {
+}: Omit<Props, 'asSheet' | 'open' | 'onOpenChange'>) {
   return (
-    // Full-screen sheet on mobile, fixed-width side column on desktop.
-    <aside className="fixed inset-0 z-40 overflow-y-auto bg-card p-5 lg:static lg:z-auto lg:w-[280px] lg:shrink-0 lg:border-l lg:border-border">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Conversation details</h3>
-        <Button variant="ghost" size="icon" aria-label="Close details" onClick={onClose}>
-          <X />
-        </Button>
-      </div>
-
-      <h4 className="mt-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Members
       </h4>
       <div className="mt-3 flex flex-col gap-3">
@@ -90,6 +91,42 @@ export function DetailsPanel({
           Delete conversation
         </Action>
       </div>
+    </>
+  )
+}
+
+export function DetailsPanel({ asSheet, open, onOpenChange, ...body }: Props) {
+  if (asSheet) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="right" className="data-[side=right]:w-full">
+          <SheetHeader>
+            <SheetTitle>Conversation details</SheetTitle>
+            <SheetDescription>{body.conversation.name}</SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+            <DetailsBody {...body} />
+          </div>
+        </SheetContent>
+      </Sheet>
+    )
+  }
+
+  if (!open) return null
+  return (
+    <aside className="w-[280px] shrink-0 overflow-y-auto border-l border-border bg-card p-5">
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="font-semibold">Conversation details</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Close details"
+          onClick={() => onOpenChange(false)}
+        >
+          <X />
+        </Button>
+      </div>
+      <DetailsBody {...body} />
     </aside>
   )
 }

@@ -18,7 +18,7 @@ export function MapView({
 }) {
   const scale = radiusScale[radius]
   return (
-    <div className="relative min-h-[470px] overflow-hidden rounded-2xl border border-border bg-[#edf2ef] shadow-inner">
+    <div className="relative min-h-[470px] overflow-hidden force-light rounded-2xl border border-border bg-[#edf2ef] text-foreground shadow-inner">
       <div
         className="absolute inset-0 opacity-70"
         style={{

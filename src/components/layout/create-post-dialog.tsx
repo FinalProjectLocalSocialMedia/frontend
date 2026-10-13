@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,6 +24,7 @@ export function CreatePostDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const navigate = useNavigate()
   const { addPost } = usePosts()
   const [text, setText] = useState('')
 
@@ -31,6 +34,10 @@ export function CreatePostDialog({
     addPost(value)
     setText('')
     onOpenChange(false)
+    toast.success('Post shared', {
+      description: 'Your update is now visible to people nearby.',
+      action: { label: 'View', onClick: () => navigate('/') },
+    })
   }
 
   return (

@@ -2,6 +2,14 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Flame, Layers3, LocateFixed, MapPin, TrendingUp } from 'lucide-react'
 import { MapView } from '@/components/explore/map-view'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Toggle } from '@/components/ui/toggle'
 import { PostCard } from '@/components/post-card'
 import {
   currentLocation,
@@ -39,28 +47,41 @@ export default function ExplorePage() {
         </div>
         <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm">
           <MapPin className="size-4 text-primary" /> {currentLocation.name}
-          <select
+          <Select
             value={radius}
-            onChange={(event) => setRadius(event.target.value)}
-            className="border-0 bg-transparent text-xs font-semibold outline-none"
+            onValueChange={(value) => value && setRadius(value)}
+            items={radiusOptions.map((item) => ({ value: item, label: item }))}
           >
-            <option disabled>Radius</option>
-            {radiusOptions.map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
+            <SelectTrigger
+              size="sm"
+              aria-label="Search radius"
+              className="border-0 bg-transparent font-semibold"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end" alignItemWithTrigger={false}>
+              {radiusOptions.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </header>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
         <section className="min-w-0">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">Live activity around your location</p>
-            <button
-              onClick={() => setHeatmap(!heatmap)}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${heatmap ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-muted-foreground'}`}
+            <Toggle
+              variant="outline"
+              size="sm"
+              pressed={heatmap}
+              onPressedChange={setHeatmap}
+              className="rounded-full px-3 text-xs font-semibold aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-primary/90"
             >
-              <Layers3 className="size-3.5" /> Heatmap {heatmap ? 'on' : 'off'}
-            </button>
+              <Layers3 /> Heatmap {heatmap ? 'on' : 'off'}
+            </Toggle>
           </div>
           <MapView
             radius={radius}

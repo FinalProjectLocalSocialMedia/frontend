@@ -23,7 +23,6 @@ export const navItems: NavItem[] = [
   { to: '/explore', label: 'Explore', icon: Search },
   { to: '/notifications', label: 'Notifications', icon: Bell, count: 3 },
   { to: '/messages', label: 'Messages', icon: MessageCircle },
-  { to: '/saved', label: 'Saved posts', icon: Bookmark },
   { to: '/profile', label: 'Profile', icon: UserRound },
 ]
 

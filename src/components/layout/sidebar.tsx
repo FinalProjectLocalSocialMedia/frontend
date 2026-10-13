@@ -3,11 +3,12 @@ import { Link, NavLink } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { navItems } from '@/lib/nav'
+import { ThemeToggle } from './theme-toggle'
 import { cn } from '@/lib/utils'
 
 // Text that only appears once the rail has expanded (on hover or keyboard focus).
 const revealOnExpand =
-  'whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-hover/sidebar:delay-75 group-has-[:focus-visible]/sidebar:opacity-100'
+  'whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-hover/sidebar:delay-75 group-has-[:focus-visible]/sidebar:opacity-100 group-has-[[aria-expanded=true]]/sidebar:opacity-100'
 
 /**
  * Desktop navigation rail.
@@ -23,8 +24,10 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
         className={cn(
           'group/sidebar absolute inset-y-0 left-0 flex w-[72px] flex-col overflow-hidden border-r border-border/70 bg-card px-3 py-6',
           'transition-[width,box-shadow] duration-200 ease-out',
-          'hover:w-64 hover:shadow-2xl hover:shadow-slate-900/10',
-          'has-[:focus-visible]:w-64 has-[:focus-visible]:shadow-2xl has-[:focus-visible]:shadow-slate-900/10',
+          'hover:w-64 hover:shadow-2xl hover:shadow-foreground/10',
+          'has-[:focus-visible]:w-64 has-[:focus-visible]:shadow-2xl has-[:focus-visible]:shadow-foreground/10',
+          // Stay open while a dropdown (e.g. theme picker) opened from inside the rail is showing.
+          'has-[[aria-expanded=true]]:w-64 has-[[aria-expanded=true]]:shadow-2xl has-[[aria-expanded=true]]:shadow-foreground/10',
         )}
       >
         <Link
@@ -86,10 +89,17 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
           <span className={revealOnExpand}>Create Post</span>
         </Button>
 
+        <ThemeToggle
+          side="right"
+          className="mt-auto h-11 w-full justify-start gap-3 rounded-xl px-3.5 text-muted-foreground"
+          iconClassName="size-5"
+          label={<span className={revealOnExpand}>Theme</span>}
+        />
+
         <div
           className={cn(
             revealOnExpand,
-            'mt-auto w-56 shrink-0 whitespace-normal rounded-2xl border border-border bg-muted/40 p-4',
+            'mt-4 w-56 shrink-0 whitespace-normal rounded-2xl border border-border bg-muted/40 p-4',
           )}
         >
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold">

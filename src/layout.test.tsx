@@ -1,18 +1,10 @@
-// @vitest-environment jsdom
-import '@testing-library/jest-dom/vitest'
 import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen, within, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '@/App'
 
-beforeEach(() => {
-  cleanup()
-  window.localStorage.clear()
-  Element.prototype.scrollIntoView = vi.fn()
-  window.scrollTo = vi.fn() as never
-})
 const renderAt = (path: string) =>
   render(
     <StrictMode>
