@@ -25,7 +25,7 @@ describe('AppLayout', () => {
       within(sidebarNav)
         .getAllByRole('link')
         .map((a) => a.getAttribute('href')),
-    ).toEqual(['/', '/explore', '/notifications', '/messages', '/saved', '/profile'])
+    ).toEqual(['/', '/explore', '/notifications', '/messages', '/profile'])
     const bottom = navs()[1]
     expect(
       within(bottom)
@@ -54,7 +54,7 @@ describe('AppLayout', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Nguyễn Minh' })).toBeInTheDocument()
   })
 
-  it('Notifications/Saved/unknown routes render inside the same layout', () => {
+  it('Notifications/unknown routes render inside the same layout', () => {
     renderAt('/notifications')
     expect(screen.getByRole('heading', { name: 'Notifications' })).toBeInTheDocument()
     expect(navs()).toHaveLength(2)

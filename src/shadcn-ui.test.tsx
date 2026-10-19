@@ -51,7 +51,7 @@ describe('Explore', () => {
 })
 
 describe('PostCard menu', () => {
-  it('Save post shows a toast and the post appears on /saved and in Profile → Saved', async () => {
+  it('Save post shows a toast and the post appears in Profile → Saved', async () => {
     const user = userEvent.setup()
     renderAt('/')
     const article = screen.getAllByRole('article')[0]
@@ -59,10 +59,6 @@ describe('PostCard menu', () => {
     await user.click(within(article).getByRole('button', { name: 'More options' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Save post' }))
     expect(await screen.findByText('Saved to your posts')).toBeInTheDocument()
-
-    await user.click(sidebarLink('Saved posts'))
-    expect(screen.getByRole('heading', { name: 'Saved posts' })).toBeInTheDocument()
-    expect(screen.getAllByRole('article')).toHaveLength(1)
 
     await user.click(sidebarLink('Profile'))
     await user.click(screen.getByRole('tab', { name: 'Saved' }))
