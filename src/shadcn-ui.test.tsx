@@ -70,7 +70,7 @@ describe('PostCard menu', () => {
     renderAt('/')
     const others = screen
       .getAllByRole('article')
-      .find((a) => !a.textContent?.includes('@minhnguyen'))!
+      .find((article) => article.textContent?.includes('Huy Phạm'))!
     await user.click(within(others).getByRole('button', { name: 'More options' }))
     expect(await screen.findByRole('menuitem', { name: 'Report post' })).toBeInTheDocument()
     await user.keyboard('{Escape}')

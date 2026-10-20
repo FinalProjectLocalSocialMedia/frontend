@@ -10,6 +10,8 @@ import { Toaster } from '@/components/ui/sonner'
 import ExplorePage from '@/pages/explore'
 import HomePage from '@/pages/home'
 import NotFoundPage from '@/pages/not-found'
+import HomeFeed from './features/post/pages/HomeFeed'
+import PostDetail from './features/post/pages/PostDetail'
 
 export default function App() {
   return (
@@ -18,7 +20,8 @@ export default function App() {
         <Routes>
           {/* Every page shares AppLayout (Sidebar on desktop, header + bottom nav on mobile). */}
           <Route element={<AppLayout />}>
-            <Route index element={<HomePage />} />
+            <Route index element={<HomeFeed />} />
+            <Route path="posts/:postId" element={<PostDetail />} />
             <Route path="explore" element={<ExplorePage />} />
             <Route path="messages" element={<ChatPage />} />
             <Route path="profile" element={<ProfilePage />} />

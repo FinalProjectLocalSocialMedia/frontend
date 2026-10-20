@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 import { MapPin, Users } from 'lucide-react'
 import { useCreatePost } from '@/components/layout/create-post-context'
-import { PostCard } from '@/components/post-card'
+import { PostCard } from '@/features/post/components/PostCard'
 import { currentLocation, trending } from '@/lib/mock-nearby'
-import { usePosts } from '@/lib/posts-context'
+import { currentUserId, usePosts } from '@/lib/posts-context'
 
 export default function HomePage() {
   const { posts } = usePosts()
@@ -31,7 +31,7 @@ export default function HomePage() {
         </button>
         <div className="mt-5 flex flex-col gap-4">
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard key={post.id} post={post} currentUserId={currentUserId} />
           ))}
         </div>
       </section>
@@ -47,7 +47,7 @@ export default function HomePage() {
             </Link>
           ))}
         </section>
-        <section className="rounded-2xl border border-border bg-card p-5">
+        {/* <section className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-2">
             <Users className="size-4 text-primary" />
             <h2 className="font-semibold">People nearby</h2>
@@ -55,7 +55,7 @@ export default function HomePage() {
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
             24 people you may know are active around {currentLocation.name.split(',')[0]}.
           </p>
-        </section>
+        </section> */}
       </aside>
     </div>
   )
