@@ -153,7 +153,7 @@ npm i -D "eslint" "typescript-eslint" "eslint-plugin-react-hooks"
    ```
 4. Không commit key thật.
 
-### 3.4. React Compiler — cách bật (làm ở Pha 1)
+### 3.4. React Compiler (đã bật)
 
 Dự án đang dùng **Vite 6.4 + `@vitejs/plugin-react` 4.7 + React 19**, nên dùng cấu hình `babel.plugins` (compiler phải đứng **đầu** danh sách plugin Babel; React 19 không cần gói runtime):
 
@@ -238,7 +238,8 @@ admin  ──►  moderation  ──►  admin-moderation
 ```
 - `admin-moderation` **không** import từ `moderation` hay `admin`; `moderation` **không** import từ `admin`.
 - `admin` được dùng lại thành phần của `moderation` và `admin-moderation`.
-- App người dùng **không** import gì từ `src/features/*`; các feature chỉ dùng được `components/ui`, `components/theme-provider`, `lib/utils`, `lib/http-client`, `components/map`.
+- App người dùng **không được** import gì từ `src/features/admin`, `src/features/moderation` hoặc `src/features/admin-moderation`; 
+- các feature chỉ dùng được `components/ui`, `components/theme-provider`, `lib/utils`, `lib/http-client`, `components/map`.
 - Chỉ `src/routes/admin-routes.tsx` biết cả ba feature (tránh vòng).
 
 ### 5.3. Route
@@ -338,7 +339,7 @@ export type IsoDateTime = string                       // timestamptz → ISO 86
 
 // ===== Enum bám CHECK constraint =====
 export type UserStatus = 'ACTIVE' | 'LOCKED'                                   // users.status
-export type Role = 'ADMIN' | 'MODERATOR' | 'USER'                              // suy ra từ admins / moderators / normal_users
+export type Role = 'ADMIN' | 'MODERATOR' | 'NORMAL_USER'                              // suy ra từ admins / moderators / normal_users
 export type ReportTargetType = 'POST' | 'COMMENT' | 'USER'                    // reports.target_type
 export type ReportStatus = 'PENDING' | 'RESOLVED' | 'REJECTED'                 // reports.status
 export type NotificationType =                                                  // notifications.notification_type
@@ -354,7 +355,7 @@ export type GeoPoint = { latitude: number; longitude: number }
 
 // ===== Tham chiếu nhẹ =====
 export type UserRef = { id: Uuid; displayName: string; avatarUrl?: string }           // normal_users.full_name / avatar_url
-export type StaffRef = { id: Uuid; email: string; role: Exclude<Role, 'USER'> }       // admin/moderator không có tên → email
+export type StaffRef = { id: Uuid; email: string; role: Exclude<Role, 'NORMAL_USER'> }       // admin/moderator không có tên → email
 export type Paginated<T> = { items: T[]; page: number; pageSize: number; total: number }
 
 // ===== Người dùng (users + bảng con) =====
@@ -389,7 +390,7 @@ export type AdminUserDetail = AdminUserListItem & {
   sanctions?: SanctionRecord[]      // lịch sử cảnh báo/khoá (mới nhất trước)
 }
 export type CreateUserInput =
-  | { role: 'USER'; email: string; password: string; phoneNumber: string
+  | { role: 'NORMAL_USER'; email: string; password: string; phoneNumber: string
       profile: { fullName: string; avatarUrl?: string; bio?: string; dateOfBirth: string; gender: number } }
   | { role: 'MODERATOR'; email: string; password: string; phoneNumber: string }   // S11: không có permission level
   | { role: 'ADMIN'; email: string; password: string; phoneNumber: string }
@@ -781,8 +782,8 @@ Gợi ý Pha 3: *"Làm Pha 3. Bám đúng 8 bước ở 7.1; viết test end-to-
 | Pha | Trạng thái | Ghi chú |
 |---|---|---|
 | 0 Chuẩn bị | ☐ | |
-| 1 Hạ tầng: axios, React Compiler, ESLint | ☐ | |
-| 2 Nền tảng admin | ☐ | |
+| 1 Hạ tầng: axios, React Compiler, ESLint | ☑ | Hoàn thành: http-client.ts + test 8/8, compiler 239/239 components, eslint flat config + luật phụ thuộc 5.2 |
+| 2 Nền tảng admin | ☑ | Hoàn thành: types, permissions, auth/mock, components (sidebar, header, layout, data-table,...), pages (login, 403, 404), admin-routes lazy |
 | 3 Báo cáo nội dung | ☐ | |
 | 4 Báo cáo người dùng & tài khoản vi phạm | ☐ | |
 | 5 Quản lý người dùng | ☐ | |

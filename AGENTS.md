@@ -9,6 +9,7 @@ Frontend của mạng xã hội location-based ("nearby."): React 19 + Vite + Ty
 
 ```bash
 npx tsc -b        # phải không có lỗi
+npm run lint      # phải sạch lỗi lint
 npm test          # phải pass hết
 npm run build     # phải build được
 ```
@@ -24,10 +25,12 @@ Nếu thay đổi hành vi, **thêm hoặc cập nhật test** trong `src/*.test
 5. **Trang mới** → tạo trong `src/pages/`, khai báo route trong `src/App.tsx` **và** thêm mục vào `src/lib/nav.ts` nếu cần hiện trên menu. Trang **không** tự render `<main>`, Sidebar, header hay bottom nav — `AppLayout` lo việc đó (`<main>` chỉ có một).
 6. **Icon-only button phải có `aria-label`.** Toggle dùng `aria-pressed`.
 7. **Tách file nhỏ, đã format.** Mỗi component một khối rõ ràng; không dồn nhiều component vào một file hay một dòng dài. Chạy `npm run format` trước khi commit.
-8. **Không gọi `fetch` rải rác trong component.** Mọi HTTP đi qua `src/lib/api.ts` (hoặc service bọc nó). Khi nối backend, thay mock trong `lib/mock-*.ts` chứ không nhân đôi logic.
+8. **Không gọi `fetch` hay `axios` trực tiếp trong component.** Mọi HTTP đi qua `src/lib/http-client.ts` (`createHttpClient`, `ApiError`, base URL từ `VITE_API_BASE_URL`).
 9. **Truy cập `localStorage`/`matchMedia` luôn có guard** (`try/catch`, kiểm tra `typeof window.matchMedia`), theo mẫu có sẵn trong `mock-chat.ts`, `theme-provider.tsx`, `use-media-query.ts`.
 10. **Không dùng `"use client"`, `next/*`** hay mẫu Next.js — đây là Vite SPA.
 11. Code hết light theme trước dark tính sau
+12. **Quy tắc phụ thuộc admin & moderation (5.2):** `admin` -> `moderation` -> `admin-moderation`. App người dùng không được import từ `src/features/{admin,moderation,admin-moderation}` (vẫn có thể import các feature khác trong `src/features` nếu có).
+13. **React Compiler:** Viết React thuần, tuân thủ Rules of React (không mutate state/props/context, không đọc/ghi `ref.current` lúc render, không gọi synchronous `setState` trong body effect). Không thêm `useMemo`/`useCallback` bừa bãi. Thư viện không tương thích (như `useReactTable`) gom vào component riêng và đánh dấu `'use no memo'` kèm comment lý do. Form dùng `useWatch({ control, name })` thay vì `watch()`.
 ## Mẫu hay gặp
 
 ```tsx

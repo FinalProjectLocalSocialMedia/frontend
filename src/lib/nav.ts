@@ -1,6 +1,5 @@
 import {
   Bell,
-  Bookmark,
   Home,
   MessageCircle,
   Search,

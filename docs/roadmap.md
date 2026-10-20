@@ -5,7 +5,7 @@ Cập nhật lần cuối khi tài liệu này được tạo. Khi sửa xong m�
 ## A. Lỗi / thiếu sót đã biết
 
 ### Dữ liệu & backend
-- [ ] Toàn bộ dữ liệu là mock; `src/lib/api.ts` **chưa được import ở đâu**. Chưa có auth.
+- [ ] Toàn bộ dữ liệu là mock; hạ tầng HTTP dùng chung `src/lib/http-client.ts` (axios) đã sẵn sàng. Chưa có auth thật.
 - [ ] Bài viết (`PostsProvider`) chỉ nằm trong bộ nhớ, mất khi reload. Chat thì lưu `localStorage` (chỉ để demo).
 - [ ] Hai danh tính "tôi" khác nhau: chat `@minhanh` (`mock-chat.ts`) và bài viết/profile `@minhnguyen` (`posts-context.tsx`, `mock-nearby.ts`).
 - [ ] `NearbyPost.time` là chuỗi ("8 min ago"), `likes`/`comments` là `string`, `location` chỉ là tên — thiếu lat/lng và timestamp ISO.
@@ -25,7 +25,7 @@ Cập nhật lần cuối khi tài liệu này được tạo. Khi sửa xong m�
 
 ### Hạ tầng & chất lượng
 - [ ] Deploy SPA: `BrowserRouter` cần rewrite mọi đường dẫn về `index.html` (ví dụ `vercel.json` với `rewrites`), nếu không refresh ở `/explore` sẽ 404. Hiện chưa có file cấu hình (repo có `.vercel` trong `.gitignore`).
-- [ ] Chưa có ESLint, CI, hay pre-commit hook.
+- [x] ESLint (flat config) + TypeScript + React Compiler rules đã được thiết lập (`npm run lint`).
 - [ ] Bundle ~626 kB (Vite cảnh báo chunk lớn) → lazy-load theo route (`React.lazy` + `Suspense`).
 - [ ] UI chuỗi lẫn Anh/Việt, chưa có i18n; `<html lang="vi">` nhưng đa số nhãn là tiếng Anh.
 - [ ] Chưa audit accessibility (đã có `aria-label`, `aria-current`, `aria-pressed` ở các điểm chính).
