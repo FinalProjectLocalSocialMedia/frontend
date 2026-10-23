@@ -1,8 +1,10 @@
 /** Tiền tố route của khu vực quản trị (D1). */
 export const ADMIN_BASE = '/admin'
 
-/** Khoá sessionStorage lưu phiên đăng nhập admin (mục 5.5). */
+/** Khoá lưu phiên đăng nhập và token admin trong localStorage (mục 5.5). */
 export const ADMIN_SESSION_KEY = 'nearby-admin-session'
+export const ADMIN_ACCESS_TOKEN_KEY = 'nearby-admin-access-token'
+export const ADMIN_REFRESH_TOKEN_KEY = 'nearby-admin-refresh-token'
 
 /** `VITE_USE_MOCK=false` mới gọi API thật; mặc định chạy mock (mục 5.4). */
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'

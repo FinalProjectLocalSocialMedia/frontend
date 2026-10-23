@@ -14,6 +14,9 @@ import { ComingSoon } from '../features/admin-moderation/components/coming-soon'
 import AdminNotFoundPage from '../features/admin-moderation/pages/admin-not-found-page'
 import ForbiddenPage from '../features/admin-moderation/pages/forbidden-page'
 import LoginPage from '../features/admin-moderation/pages/login-page'
+import { ContentReportDetailPage } from '../features/moderation/pages/content-report-detail-page'
+import { FlaggedAccountsPage } from '../features/moderation/pages/flagged-accounts-page'
+import { ReportsPage } from '../features/moderation/pages/reports-page'
 
 /**
  * Root Router cho toàn bộ khu vực Quản trị & Kiểm duyệt (`/admin/*`).
@@ -40,40 +43,15 @@ export default function AdminRoutes() {
 
                 {/* Nhóm Kiểm duyệt: Báo cáo vi phạm (Pha 3) */}
                 <Route element={<RequirePermission permission="reports.read" />}>
-                  <Route
-                    path="reports"
-                    element={
-                      <ComingSoon
-                        title="Báo cáo vi phạm"
-                        description="Danh sách báo cáo vi phạm nội dung và người dùng."
-                        phaseText="Chức năng xử lý và lọc báo cáo vi phạm sẽ được hoàn thiện ở Pha 3."
-                      />
-                    }
-                  />
-                  <Route
-                    path="reports/:id"
-                    element={
-                      <ComingSoon
-                        title="Chi tiết báo cáo"
-                        description="Chi tiết đối tượng bị báo cáo và các biện pháp chế tài."
-                        phaseText="Chức năng chi tiết báo cáo sẽ được hoàn thiện ở Pha 3."
-                      />
-                    }
-                  />
+                  <Route path="reports" element={<ReportsPage />} />
+                  <Route path="reports/:id" element={<ContentReportDetailPage />} />
+                  <Route path="reports/content/:id" element={<ContentReportDetailPage />} />
+                  <Route path="reports/users/:id" element={<ContentReportDetailPage />} />
                 </Route>
 
                 {/* Nhóm Kiểm duyệt: Tài khoản vi phạm (Pha 4) */}
                 <Route element={<RequirePermission permission="accounts.read.flagged" />}>
-                  <Route
-                    path="accounts"
-                    element={
-                      <ComingSoon
-                        title="Tài khoản vi phạm"
-                        description="Quản lý các tài khoản bị cảnh báo, tạm khoá hoặc vi phạm quy tắc."
-                        phaseText="Chức năng quản lý tài khoản vi phạm sẽ được hoàn thiện ở Pha 4."
-                      />
-                    }
-                  />
+                  <Route path="accounts" element={<FlaggedAccountsPage />} />
                 </Route>
 
                 {/* Nhóm Quản trị: Tổng quan (Pha 6) & Nội dung (Pha 5) */}

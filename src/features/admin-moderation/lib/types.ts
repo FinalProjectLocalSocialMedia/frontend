@@ -103,6 +103,24 @@ export type LockUserInput = { reason: string } // bắt buộc; không có hạn
 export type UnlockUserInput = { note?: string }
 export type WarnUserInput = { message: string } // ≤ 255 (notifications.content)
 
+// ===== Tài khoản vi phạm (Flagged Accounts - Pha 4) =====
+export type FlaggedAccount = {
+  user: UserRef & { status: UserStatus; role?: Role; email?: string }
+  pendingReports: number
+  totalReports: number
+  warnings: number
+  lock?: LockInfo
+  lastActivityAt: IsoDateTime
+}
+
+export type FlaggedAccountsParams = {
+  status?: UserStatus
+  q?: string
+  sort?: string
+  page?: number
+  pageSize?: number
+}
+
 // ===== Báo cáo (reports) =====
 export type ReportListItem = {
   id: Uuid
@@ -154,6 +172,13 @@ export type ReportDetail = ReportListItem & {
   otherReporters: UserRef[] // báo cáo PENDING khác cùng đối tượng
   target: ReportTarget
   history: AuditLog[] // timeline
+  sanctions?: SanctionRecord[] // lịch sử xử phạt của chủ đối tượng
+}
+
+export type ReportSummary = {
+  content: { pending: number; resolved: number; rejected: number }
+  user: { pending: number; resolved: number; rejected: number }
+  pendingTotal: number
 }
 
 export type ModerationAction =

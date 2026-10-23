@@ -19,8 +19,8 @@ export const ROLE_LABELS: Record<Role, string> = {
 }
 
 export const USER_STATUS_LABELS: Record<UserStatus, string> = {
-  ACTIVE: 'Hoạt động',
-  LOCKED: 'Đã khoá',
+  ACTIVE: 'Đang hoạt động',
+  LOCKED: 'Đang bị khoá',
 }
 
 export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {
