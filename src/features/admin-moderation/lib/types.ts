@@ -12,9 +12,9 @@ export type IsoDateTime = string
 // ===== Enum bám CHECK constraint =====
 export type UserStatus = 'ACTIVE' | 'LOCKED' // users.status
 /** Suy ra từ bảng con: admins / moderators / normal_users. */
-export type Role = 'ADMIN' | 'MODERATOR' | 'NORMAL_USER'
+export type Role = 'ADMIN' | 'MODERATOR' | 'NORMAL_USER' | 'USER'
 /** Vai trò được phép vào khu vực quản trị. */
-export type StaffRole = Exclude<Role, 'NORMAL_USER'>
+export type StaffRole = 'ADMIN' | 'MODERATOR'
 export type ReportTargetType = 'POST' | 'COMMENT' | 'USER' // reports.target_type
 export type ReportStatus = 'PENDING' | 'RESOLVED' | 'REJECTED' // reports.status
 export type NotificationType = // notifications.notification_type
@@ -77,9 +77,6 @@ export type AdminUserDetail = AdminUserListItem & {
     bio: string
     dateOfBirth?: string
     gender: number
-    currentLocation?: GeoPoint
-    currentH3Index?: string
-    locationUpdatedAt?: IsoDateTime
   }
   lock?: LockInfo // có khi status = 'LOCKED'
   sanctions?: SanctionRecord[] // lịch sử cảnh báo/khoá (mới nhất trước)
@@ -102,6 +99,16 @@ export type UpdateUserInput = Partial<{
 export type LockUserInput = { reason: string } // bắt buộc; không có hạn (D8)
 export type UnlockUserInput = { note?: string }
 export type WarnUserInput = { message: string } // ≤ 255 (notifications.content)
+
+export type UserListParams = {
+  q?: string
+  role?: string
+  status?: string
+  includeDeleted?: boolean
+  sort?: string
+  page?: number
+  pageSize?: number
+}
 
 // ===== Tài khoản vi phạm (Flagged Accounts - Pha 4) =====
 export type FlaggedAccount = {

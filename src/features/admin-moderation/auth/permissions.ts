@@ -51,6 +51,7 @@ const ADMIN_ONLY_PERMISSIONS: readonly Permission[] = [
 /** Admin ⊇ Moderator (D2). Người dùng thường không có quyền nào. */
 export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   NORMAL_USER: [],
+  USER: [],
   MODERATOR: MODERATOR_PERMISSIONS,
   ADMIN: [...MODERATOR_PERMISSIONS, ...ADMIN_ONLY_PERMISSIONS],
 }

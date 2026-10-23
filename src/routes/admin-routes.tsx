@@ -17,6 +17,8 @@ import LoginPage from '../features/admin-moderation/pages/login-page'
 import { ContentReportDetailPage } from '../features/moderation/pages/content-report-detail-page'
 import { FlaggedAccountsPage } from '../features/moderation/pages/flagged-accounts-page'
 import { ReportsPage } from '../features/moderation/pages/reports-page'
+import { UserDetailPage } from '../features/admin/pages/user-detail-page'
+import { UsersPage } from '../features/admin/pages/users-page'
 
 /**
  * Root Router cho toàn bộ khu vực Quản trị & Kiểm duyệt (`/admin/*`).
@@ -78,28 +80,10 @@ export default function AdminRoutes() {
                   />
                 </Route>
 
-                {/* Nhóm Quản trị: Người dùng (Pha 7) */}
+                {/* Nhóm Quản trị: Người dùng (Pha 5) */}
                 <Route element={<RequirePermission permission="users.read" />}>
-                  <Route
-                    path="users"
-                    element={
-                      <ComingSoon
-                        title="Quản lý người dùng"
-                        description="Danh sách tất cả người dùng, phân quyền và trạng thái hoạt động."
-                        phaseText="Chức năng quản lý người dùng sẽ được hoàn thiện ở Pha 7."
-                      />
-                    }
-                  />
-                  <Route
-                    path="users/:id"
-                    element={
-                      <ComingSoon
-                        title="Chi tiết người dùng"
-                        description="Hồ sơ chi tiết, lịch sử tương tác và hoạt động của tài khoản."
-                        phaseText="Chức năng chi tiết người dùng sẽ được hoàn thiện ở Pha 7."
-                      />
-                    }
-                  />
+                  <Route path="users" element={<UsersPage />} />
+                  <Route path="users/:id" element={<UserDetailPage />} />
                 </Route>
 
                 {/* Nhóm Quản trị: Địa điểm (Pha 8) */}

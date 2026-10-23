@@ -16,6 +16,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   ADMIN: 'Quản trị viên',
   MODERATOR: 'Kiểm duyệt viên',
   NORMAL_USER: 'Người dùng',
+  USER: 'Người dùng',
 }
 
 export const USER_STATUS_LABELS: Record<UserStatus, string> = {
