@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { navItems } from '@/lib/nav'
 import { useAuth } from '@/lib/auth-context'
+import { getDisplayName } from '@/features/auth/types/auth'
 import { ThemeToggle } from './theme-toggle'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -30,6 +31,8 @@ const revealOnExpand =
 export function Sidebar({ onCreate }: { onCreate: () => void }) {
   const { user, isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
+  const displayName = user ? getDisplayName(user) : ''
+  const avatarUrl = user && 'avatarUrl' in user ? user.avatarUrl : undefined
 
   return (
     <div className="sticky top-0 z-30 hidden h-dvh w-[72px] shrink-0 lg:block">
@@ -108,21 +111,21 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
             <DropdownMenu>
               <DropdownMenuTrigger className="flex h-12 w-full items-center gap-3 rounded-xl p-1.5 outline-none hover:bg-muted text-left transition-colors">
                 <Avatar className="size-9 shrink-0 border border-primary/20">
-                  <AvatarImage src={user.avatarUrl} alt={user.fullName} />
+                  <AvatarImage src={avatarUrl} alt={displayName} />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
-                    {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : 'ME'}
+                    {displayName ? displayName.slice(0, 2).toUpperCase() : 'ME'}
                   </AvatarFallback>
                 </Avatar>
                 <div className={cn(revealOnExpand, 'min-w-0 flex-1')}>
                   <p className="truncate text-xs font-semibold text-foreground">
-                    {user.fullName || 'Người dùng'}
+                    {displayName || 'Người dùng'}
                   </p>
                   <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="right" align="end" className="w-56">
                 <div className="p-2 text-xs">
-                  <p className="font-semibold text-foreground">{user.fullName}</p>
+                  <p className="font-semibold text-foreground">{displayName}</p>
                   <p className="text-muted-foreground truncate">{user.email}</p>
                 </div>
                 <DropdownMenuSeparator />

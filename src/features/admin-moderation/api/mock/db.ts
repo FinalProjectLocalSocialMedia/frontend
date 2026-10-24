@@ -46,7 +46,11 @@ export function userRefOf(userId: Uuid): UserRef {
 export const staffUserIds = (): Uuid[] =>
   mockDb.users
     .filter((u) => !u.deletedAt)
-    .filter((u) => mockDb.admins.some((a) => a.userId === u.id) || mockDb.moderators.some((m) => m.userId === u.id))
+    .filter(
+      (u) =>
+        mockDb.admins.some((a) => a.userId === u.id) ||
+        mockDb.moderators.some((m) => m.userId === u.id),
+    )
     .map((u) => u.id)
 
 // ===== Audit =====

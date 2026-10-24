@@ -89,8 +89,10 @@ const renderAt = (path: string) => {
   getFeedMock.mockReset()
   getFeedMock.mockResolvedValue({
     items: feedPosts,
-    nextCursor: null,
-    hasNextPage: false,
+    page: {
+      nextCursor: null,
+      hasMore: false,
+    },
   })
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },

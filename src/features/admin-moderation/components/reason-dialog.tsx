@@ -11,12 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { TEXT_MAX_LENGTH } from '../lib/constants'
@@ -53,15 +48,8 @@ function ReasonFormInner({
 
   const schema = z.object({
     reason: requireReason
-      ? z
-          .string()
-          .trim()
-          .min(1, 'Vui lòng nhập lý do')
-          .max(maxLength, `Tối đa ${maxLength} ký tự`)
-      : z
-          .string()
-          .trim()
-          .max(maxLength, `Tối đa ${maxLength} ký tự`),
+      ? z.string().trim().min(1, 'Vui lòng nhập lý do').max(maxLength, `Tối đa ${maxLength} ký tự`)
+      : z.string().trim().max(maxLength, `Tối đa ${maxLength} ký tự`),
   })
 
   type FormValues = z.infer<typeof schema>
@@ -103,7 +91,9 @@ function ReasonFormInner({
             <FieldLabel>{label}</FieldLabel>
             <span
               className={`text-xs ${
-                currentCount > maxLength ? 'text-destructive font-semibold' : 'text-muted-foreground'
+                currentCount > maxLength
+                  ? 'text-destructive font-semibold'
+                  : 'text-muted-foreground'
               }`}
             >
               {currentCount}/{maxLength}
@@ -116,27 +106,15 @@ function ReasonFormInner({
             disabled={submitting}
             className="resize-none"
           />
-          {errors.reason?.message && (
-            <FieldError errors={[{ message: errors.reason.message }]} />
-          )}
+          {errors.reason?.message && <FieldError errors={[{ message: errors.reason.message }]} />}
         </Field>
       </FieldGroup>
 
       <DialogFooter>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          disabled={submitting}
-        >
+        <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
           {cancelText}
         </Button>
-        <Button
-          type="submit"
-          variant={variant}
-          disabled={submitting}
-          className="gap-2"
-        >
+        <Button type="submit" variant={variant} disabled={submitting} className="gap-2">
           {submitting && <Spinner className="size-4" />}
           <span>{confirmText}</span>
         </Button>
@@ -153,12 +131,7 @@ export function ReasonDialog({ open, onOpenChange, ...props }: ReasonDialogProps
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        {open && (
-          <ReasonFormInner
-            {...props}
-            onClose={() => onOpenChange(false)}
-          />
-        )}
+        {open && <ReasonFormInner {...props} onClose={() => onOpenChange(false)} />}
       </DialogContent>
     </Dialog>
   )

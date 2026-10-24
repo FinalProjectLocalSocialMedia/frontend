@@ -24,7 +24,7 @@ export const httpStatsService: StatsService = {
 
   getTrendingHashtags(
     params?: { range?: StatsRange; limit?: number },
-    opts?: RequestOptions
+    opts?: RequestOptions,
   ): Promise<TrendingHashtag[]> {
     return adminHttp
       .get<TrendingHashtag[]>('/stats/trending-hashtags', {
@@ -39,7 +39,7 @@ export const httpStatsService: StatsService = {
 
   getTrendingPosts(
     params?: { range?: StatsRange; limit?: number },
-    opts?: RequestOptions
+    opts?: RequestOptions,
   ): Promise<TrendingPost[]> {
     return adminHttp
       .get<TrendingPost[]>('/stats/trending-posts', {

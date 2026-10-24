@@ -89,15 +89,20 @@ export function ContentReportDetailPage() {
       setActionSuccessMessage('Quyết định kiểm duyệt đã được thực thi và lưu trữ thành công.')
       refetch()
     } catch (err: unknown) {
-      const anyErr = err as { response?: { status?: number; data?: { message?: string } }; message?: string }
+      const anyErr = err as {
+        response?: { status?: number; data?: { message?: string } }
+        message?: string
+      }
       if (anyErr?.response?.status === 409) {
         setConflictError(
-          'Báo cáo này vừa được một kiểm duyệt viên khác xử lý trước đó. Dữ liệu đã được cập nhật sang chế độ chỉ đọc.'
+          'Báo cáo này vừa được một kiểm duyệt viên khác xử lý trước đó. Dữ liệu đã được cập nhật sang chế độ chỉ đọc.',
         )
         refetch()
       } else {
         setConflictError(
-          anyErr?.response?.data?.message || anyErr?.message || 'Có lỗi xảy ra trong quá trình xử lý báo cáo.'
+          anyErr?.response?.data?.message ||
+            anyErr?.message ||
+            'Có lỗi xảy ra trong quá trình xử lý báo cáo.',
         )
       }
     }
@@ -167,8 +172,8 @@ export function ContentReportDetailPage() {
         <Alert className="border-sky-500/30 bg-sky-500/10 text-sky-950 dark:text-sky-200">
           <Flame className="size-4 text-sky-600 dark:text-sky-400" />
           <AlertDescription className="text-xs">
-            Đối tượng này đã nhận được <strong>{report.reportCount}</strong> lượt báo cáo vi phạm
-            từ người dùng. Khi bạn xác nhận quyết định xử lý, hệ thống sẽ tự động gộp và đồng bộ kết
+            Đối tượng này đã nhận được <strong>{report.reportCount}</strong> lượt báo cáo vi phạm từ
+            người dùng. Khi bạn xác nhận quyết định xử lý, hệ thống sẽ tự động gộp và đồng bộ kết
             quả đến tất cả {report.reportCount} báo cáo tương ứng.
           </AlertDescription>
         </Alert>
@@ -320,13 +325,17 @@ export function ContentReportDetailPage() {
             </CardHeader>
             <CardContent className="space-y-2 text-[11px] text-muted-foreground leading-relaxed">
               <p>
-                • <strong>Nguyên tắc khách quan:</strong> Đánh giá nội dung dựa trên bằng chứng ngữ cảnh thực tế, tôn trọng sự đa dạng quan điểm nhưng kiên quyết ngăn chặn nội dung độc hại.
+                • <strong>Nguyên tắc khách quan:</strong> Đánh giá nội dung dựa trên bằng chứng ngữ
+                cảnh thực tế, tôn trọng sự đa dạng quan điểm nhưng kiên quyết ngăn chặn nội dung độc
+                hại.
               </p>
               <p>
-                • <strong>Cảnh báo trước khi khoá:</strong> Ưu tiên cảnh báo vi phạm lần đầu trừ trường hợp nghiêm trọng liên quan đến bạo lực, khiêu dâm trẻ em hoặc lừa đảo.
+                • <strong>Cảnh báo trước khi khoá:</strong> Ưu tiên cảnh báo vi phạm lần đầu trừ
+                trường hợp nghiêm trọng liên quan đến bạo lực, khiêu dâm trẻ em hoặc lừa đảo.
               </p>
               <p>
-                • <strong>Quy định gộp:</strong> Xử lý một báo cáo sẽ tự động kết luận các báo cáo tương tự cùng đối tượng để tránh trùng lặp công việc.
+                • <strong>Quy định gộp:</strong> Xử lý một báo cáo sẽ tự động kết luận các báo cáo
+                tương tự cùng đối tượng để tránh trùng lặp công việc.
               </p>
             </CardContent>
           </Card>

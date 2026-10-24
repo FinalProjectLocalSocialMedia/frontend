@@ -21,11 +21,7 @@ export function StaffCell({
   fallbackText = 'Hệ thống',
 }: StaffCellProps) {
   if (!staff) {
-    return (
-      <span className={cn('text-sm text-muted-foreground', className)}>
-        {fallbackText}
-      </span>
-    )
+    return <span className={cn('text-sm text-muted-foreground', className)}>{fallbackText}</span>
   }
 
   const initials = initialsOf(staff.email)
@@ -33,9 +29,7 @@ export function StaffCell({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <Avatar size="sm" className="bg-muted text-muted-foreground">
-        <AvatarFallback className="text-xs font-semibold uppercase">
-          {initials}
-        </AvatarFallback>
+        <AvatarFallback className="text-xs font-semibold uppercase">{initials}</AvatarFallback>
       </Avatar>
       <div className="flex flex-col min-w-0">
         <span className="truncate text-sm font-medium leading-none text-foreground">

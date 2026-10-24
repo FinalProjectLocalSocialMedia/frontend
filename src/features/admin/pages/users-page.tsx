@@ -56,11 +56,7 @@ import type {
   UserStatus,
 } from '@/features/admin-moderation/lib/types'
 import { useUrlTableState } from '@/features/admin-moderation/lib/use-url-table-state'
-import {
-  useLockUser,
-  useUnlockUser,
-  useWarnUser,
-} from '@/features/moderation/api/accounts.queries'
+import { useLockUser, useUnlockUser, useWarnUser } from '@/features/moderation/api/accounts.queries'
 import { UserSanctionsDialog } from '@/features/moderation/components/user-sanctions-dialog'
 import { cn } from '@/lib/utils'
 import { useAdminUsers } from '../api/users.queries'
@@ -72,18 +68,10 @@ export function UsersPage() {
   const { user: currentStaff } = useAuth()
   const canReadPii = usePermission('users.pii.read')
 
-  const {
-    page,
-    pageSize,
-    sort,
-    getParam,
-    setPage,
-    setPageSize,
-    setSort,
-    setParam,
-  } = useUrlTableState({
-    sort: { field: 'createdAt', direction: 'desc' },
-  })
+  const { page, pageSize, sort, getParam, setPage, setPageSize, setSort, setParam } =
+    useUrlTableState({
+      sort: { field: 'createdAt', direction: 'desc' },
+    })
 
   // URL State parameters
   const selectedRole = (getParam('role') as string) || 'ALL'
@@ -117,15 +105,10 @@ export function UsersPage() {
       page,
       pageSize,
     }),
-    [searchQuery, selectedRole, selectedStatus, includeDeleted, sort, page, pageSize]
+    [searchQuery, selectedRole, selectedStatus, includeDeleted, sort, page, pageSize],
   )
 
-  const {
-    data: pagedData,
-    isLoading,
-    isFetching,
-    refetch,
-  } = useAdminUsers(queryParams)
+  const { data: pagedData, isLoading, isFetching, refetch } = useAdminUsers(queryParams)
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -249,7 +232,8 @@ export function UsersPage() {
               className={cn(
                 'w-fit text-[11px] font-medium gap-1',
                 role === 'ADMIN' && 'bg-amber-500 hover:bg-amber-600 text-white font-semibold',
-                role === 'MODERATOR' && 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30'
+                role === 'MODERATOR' &&
+                  'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30',
               )}
             >
               {role === 'ADMIN' ? (
@@ -278,7 +262,10 @@ export function UsersPage() {
       cell: (item) => {
         if (item.deletedAt) {
           return (
-            <Badge variant="destructive" className="bg-destructive/15 text-destructive border-destructive/30 text-xs">
+            <Badge
+              variant="destructive"
+              className="bg-destructive/15 text-destructive border-destructive/30 text-xs"
+            >
               Đã xoá mềm
             </Badge>
           )
@@ -306,7 +293,7 @@ export function UsersPage() {
             }}
             className={cn(
               'inline-flex text-left transition-transform',
-              canToggle && 'cursor-pointer hover:scale-105 active:scale-95'
+              canToggle && 'cursor-pointer hover:scale-105 active:scale-95',
             )}
             title={
               !canToggle
@@ -327,7 +314,7 @@ export function UsersPage() {
       className: 'w-[120px]',
       cell: (item) => (
         <span className="text-xs font-mono text-muted-foreground">
-          {canReadPii ? (item.phoneNumber || '—') : maskPhone(item.phoneNumber)}
+          {canReadPii ? item.phoneNumber || '—' : maskPhone(item.phoneNumber)}
         </span>
       ),
     },
@@ -350,7 +337,9 @@ export function UsersPage() {
             <span
               className={cn(
                 'inline-flex items-center gap-1 font-medium',
-                stats.reportsAgainst > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+                stats.reportsAgainst > 0
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-muted-foreground',
               )}
               title="Số lượt bị tố cáo"
             >
@@ -361,7 +350,7 @@ export function UsersPage() {
             <span
               className={cn(
                 'inline-flex items-center gap-1 font-medium',
-                stats.warnings > 0 ? 'text-destructive' : 'text-muted-foreground'
+                stats.warnings > 0 ? 'text-destructive' : 'text-muted-foreground',
               )}
               title="Số lần bị cảnh báo"
             >
@@ -378,9 +367,7 @@ export function UsersPage() {
       sortable: true,
       className: 'w-[130px]',
       cell: (item) => (
-        <span className="text-xs text-muted-foreground">
-          {formatDateTime(item.createdAt)}
-        </span>
+        <span className="text-xs text-muted-foreground">{formatDateTime(item.createdAt)}</span>
       ),
     },
     {

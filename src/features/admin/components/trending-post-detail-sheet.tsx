@@ -158,9 +158,7 @@ export function TrendingPostDetailSheet({
                 <Sparkles className="size-3.5" />
                 <span>Tổng điểm</span>
               </div>
-              <p className="text-base font-extrabold text-primary">
-                {post.score}
-              </p>
+              <p className="text-base font-extrabold text-primary">{post.score}</p>
               <p className="text-[10px] text-primary/70">Σ (count × weight)</p>
             </div>
           </div>

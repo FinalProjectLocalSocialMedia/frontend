@@ -56,7 +56,10 @@ export function useUrlTableState(defaults: Defaults = {}) {
     setSort: (value: SortState | null) =>
       update((next) => {
         const isDefault =
-          value && defaults.sort && value.field === defaults.sort.field && value.direction === defaults.sort.direction
+          value &&
+          defaults.sort &&
+          value.field === defaults.sort.field &&
+          value.direction === defaults.sort.direction
         if (!value || isDefault) next.delete('sort')
         else next.set('sort', `${value.field}:${value.direction}`)
         next.delete('page')

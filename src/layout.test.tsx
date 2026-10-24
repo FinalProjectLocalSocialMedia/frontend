@@ -77,7 +77,7 @@ const renderAt = (
   )
   getFeedMock.mockReset()
   getFeedMock.mockImplementation(
-    feedResponder ?? (async () => ({ items: [], nextCursor: null, hasNextPage: false })),
+    feedResponder ?? (async () => ({ items: [], page: { nextCursor: null, hasMore: false } })),
   )
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -119,8 +119,10 @@ describe('AppLayout', () => {
     vi.stubGlobal('IntersectionObserver', TestIntersectionObserver)
     renderAt('/', async ({ cursor }) => ({
       items: [],
-      nextCursor: cursor ? null : 'cursor-2',
-      hasNextPage: false,
+      page: {
+        nextCursor: cursor ? null : 'cursor-2',
+        hasMore: !cursor,
+      },
     }))
 
     await waitFor(() => expect(intersectionCallback).toBeDefined())

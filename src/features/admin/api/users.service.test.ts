@@ -12,7 +12,11 @@ describe('Users Service (Mock Implementation & Business Logic)', () => {
 
   it('includes soft-deleted users when includeDeleted is true', async () => {
     const withDeleted = await mockUsersService.list({ page: 1, pageSize: 20, includeDeleted: true })
-    const withoutDeleted = await mockUsersService.list({ page: 1, pageSize: 20, includeDeleted: false })
+    const withoutDeleted = await mockUsersService.list({
+      page: 1,
+      pageSize: 20,
+      includeDeleted: false,
+    })
     expect(withDeleted.total).toBeGreaterThanOrEqual(withoutDeleted.total)
   })
 
@@ -34,8 +38,8 @@ describe('Users Service (Mock Implementation & Business Logic)', () => {
       res.items.some(
         (u) =>
           u.displayName.toLowerCase().includes('admin') ||
-          (u.email && u.email.toLowerCase().includes('admin'))
-      )
+          (u.email && u.email.toLowerCase().includes('admin')),
+      ),
     ).toBe(true)
   })
 
@@ -57,7 +61,7 @@ describe('Users Service (Mock Implementation & Business Logic)', () => {
 
   it('throws error when user not found', async () => {
     await expect(mockUsersService.get('00000000-0000-0000-0000-000000000000')).rejects.toThrow(
-      'Không tìm thấy người dùng'
+      'Không tìm thấy người dùng',
     )
   })
 

@@ -7,7 +7,12 @@ export const httpNotificationsService: NotificationsService = {
   list: (p, o) =>
     adminHttp
       .get<Paginated<AppNotification>>('/notifications', {
-        params: { unread: p?.unreadOnly || undefined, type: p?.type, page: p?.page, pageSize: p?.pageSize },
+        params: {
+          unread: p?.unreadOnly || undefined,
+          type: p?.type,
+          page: p?.page,
+          pageSize: p?.pageSize,
+        },
         signal: o?.signal,
       })
       .then((r) => r.data),

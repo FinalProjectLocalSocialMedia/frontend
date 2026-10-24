@@ -17,7 +17,7 @@ const DEFAULT_WEIGHTS = {
 
 export function calculatePostScore(
   counts: TrendingPost['counts'],
-  weights = DEFAULT_WEIGHTS
+  weights = DEFAULT_WEIGHTS,
 ): number {
   const raw =
     counts.views * weights.view +
@@ -240,7 +240,7 @@ export const mockStatsService: StatsService = {
 
   async getTrendingHashtags(
     params?: { range?: StatsRange; limit?: number },
-    _opts?: RequestOptions
+    _opts?: RequestOptions,
   ): Promise<TrendingHashtag[]> {
     await new Promise((r) => setTimeout(r, 150))
     const limit = params?.limit ?? 10
@@ -255,7 +255,7 @@ export const mockStatsService: StatsService = {
 
   async getTrendingPosts(
     params?: { range?: StatsRange; limit?: number },
-    _opts?: RequestOptions
+    _opts?: RequestOptions,
   ): Promise<TrendingPost[]> {
     await new Promise((r) => setTimeout(r, 200))
     const limit = params?.limit ?? 10

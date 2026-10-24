@@ -1,4 +1,4 @@
-import {  useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav } from './bottom-nav'
 import { CreatePostContext } from './create-post-context'

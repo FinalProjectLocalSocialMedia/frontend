@@ -30,13 +30,13 @@ import { StatusBadge } from '@/features/admin-moderation/components/status-badge
 import { UnlockDialog } from '@/features/admin-moderation/components/unlock-dialog'
 import { WarnDialog } from '@/features/admin-moderation/components/warn-dialog'
 import { formatDateTime, maskEmail, maskPhone } from '@/features/admin-moderation/lib/formatters'
-import { initialsOf, ROLE_LABELS, SANCTION_TYPE_LABELS } from '@/features/admin-moderation/lib/labels'
-import type { Role, UserRef } from '@/features/admin-moderation/lib/types'
 import {
-  useLockUser,
-  useUnlockUser,
-  useWarnUser,
-} from '@/features/moderation/api/accounts.queries'
+  initialsOf,
+  ROLE_LABELS,
+  SANCTION_TYPE_LABELS,
+} from '@/features/admin-moderation/lib/labels'
+import type { Role, UserRef } from '@/features/admin-moderation/lib/types'
+import { useLockUser, useUnlockUser, useWarnUser } from '@/features/moderation/api/accounts.queries'
 import { cn } from '@/lib/utils'
 import { useAdminUserDetail } from '../api/users.queries'
 import { DeleteUserDialog } from '../components/delete-user-dialog'
@@ -102,12 +102,7 @@ export function UserDetailPage() {
           <p className="mt-1 text-xs opacity-90">
             Người dùng không tồn tại hoặc bạn không có đủ quyền truy cập tài nguyên này.
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            className="mt-4 text-xs"
-          >
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-4 text-xs">
             Thử lại
           </Button>
         </div>
@@ -282,15 +277,16 @@ export function UserDetailPage() {
 
           <div className="space-y-1.5 flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-lg font-bold text-foreground">
-                {user.displayName}
-              </h1>
+              <h1 className="text-lg font-bold text-foreground">{user.displayName}</h1>
               <Badge
-                variant={role === 'ADMIN' ? 'default' : role === 'MODERATOR' ? 'secondary' : 'outline'}
+                variant={
+                  role === 'ADMIN' ? 'default' : role === 'MODERATOR' ? 'secondary' : 'outline'
+                }
                 className={cn(
                   'text-xs font-semibold gap-1',
                   role === 'ADMIN' && 'bg-amber-500 hover:bg-amber-600 text-white',
-                  role === 'MODERATOR' && 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30'
+                  role === 'MODERATOR' &&
+                    'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30',
                 )}
               >
                 {role === 'ADMIN' ? (
@@ -304,7 +300,9 @@ export function UserDetailPage() {
               </Badge>
 
               {user.deletedAt ? (
-                <Badge variant="destructive" className="text-xs">Đã xoá mềm</Badge>
+                <Badge variant="destructive" className="text-xs">
+                  Đã xoá mềm
+                </Badge>
               ) : (
                 <StatusBadge type="user-status" value={user.status} />
               )}
@@ -379,7 +377,8 @@ export function UserDetailPage() {
                 <span>Khoá vào lúc: {formatDateTime(user.lock.lockedAt)}</span>
                 {user.lock.lockedBy && (
                   <span>
-                    Bởi: {user.lock.lockedBy.email} ({ROLE_LABELS[user.lock.lockedBy.role] || user.lock.lockedBy.role})
+                    Bởi: {user.lock.lockedBy.email} (
+                    {ROLE_LABELS[user.lock.lockedBy.role] || user.lock.lockedBy.role})
                   </span>
                 )}
               </div>
@@ -407,7 +406,13 @@ export function UserDetailPage() {
           <CardHeader className="pb-2">
             <CardDescription className="text-xs">Báo cáo vi phạm</CardDescription>
             <CardTitle className="text-2xl font-bold flex items-center justify-between">
-              <span className={user.stats && user.stats.reportsAgainst > 0 ? 'text-amber-600 dark:text-amber-400' : ''}>
+              <span
+                className={
+                  user.stats && user.stats.reportsAgainst > 0
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : ''
+                }
+              >
                 {user.stats?.reportsAgainst ?? 0}
               </span>
               <UserX className="size-5 text-amber-500/50" />
@@ -456,7 +461,9 @@ export function UserDetailPage() {
               <span className="text-muted-foreground">Ngày sinh:</span>
               <span className="col-span-2 font-medium">
                 {canReadPii
-                  ? (user.profile?.dateOfBirth ? user.profile.dateOfBirth : 'Chưa cập nhật')
+                  ? user.profile?.dateOfBirth
+                    ? user.profile.dateOfBirth
+                    : 'Chưa cập nhật'
                   : '••••-••-•• (Đã ẩn PII)'}
               </span>
             </div>
@@ -484,24 +491,18 @@ export function UserDetailPage() {
           <CardContent className="space-y-3 text-xs">
             <div className="grid grid-cols-3 gap-2 py-1.5 border-b">
               <span className="text-muted-foreground">Ngày tạo tài khoản:</span>
-              <span className="col-span-2 font-medium">
-                {formatDateTime(user.createdAt)}
-              </span>
+              <span className="col-span-2 font-medium">{formatDateTime(user.createdAt)}</span>
             </div>
 
             <div className="grid grid-cols-3 gap-2 py-1.5 border-b">
               <span className="text-muted-foreground">Cập nhật lần cuối:</span>
-              <span className="col-span-2">
-                {formatDateTime(user.updatedAt)}
-              </span>
+              <span className="col-span-2">{formatDateTime(user.updatedAt)}</span>
             </div>
 
             {user.deletedAt && (
               <div className="grid grid-cols-3 gap-2 py-1.5 border-b text-destructive">
                 <span className="font-semibold">Thời điểm xoá:</span>
-                <span className="col-span-2 font-medium">
-                  {formatDateTime(user.deletedAt)}
-                </span>
+                <span className="col-span-2 font-medium">{formatDateTime(user.deletedAt)}</span>
               </div>
             )}
 
@@ -555,9 +556,7 @@ export function UserDetailPage() {
                       >
                         {SANCTION_TYPE_LABELS[s.type] || s.type}
                       </Badge>
-                      <span className="font-semibold text-foreground">
-                        {s.reason}
-                      </span>
+                      <span className="font-semibold text-foreground">{s.reason}</span>
                     </div>
                     <span className="text-muted-foreground text-[11px]">
                       {formatDateTime(s.issuedAt)}
@@ -566,7 +565,8 @@ export function UserDetailPage() {
 
                   <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground">
                     <span>
-                      Ban hành bởi: <span className="text-foreground">{s.issuedBy?.email || 'Hệ thống'}</span>
+                      Ban hành bởi:{' '}
+                      <span className="text-foreground">{s.issuedBy?.email || 'Hệ thống'}</span>
                     </span>
 
                     {s.liftedAt ? (
@@ -575,9 +575,7 @@ export function UserDetailPage() {
                         {s.liftNote && ` (Ghi chú: ${s.liftNote})`}
                       </span>
                     ) : s.type === 'LOCK' ? (
-                      <span className="text-destructive font-medium">
-                        Đang có hiệu lực
-                      </span>
+                      <span className="text-destructive font-medium">Đang có hiệu lực</span>
                     ) : null}
                   </div>
                 </div>

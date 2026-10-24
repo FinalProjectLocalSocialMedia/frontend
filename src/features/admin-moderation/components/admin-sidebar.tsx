@@ -36,9 +36,7 @@ export function AdminSidebar() {
   // Lọc các nhóm và mục điều hướng theo quyền hạn của role hiện tại
   const visibleGroups = ADMIN_NAV.map((group) => ({
     ...group,
-    items: group.items.filter((item) =>
-      roleHasPermission(user.role, item.permission),
-    ),
+    items: group.items.filter((item) => roleHasPermission(user.role, item.permission)),
   })).filter((group) => group.items.length > 0)
 
   const handleLinkClick = () => {

@@ -1,11 +1,5 @@
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   type ChartConfig,
   ChartContainer,
@@ -78,30 +72,15 @@ export function ContentStatsChart({
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-[280px] w-full">
-            <AreaChart
-              data={formattedData}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            >
+            <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="fillPostCount" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0.4}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0.02}
-                  />
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                className="stroke-muted/50"
-              />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/50" />
 
               <XAxis
                 dataKey="displayDate"
@@ -120,7 +99,11 @@ export function ContentStatsChart({
               />
 
               <ChartTooltip
-                cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4' }}
+                cursor={{
+                  stroke: 'hsl(var(--muted-foreground))',
+                  strokeWidth: 1,
+                  strokeDasharray: '4 4',
+                }}
                 content={
                   <ChartTooltipContent
                     labelFormatter={(_label, payload) => {

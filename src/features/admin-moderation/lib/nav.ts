@@ -32,14 +32,30 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   {
     label: 'Kiểm duyệt',
     items: [
-      { to: 'reports', label: 'Báo cáo', icon: ShieldAlert, permission: 'reports.read', badge: 'pendingReports' },
-      { to: 'accounts', label: 'Tài khoản vi phạm', icon: UserX, permission: 'accounts.read.flagged' },
+      {
+        to: 'reports',
+        label: 'Báo cáo',
+        icon: ShieldAlert,
+        permission: 'reports.read',
+        badge: 'pendingReports',
+      },
+      {
+        to: 'accounts',
+        label: 'Tài khoản vi phạm',
+        icon: UserX,
+        permission: 'accounts.read.flagged',
+      },
     ],
   },
   {
     label: 'Quản trị',
     items: [
-      { to: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard, permission: 'content.analytics' },
+      {
+        to: 'dashboard',
+        label: 'Tổng quan',
+        icon: LayoutDashboard,
+        permission: 'content.analytics',
+      },
       { to: 'users', label: 'Người dùng', icon: Users, permission: 'users.read' },
       { to: 'content', label: 'Nội dung', icon: FileText, permission: 'content.analytics' },
       { to: 'locations', label: 'Địa điểm', icon: MapPin, permission: 'locations.manage' },

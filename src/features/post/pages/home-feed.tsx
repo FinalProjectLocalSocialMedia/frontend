@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { currentLocation, trending } from '@/lib/mock-nearby'
 import { currentUserId, usePosts } from '@/lib/posts-context'
 
-const FEED_PAGE_SIZE = 5
+const FEED_PAGE_SIZE = 20
 
 export default function HomeFeed() {
   const { posts: localPosts, nextPost } = usePosts()
@@ -24,7 +24,7 @@ export default function HomeFeed() {
       nextPost(page)
       return page
     },
-    getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
+    getNextPageParam: (lastPage) => lastPage?.page?.nextCursor || undefined,
   })
   console.log('feed', feed.data)
   const sentinelRef = useInfiniteScroll({
@@ -38,7 +38,6 @@ export default function HomeFeed() {
       (post) => !localPosts.items.some((localPost) => localPost.id === post.id),
     ),
   ]
-  
 
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-8">

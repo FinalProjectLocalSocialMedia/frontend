@@ -41,9 +41,7 @@ export function StatCard({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold tracking-tight">{value}</div>
-        {description && (
-          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
         {trend && (
           <div className="mt-2 flex items-center gap-1.5 text-xs">
             <span

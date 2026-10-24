@@ -11,24 +11,14 @@ import {
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button, buttonVariants } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { usePendingReportCount } from '@/features/admin-moderation/api/shell.queries'
 import { PageHeader } from '@/features/admin-moderation/components/page-header'
 import type { StatsRange } from '@/features/admin-moderation/lib/types'
 import { cn } from '@/lib/utils'
-import {
-  usePostStats,
-  useTrendingHashtags,
-  useTrendingPosts,
-} from '../api/stats.queries'
+import { usePostStats, useTrendingHashtags, useTrendingPosts } from '../api/stats.queries'
 import { ContentStatsChart } from '../components/content-stats-chart'
 import { TrendingHashtagsCard } from '../components/trending-hashtags-card'
 import { TrendingPostsCard } from '../components/trending-posts-card'
@@ -42,8 +32,7 @@ const RANGE_LABELS: Record<StatsRange, string> = {
 export function ContentOverviewPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const rawRange = searchParams.get('range') as StatsRange | null
-  const currentRange: StatsRange =
-    rawRange === '30d' || rawRange === '90d' ? rawRange : '7d'
+  const currentRange: StatsRange = rawRange === '30d' || rawRange === '90d' ? rawRange : '7d'
 
   const handleRangeChange = (val: string) => {
     if (!val) return
@@ -151,7 +140,8 @@ export function ContentOverviewPage() {
                 Đang có {pendingReportCount} báo cáo vi phạm nội dung đang chờ kiểm duyệt
               </p>
               <p className="text-muted-foreground pt-0.5">
-                Các bài viết và bình luận bị cộng đồng báo cáo cần được xem xét xử lý theo quy chuẩn.
+                Các bài viết và bình luận bị cộng đồng báo cáo cần được xem xét xử lý theo quy
+                chuẩn.
               </p>
             </div>
           </div>
@@ -160,7 +150,7 @@ export function ContentOverviewPage() {
             to="/admin/reports?type=content"
             className={cn(
               buttonVariants({ variant: 'outline', size: 'sm' }),
-              'gap-1 text-xs shrink-0 border-amber-500/40 hover:bg-amber-500/20'
+              'gap-1 text-xs shrink-0 border-amber-500/40 hover:bg-amber-500/20',
             )}
           >
             <span>Đến trang Báo cáo</span>
@@ -236,7 +226,7 @@ export function ContentOverviewPage() {
                     'flex items-center gap-1 font-mono',
                     isPositiveGrowth && 'text-emerald-600 dark:text-emerald-400',
                     isNegativeGrowth && 'text-rose-600 dark:text-rose-400',
-                    !isPositiveGrowth && !isNegativeGrowth && 'text-foreground'
+                    !isPositiveGrowth && !isNegativeGrowth && 'text-foreground',
                   )}
                 >
                   {isPositiveGrowth ? (
@@ -294,18 +284,12 @@ export function ContentOverviewPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <TrendingHashtagsCard
-            hashtags={trendingHashtags}
-            isLoading={isHashtagsLoading}
-          />
+          <TrendingHashtagsCard hashtags={trendingHashtags} isLoading={isHashtagsLoading} />
         </div>
       </div>
 
       {/* Bài viết thịnh hành */}
-      <TrendingPostsCard
-        posts={trendingPosts}
-        isLoading={isPostsLoading}
-      />
+      <TrendingPostsCard posts={trendingPosts} isLoading={isPostsLoading} />
     </div>
   )
 }

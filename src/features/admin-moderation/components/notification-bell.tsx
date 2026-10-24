@@ -29,10 +29,7 @@ type NotificationBellProps = {
 export function NotificationBell({ className }: NotificationBellProps) {
   const [open, setOpen] = useState(false)
   const { data: unreadCount = 0 } = useUnreadNotificationCount()
-  const { data: notificationsData, isLoading } = useNotifications(
-    { pageSize: 5 },
-    open,
-  )
+  const { data: notificationsData, isLoading } = useNotifications({ pageSize: 5 }, open)
   const markReadMutation = useMarkNotificationsRead()
 
   const items = notificationsData?.items ?? []

@@ -9,8 +9,6 @@ function formatCommentTime(createdAt: string) {
   return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true })
 }
 
-
-
 export function Comment({ comment }: { comment: CommentData }) {
   return (
     <article className="flex gap-3 py-3">

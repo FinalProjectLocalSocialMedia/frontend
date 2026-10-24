@@ -1,17 +1,9 @@
-import {
-  appendAudit,
-  mockDb,
-  roleOf,
-  staffRefOf,
-} from '@/features/admin-moderation/api/mock/db'
+import { appendAudit, mockDb, roleOf, staffRefOf } from '@/features/admin-moderation/api/mock/db'
 import { mockNow } from '@/features/admin-moderation/api/mock/clock'
 import { newId } from '@/features/admin-moderation/api/mock/ids'
 import { mockDelay } from '@/features/admin-moderation/api/mock/latency'
 import { paginate } from '@/features/admin-moderation/api/mock/paginate'
-import {
-  mockError,
-  requirePermission,
-} from '@/features/admin-moderation/api/mock/session'
+import { mockError, requirePermission } from '@/features/admin-moderation/api/mock/session'
 import type { DbSanction } from '@/features/admin-moderation/api/mock/db-types'
 import type {
   FlaggedAccount,
@@ -48,7 +40,7 @@ function checkTargetProtection(actorId: Uuid, targetUserId: Uuid) {
     throw mockError(
       403,
       'Không thể tự thực hiện thao tác cảnh báo, khoá hoặc mở khoá tài khoản của chính mình',
-      'SELF_ACTION_NOT_ALLOWED'
+      'SELF_ACTION_NOT_ALLOWED',
     )
   }
 
@@ -60,7 +52,7 @@ function checkTargetProtection(actorId: Uuid, targetUserId: Uuid) {
     throw mockError(
       403,
       'Không thể thực hiện thao tác xử phạt đối với tài khoản Quản trị viên (ADMIN)',
-      'TARGET_PROTECTED'
+      'TARGET_PROTECTED',
     )
   }
 
@@ -69,7 +61,7 @@ function checkTargetProtection(actorId: Uuid, targetUserId: Uuid) {
     throw mockError(
       403,
       'Kiểm duyệt viên không được phép xử phạt tài khoản Kiểm duyệt viên khác',
-      'TARGET_PROTECTED'
+      'TARGET_PROTECTED',
     )
   }
 }
@@ -77,14 +69,14 @@ function checkTargetProtection(actorId: Uuid, targetUserId: Uuid) {
 export const mockAccountsService: AccountsService = {
   async getFlaggedAccounts(
     params: FlaggedAccountsParams = {},
-    opts?: RequestOptions
+    opts?: RequestOptions,
   ): Promise<Paginated<FlaggedAccount>> {
     await mockDelay(opts?.signal)
     requirePermission('accounts.read.flagged')
 
     // Lấy mọi người dùng bình thường (chưa xoá)
     const normalUsers = mockDb.users.filter(
-      (u) => !u.deletedAt && !mockDb.admins.some((a) => a.userId === u.id)
+      (u) => !u.deletedAt && !mockDb.admins.some((a) => a.userId === u.id),
     )
 
     const items: FlaggedAccount[] = []
@@ -94,23 +86,21 @@ export const mockAccountsService: AccountsService = {
 
       // Các báo cáo nhắm vào chính user này
       const directReports = mockDb.reports.filter(
-        (r) => r.targetType === 'USER' && r.targetId === u.id
+        (r) => r.targetType === 'USER' && r.targetId === u.id,
       )
 
       // Các báo cáo nhắm vào bài viết của user này
-      const userPostIds = new Set(
-        mockDb.posts.filter((p) => p.authorId === u.id).map((p) => p.id)
-      )
+      const userPostIds = new Set(mockDb.posts.filter((p) => p.authorId === u.id).map((p) => p.id))
       const postReports = mockDb.reports.filter(
-        (r) => r.targetType === 'POST' && userPostIds.has(r.targetId)
+        (r) => r.targetType === 'POST' && userPostIds.has(r.targetId),
       )
 
       // Các báo cáo nhắm vào bình luận của user này
       const userCommentIds = new Set(
-        mockDb.comments.filter((c) => c.authorId === u.id).map((c) => c.id)
+        mockDb.comments.filter((c) => c.authorId === u.id).map((c) => c.id),
       )
       const commentReports = mockDb.reports.filter(
-        (r) => r.targetType === 'COMMENT' && userCommentIds.has(r.targetId)
+        (r) => r.targetType === 'COMMENT' && userCommentIds.has(r.targetId),
       )
 
       const allReports = [...directReports, ...postReports, ...commentReports]
@@ -121,9 +111,7 @@ export const mockAccountsService: AccountsService = {
       const warningCount = userSanctions.filter((s) => s.type === 'WARN').length
 
       // Tìm active lock
-      const activeLockSanction = userSanctions.find(
-        (s) => s.type === 'LOCK' && !s.liftedAt
-      )
+      const activeLockSanction = userSanctions.find((s) => s.type === 'LOCK' && !s.liftedAt)
 
       let lockInfo: LockInfo | undefined
       if (activeLockSanction) {
@@ -136,8 +124,7 @@ export const mockAccountsService: AccountsService = {
       }
 
       // Điều kiện xuất hiện: có báo cáo pending HOẶC có ít nhất 1 sanction HOẶC đang bị khoá
-      const isFlagged =
-        pendingCount > 0 || userSanctions.length > 0 || u.status === 'LOCKED'
+      const isFlagged = pendingCount > 0 || userSanctions.length > 0 || u.status === 'LOCKED'
 
       if (isFlagged) {
         items.push({
@@ -172,7 +159,7 @@ export const mockAccountsService: AccountsService = {
         (item) =>
           item.user.displayName.toLowerCase().includes(kw) ||
           (item.user.email && item.user.email.toLowerCase().includes(kw)) ||
-          item.user.id.toLowerCase().includes(kw)
+          item.user.id.toLowerCase().includes(kw),
       )
     }
 
@@ -192,11 +179,7 @@ export const mockAccountsService: AccountsService = {
           return (a.totalReports - b.totalReports) * dir
         }
         if (field === 'lastActivityAt') {
-          return (
-            (new Date(a.lastActivityAt).getTime() -
-              new Date(b.lastActivityAt).getTime()) *
-            dir
-          )
+          return (new Date(a.lastActivityAt).getTime() - new Date(b.lastActivityAt).getTime()) * dir
         }
         return 0
       })
@@ -215,10 +198,7 @@ export const mockAccountsService: AccountsService = {
     return paginate(filtered, page, pageSize)
   },
 
-  async getUserSanctions(
-    userId: Uuid,
-    opts?: RequestOptions
-  ): Promise<SanctionRecord[]> {
+  async getUserSanctions(userId: Uuid, opts?: RequestOptions): Promise<SanctionRecord[]> {
     await mockDelay(opts?.signal)
     requirePermission('accounts.read.flagged')
 
@@ -230,10 +210,7 @@ export const mockAccountsService: AccountsService = {
     const sanctions = mockDb.sanctions
       .filter((s) => s.userId === userId)
       .map(toSanctionRecord)
-      .sort(
-        (a, b) =>
-          new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime()
-      )
+      .sort((a, b) => new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime())
 
     return sanctions
   },
@@ -241,7 +218,7 @@ export const mockAccountsService: AccountsService = {
   async warnUser(
     userId: Uuid,
     input: WarnUserInput,
-    opts?: RequestOptions
+    opts?: RequestOptions,
   ): Promise<SanctionRecord> {
     await mockDelay(opts?.signal)
     const session = requirePermission('users.warn')
@@ -294,7 +271,7 @@ export const mockAccountsService: AccountsService = {
   async lockUser(
     userId: Uuid,
     input: LockUserInput,
-    opts?: RequestOptions
+    opts?: RequestOptions,
   ): Promise<SanctionRecord> {
     await mockDelay(opts?.signal)
     const session = requirePermission('users.lock')
@@ -307,14 +284,10 @@ export const mockAccountsService: AccountsService = {
     checkTargetProtection(session.userId, userId)
 
     const activeLock = mockDb.sanctions.find(
-      (s) => s.userId === userId && s.type === 'LOCK' && !s.liftedAt
+      (s) => s.userId === userId && s.type === 'LOCK' && !s.liftedAt,
     )
     if (targetUser.status === 'LOCKED' || activeLock) {
-      throw mockError(
-        409,
-        'Tài khoản người dùng đã bị khoá từ trước',
-        'ACCOUNT_ALREADY_LOCKED'
-      )
+      throw mockError(409, 'Tài khoản người dùng đã bị khoá từ trước', 'ACCOUNT_ALREADY_LOCKED')
     }
 
     const reason = input.reason?.trim()
@@ -362,7 +335,7 @@ export const mockAccountsService: AccountsService = {
   async unlockUser(
     userId: Uuid,
     input: UnlockUserInput,
-    opts?: RequestOptions
+    opts?: RequestOptions,
   ): Promise<SanctionRecord> {
     await mockDelay(opts?.signal)
     const session = requirePermission('users.unlock')
@@ -375,13 +348,13 @@ export const mockAccountsService: AccountsService = {
     checkTargetProtection(session.userId, userId)
 
     const activeLock = mockDb.sanctions.find(
-      (s) => s.userId === userId && s.type === 'LOCK' && !s.liftedAt
+      (s) => s.userId === userId && s.type === 'LOCK' && !s.liftedAt,
     )
     if (!activeLock) {
       throw mockError(
         409,
         'Tài khoản người dùng hiện không ở trạng thái bị khoá',
-        'ACCOUNT_NOT_LOCKED'
+        'ACCOUNT_NOT_LOCKED',
       )
     }
 

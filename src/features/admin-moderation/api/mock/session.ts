@@ -52,7 +52,12 @@ export function requireStaff(): { userId: Uuid; role: StaffRole } {
   const userId = getMockSessionUserId()
   const user = userId ? mockDb.users.find((u) => u.id === userId) : undefined
   const role: Role | undefined = userId ? roleOf(userId) : undefined
-  if (!user || user.deletedAt || user.status === 'LOCKED' || (role !== 'ADMIN' && role !== 'MODERATOR')) {
+  if (
+    !user ||
+    user.deletedAt ||
+    user.status === 'LOCKED' ||
+    (role !== 'ADMIN' && role !== 'MODERATOR')
+  ) {
     clearMockSession()
     authEvents.emit('unauthorized')
     throw mockError(401, 'Phiên đăng nhập đã hết hạn', 'UNAUTHENTICATED')

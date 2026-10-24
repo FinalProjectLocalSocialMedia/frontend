@@ -1,6 +1,6 @@
 import axios, { type AxiosRequestConfig } from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+import { API_BASE_URL } from '@/config/env'
+import { authEvents } from '@/features/auth/lib/auth-events'
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -34,11 +34,12 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean }
 
-    // Nếu endpoint bị 401 và không phải là các endpoint auth cơ bản (login/refresh/register)
+    // Nếu endpoint bị 401 và không phải là các endpoint auth cơ bản (login/refresh/register/me)
     const isAuthEndpoint =
       originalRequest.url?.includes('/user/auth/login') ||
       originalRequest.url?.includes('/user/auth/register') ||
-      originalRequest.url?.includes('/user/auth/refresh')
+      originalRequest.url?.includes('/user/auth/refresh') ||
+      originalRequest.url?.includes('/user/auth/me')
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
@@ -59,6 +60,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError)
+        authEvents.emit('unauthorized')
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
@@ -68,27 +70,3 @@ apiClient.interceptors.response.use(
     return Promise.reject(error)
   },
 )
-
-export type ApiClientOptions = { baseUrl?: string; fetcher?: typeof fetch }
-
-export function createApiClient(options: ApiClientOptions = {}) {
-  const baseUrl = options.baseUrl ?? API_BASE_URL
-  const fetcher = options.fetcher ?? fetch
-  return {
-    async request<T>(path: string, init?: RequestInit): Promise<T> {
-      const response = await fetcher(`${baseUrl}${path}`, {
-        ...init,
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          ...init?.headers,
-        },
-      })
-      if (!response.ok) throw new Error(`API request failed: ${response.status}`)
-      return response.json() as Promise<T>
-    },
-  }
-}
-
-export const api = createApiClient()

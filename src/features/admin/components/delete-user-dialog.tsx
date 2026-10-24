@@ -23,12 +23,7 @@ type DeleteUserDialogProps = {
   onSuccess?: () => void
 }
 
-export function DeleteUserDialog({
-  open,
-  onOpenChange,
-  user,
-  onSuccess,
-}: DeleteUserDialogProps) {
+export function DeleteUserDialog({ open, onOpenChange, user, onSuccess }: DeleteUserDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const deleteMutation = useDeleteUser()
 
@@ -60,9 +55,7 @@ export function DeleteUserDialog({
               <UserX className="size-5" />
             </div>
             <div>
-              <DialogTitle className="text-base font-semibold">
-                Xác nhận xoá người dùng
-              </DialogTitle>
+              <DialogTitle className="text-base font-semibold">Xác nhận xoá người dùng</DialogTitle>
               <DialogDescription className="text-xs">
                 Thao tác xoá mềm sẽ vô hiệu hoá tài khoản này khỏi hệ thống.
               </DialogDescription>
@@ -73,19 +66,13 @@ export function DeleteUserDialog({
         <div className="space-y-4 py-2">
           <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-3">
             <Avatar size="default">
-              {user.avatarUrl && (
-                <AvatarImage src={user.avatarUrl} alt={user.displayName} />
-              )}
+              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.displayName} />}
               <AvatarFallback>{initialsOf(user.displayName)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-xs text-foreground truncate">
-                {user.displayName}
-              </p>
+              <p className="font-semibold text-xs text-foreground truncate">{user.displayName}</p>
               {user.email && (
-                <p className="text-[11px] text-muted-foreground truncate">
-                  {user.email}
-                </p>
+                <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
               )}
               <div className="mt-1 flex items-center gap-2">
                 <span className="inline-flex items-center rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">
@@ -104,14 +91,16 @@ export function DeleteUserDialog({
               <div>
                 <p className="font-semibold">Lưu ý quản trị viên:</p>
                 <p className="mt-0.5 text-[11px] opacity-90">
-                  Hệ thống không cho phép tự xoá chính mình hoặc xoá tài khoản Quản trị viên cuối cùng.
+                  Hệ thống không cho phép tự xoá chính mình hoặc xoá tài khoản Quản trị viên cuối
+                  cùng.
                 </p>
               </div>
             </div>
           )}
 
           <p className="text-xs text-muted-foreground">
-            Người dùng bị xoá sẽ không thể đăng nhập hoặc thực hiện bất kỳ hoạt động nào trên nền tảng. Dữ liệu bài viết và báo cáo liên quan vẫn được lưu trữ theo quy định kiểm toán.
+            Người dùng bị xoá sẽ không thể đăng nhập hoặc thực hiện bất kỳ hoạt động nào trên nền
+            tảng. Dữ liệu bài viết và báo cáo liên quan vẫn được lưu trữ theo quy định kiểm toán.
           </p>
         </div>
 

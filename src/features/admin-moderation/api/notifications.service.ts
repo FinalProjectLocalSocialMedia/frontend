@@ -1,5 +1,11 @@
 import { USE_MOCK } from '../lib/constants'
-import type { AppNotification, NotificationType, Paginated, RequestOptions, Uuid } from '../lib/types'
+import type {
+  AppNotification,
+  NotificationType,
+  Paginated,
+  RequestOptions,
+  Uuid,
+} from '../lib/types'
 import { httpNotificationsService } from './notifications.http'
 import { mockNotificationsService } from './notifications.mock'
 

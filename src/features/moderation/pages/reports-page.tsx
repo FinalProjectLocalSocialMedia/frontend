@@ -36,18 +36,10 @@ import { useReports, useReportsSummary } from '../api/reports.queries'
 export function ReportsPage() {
   const navigate = useNavigate()
 
-  const {
-    page,
-    pageSize,
-    sort,
-    getParam,
-    setPage,
-    setPageSize,
-    setSort,
-    setParam,
-  } = useUrlTableState({
-    sort: { field: 'createdAt', direction: 'asc' },
-  })
+  const { page, pageSize, sort, getParam, setPage, setPageSize, setSort, setParam } =
+    useUrlTableState({
+      sort: { field: 'createdAt', direction: 'asc' },
+    })
 
   // Target tab: 'content' | 'user'
   const activeTab = (getParam('target') as 'content' | 'user') || 'content'
@@ -161,11 +153,12 @@ export function ReportsPage() {
       className: 'w-[180px]',
       cell: (item) => (
         <div className="space-y-0.5">
-          <span className="text-xs font-medium text-foreground">
-            {reasonLabel(item.reason)}
-          </span>
+          <span className="text-xs font-medium text-foreground">{reasonLabel(item.reason)}</span>
           {item.targetSummary?.text && (
-            <p className="text-[11px] text-muted-foreground truncate max-w-[200px]" title={item.targetSummary.text}>
+            <p
+              className="text-[11px] text-muted-foreground truncate max-w-[200px]"
+              title={item.targetSummary.text}
+            >
               {item.targetSummary.text}
             </p>
           )}
@@ -181,7 +174,11 @@ export function ReportsPage() {
       cell: (item) => {
         if (item.reportCount > 1) {
           return (
-            <Badge variant="destructive" className="gap-1 text-xs font-mono font-semibold" title="Nhiều báo cáo trùng lặp">
+            <Badge
+              variant="destructive"
+              className="gap-1 text-xs font-mono font-semibold"
+              title="Nhiều báo cáo trùng lặp"
+            >
               <Flame className="size-3" />
               {item.reportCount}
             </Badge>
@@ -211,9 +208,7 @@ export function ReportsPage() {
       sortable: true,
       className: 'w-[150px]',
       cell: (item) => (
-        <span className="text-xs text-muted-foreground">
-          {formatDateTime(item.reportedAt)}
-        </span>
+        <span className="text-xs text-muted-foreground">{formatDateTime(item.reportedAt)}</span>
       ),
     },
     {
@@ -299,9 +294,7 @@ export function ReportsPage() {
             <ShieldAlert className="size-3.5 text-amber-500" />
             <span>
               Tổng chờ xử lý:{' '}
-              <strong className="text-foreground">
-                {summary?.pendingTotal ?? 0}
-              </strong>
+              <strong className="text-foreground">{summary?.pendingTotal ?? 0}</strong>
             </span>
           </div>
         </div>

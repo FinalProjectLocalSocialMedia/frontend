@@ -40,10 +40,10 @@ export function CreatePostDialog({
     onSuccess: (post) => {
       addPost({
         items: [post],
-        page:{
+        page: {
           nextCursor: null,
           hasMore: false,
-        }
+        },
       })
       void queryClient.invalidateQueries({ queryKey: ['posts', 'feed'] })
       setText('')

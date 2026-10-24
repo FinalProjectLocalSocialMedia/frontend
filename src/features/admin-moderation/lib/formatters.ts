@@ -33,7 +33,8 @@ export function maskEmail(email?: string | null): string {
   const parts = email.split('@')
   if (parts.length !== 2) return '••••••'
   const [local, domain] = parts
-  const maskedLocal = local.length <= 2 ? (local[0] || '') + '***' : local[0] + '***' + local[local.length - 1]
+  const maskedLocal =
+    local.length <= 2 ? (local[0] || '') + '***' : local[0] + '***' + local[local.length - 1]
   return `${maskedLocal}@${domain}`
 }
 
@@ -42,4 +43,3 @@ export function maskPhone(phone?: string | null): string {
   if (phone.length <= 4) return '••••'
   return phone.slice(0, 3) + '••••' + phone.slice(-3)
 }
-

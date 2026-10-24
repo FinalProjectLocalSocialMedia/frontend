@@ -13,12 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDateTime } from '../lib/formatters'
@@ -33,11 +28,7 @@ type UnlockDialogProps = {
 }
 
 const unlockSchema = z.object({
-  note: z
-    .string()
-    .trim()
-    .max(255, 'Ghi chú mở khoá tối đa 255 ký tự')
-    .optional(),
+  note: z.string().trim().max(255, 'Ghi chú mở khoá tối đa 255 ký tự').optional(),
 })
 
 type UnlockFormValues = z.infer<typeof unlockSchema>
@@ -86,7 +77,8 @@ export function UnlockDialog({ open, onOpenChange, user, onSubmit }: UnlockDialo
               <DialogTitle>Mở khoá tài khoản người dùng</DialogTitle>
             </div>
             <DialogDescription>
-              Khôi phục quyền truy cập bình thường cho tài khoản. Người dùng sẽ có thể đăng nhập lại sau khi mở khoá.
+              Khôi phục quyền truy cập bình thường cho tài khoản. Người dùng sẽ có thể đăng nhập lại
+              sau khi mở khoá.
             </DialogDescription>
           </DialogHeader>
 
@@ -100,23 +92,24 @@ export function UnlockDialog({ open, onOpenChange, user, onSubmit }: UnlockDialo
               <div className="font-semibold text-sm text-foreground truncate">
                 {user.displayName}
               </div>
-              <div className="text-xs text-muted-foreground font-mono">
-                ID: {user.id}
-              </div>
+              <div className="text-xs text-muted-foreground font-mono">ID: {user.id}</div>
             </div>
           </div>
 
           {/* Chi tiết lệnh khoá trước đó nếu có */}
           {user.lock && (
             <div className="rounded-lg border bg-muted/30 p-3 text-xs space-y-1.5">
-              <div className="font-semibold text-muted-foreground">Thông tin lệnh khoá hiện tại:</div>
+              <div className="font-semibold text-muted-foreground">
+                Thông tin lệnh khoá hiện tại:
+              </div>
               <p className="text-foreground">
                 <span className="text-muted-foreground">Lý do: </span>
                 {user.lock.reason}
               </p>
               <p className="text-muted-foreground text-[11px]">
-                Khoá bởi <span className="font-medium text-foreground">{user.lock.lockedBy.email}</span> vào lúc{' '}
-                {formatDateTime(user.lock.lockedAt)}
+                Khoá bởi{' '}
+                <span className="font-medium text-foreground">{user.lock.lockedBy.email}</span> vào
+                lúc {formatDateTime(user.lock.lockedAt)}
               </p>
             </div>
           )}
@@ -125,9 +118,7 @@ export function UnlockDialog({ open, onOpenChange, user, onSubmit }: UnlockDialo
             <Field>
               <div className="flex items-center justify-between">
                 <FieldLabel htmlFor="unlock-note">Ghi chú mở khoá (tuỳ chọn)</FieldLabel>
-                <span className="text-[11px] text-muted-foreground">
-                  {currentNote.length}/255
-                </span>
+                <span className="text-[11px] text-muted-foreground">{currentNote.length}/255</span>
               </div>
               <Textarea
                 id="unlock-note"
@@ -150,11 +141,7 @@ export function UnlockDialog({ open, onOpenChange, user, onSubmit }: UnlockDialo
             >
               Huỷ
             </Button>
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="gap-1.5"
-            >
+            <Button type="submit" disabled={submitting} className="gap-1.5">
               {submitting ? (
                 <Spinner className="size-4 mr-1" />
               ) : (

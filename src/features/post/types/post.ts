@@ -21,8 +21,6 @@ export interface Post {
   likes: LikePost[] | null
 }
 
-
-
 export type PostSearchItem = {
   id: string
   author: {
@@ -47,15 +45,10 @@ export type PostCursorPage = {
     nextCursor?: string | null
     hasMore: boolean
   }
-
 }
-
-
 
 export type PostUploadSignature = {
   timestamp: number
   folder: string
   signature: string
 }
-
-

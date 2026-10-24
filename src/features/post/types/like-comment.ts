@@ -1,7 +1,7 @@
-import { NormalUser } from "./normal-user"
+import { NormalUser } from './normal-user'
 
-export interface LikeComment{
-    user: NormalUser
-    target: Comment
-    createdAt: string
+export interface LikeComment {
+  user: NormalUser
+  target: Comment
+  createdAt: string
 }

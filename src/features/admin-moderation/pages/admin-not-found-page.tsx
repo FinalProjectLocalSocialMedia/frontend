@@ -21,9 +21,7 @@ export default function AdminNotFoundPage() {
   usePageTitle('404 - Không tìm thấy trang')
   const { user } = useAuth()
 
-  const homePath = user
-    ? `${ADMIN_BASE}/${defaultRouteForRole(user.role)}`
-    : `${ADMIN_BASE}/login`
+  const homePath = user ? `${ADMIN_BASE}/${defaultRouteForRole(user.role)}` : `${ADMIN_BASE}/login`
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-4">

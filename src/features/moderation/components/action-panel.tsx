@@ -13,7 +13,14 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
@@ -89,7 +96,9 @@ export function ActionPanel({
           icon: MessageSquareWarning,
           badgeVariant: 'secondary',
           disabled: isTargetStaff,
-          disabledReason: isTargetStaff ? 'Không thể áp dụng cảnh báo lên tài khoản quản trị' : undefined,
+          disabledReason: isTargetStaff
+            ? 'Không thể áp dụng cảnh báo lên tài khoản quản trị'
+            : undefined,
         },
         {
           id: 'LOCK_OWNER',
@@ -124,7 +133,9 @@ export function ActionPanel({
           icon: MessageSquareWarning,
           badgeVariant: 'secondary',
           disabled: isTargetStaff,
-          disabledReason: isTargetStaff ? 'Không thể áp dụng cảnh báo lên tài khoản quản trị' : undefined,
+          disabledReason: isTargetStaff
+            ? 'Không thể áp dụng cảnh báo lên tài khoản quản trị'
+            : undefined,
         },
         {
           id: 'LOCK_USER',
@@ -151,13 +162,7 @@ export function ActionPanel({
     }
 
     return []
-  }, [
-    isContentTarget,
-    isUserTarget,
-    isContentAlreadyRemoved,
-    isUserAlreadyLocked,
-    isTargetStaff,
-  ])
+  }, [isContentTarget, isUserTarget, isContentAlreadyRemoved, isUserAlreadyLocked, isTargetStaff])
 
   // Quản lý toggle hành động với luật loại trừ lẫn nhau giữa REJECT và các vi phạm
   const handleToggleAction = (actionId: ModerationAction, checked: boolean) => {
@@ -217,9 +222,7 @@ export function ActionPanel({
               )}
             </Badge>
           </div>
-          <CardDescription>
-            Báo cáo này đã được kết luận và lưu trữ lịch sử xử lý.
-          </CardDescription>
+          <CardDescription>Báo cáo này đã được kết luận và lưu trữ lịch sử xử lý.</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4 text-sm">
@@ -263,9 +266,7 @@ export function ActionPanel({
   }
 
   // Tên chủ thể
-  const ownerDisplayName = isUserTarget
-    ? target.user.id
-    : target.author.displayName
+  const ownerDisplayName = isUserTarget ? target.user.id : target.author.displayName
 
   return (
     <>
@@ -273,7 +274,10 @@ export function ActionPanel({
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-base font-semibold">Quyết định xử lý</CardTitle>
-            <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400 gap-1">
+            <Badge
+              variant="outline"
+              className="border-amber-500/40 text-amber-600 dark:text-amber-400 gap-1"
+            >
               <ShieldAlert className="size-3" />
               Đang chờ xử lý
             </Badge>
@@ -333,7 +337,10 @@ export function ActionPanel({
           <FieldGroup className="pt-2">
             <Field>
               <div className="flex justify-between items-center">
-                <FieldLabel htmlFor={noteId} className="text-xs font-semibold text-muted-foreground uppercase">
+                <FieldLabel
+                  htmlFor={noteId}
+                  className="text-xs font-semibold text-muted-foreground uppercase"
+                >
                   Ghi chú nội bộ (tuỳ chọn)
                 </FieldLabel>
                 <span className="text-[11px] text-muted-foreground">

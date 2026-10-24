@@ -1,11 +1,5 @@
 import { ArrowDownRight, ArrowUpRight, Hash, Minus } from 'lucide-react'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -89,10 +83,11 @@ export function TrendingHashtagsCard({
                       <span
                         className={cn(
                           'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-bold',
-                          index === 0 && 'bg-amber-500/20 text-amber-700 dark:text-amber-300 font-extrabold',
+                          index === 0 &&
+                            'bg-amber-500/20 text-amber-700 dark:text-amber-300 font-extrabold',
                           index === 1 && 'bg-slate-500/20 text-slate-700 dark:text-slate-300',
                           index === 2 && 'bg-amber-700/20 text-amber-900 dark:text-amber-500',
-                          index > 2 && 'text-muted-foreground'
+                          index > 2 && 'text-muted-foreground',
                         )}
                       >
                         {index + 1}
@@ -116,7 +111,7 @@ export function TrendingHashtagsCard({
                           'inline-flex items-center gap-0.5 text-[11px] font-semibold',
                           isPositive && 'text-emerald-600 dark:text-emerald-400',
                           isNegative && 'text-rose-600 dark:text-rose-400',
-                          !isPositive && !isNegative && 'text-muted-foreground'
+                          !isPositive && !isNegative && 'text-muted-foreground',
                         )}
                       >
                         {isPositive ? (

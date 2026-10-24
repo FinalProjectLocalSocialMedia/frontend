@@ -7,13 +7,7 @@ import {
   SANCTION_TYPE_LABELS,
   USER_STATUS_LABELS,
 } from '../lib/labels'
-import type {
-  PostStatus,
-  ReportStatus,
-  Role,
-  SanctionType,
-  UserStatus,
-} from '../lib/types'
+import type { PostStatus, ReportStatus, Role, SanctionType, UserStatus } from '../lib/types'
 
 type StatusBadgeProps =
   | {
@@ -55,7 +49,8 @@ export function StatusBadge(props: StatusBadgeProps) {
         <Badge
           variant={isLocked ? 'destructive' : 'secondary'}
           className={cn(
-            !isLocked && 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+            !isLocked &&
+              'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
             className,
           )}
         >
@@ -69,7 +64,10 @@ export function StatusBadge(props: StatusBadgeProps) {
         return (
           <Badge
             variant="outline"
-            className={cn('border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400', className)}
+            className={cn(
+              'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+              className,
+            )}
           >
             {REPORT_STATUS_LABELS.PENDING}
           </Badge>
@@ -79,7 +77,10 @@ export function StatusBadge(props: StatusBadgeProps) {
         return (
           <Badge
             variant="outline"
-            className={cn('border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400', className)}
+            className={cn(
+              'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+              className,
+            )}
           >
             {REPORT_STATUS_LABELS.RESOLVED}
           </Badge>
@@ -98,7 +99,8 @@ export function StatusBadge(props: StatusBadgeProps) {
         <Badge
           variant={isRemoved ? 'destructive' : 'secondary'}
           className={cn(
-            !isRemoved && 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+            !isRemoved &&
+              'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
             className,
           )}
         >
@@ -117,7 +119,13 @@ export function StatusBadge(props: StatusBadgeProps) {
       }
       if (value === 'MODERATOR') {
         return (
-          <Badge variant="secondary" className={cn('bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20', className)}>
+          <Badge
+            variant="secondary"
+            className={cn(
+              'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20',
+              className,
+            )}
+          >
             {ROLE_LABELS.MODERATOR}
           </Badge>
         )
@@ -140,7 +148,10 @@ export function StatusBadge(props: StatusBadgeProps) {
       return (
         <Badge
           variant="outline"
-          className={cn('border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400', className)}
+          className={cn(
+            'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+            className,
+          )}
         >
           {SANCTION_TYPE_LABELS.WARN}
         </Badge>

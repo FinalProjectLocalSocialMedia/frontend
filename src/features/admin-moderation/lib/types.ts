@@ -17,7 +17,8 @@ export type Role = 'ADMIN' | 'MODERATOR' | 'NORMAL_USER' | 'USER'
 export type StaffRole = 'ADMIN' | 'MODERATOR'
 export type ReportTargetType = 'POST' | 'COMMENT' | 'USER' // reports.target_type
 export type ReportStatus = 'PENDING' | 'RESOLVED' | 'REJECTED' // reports.status
-export type NotificationType = // notifications.notification_type
+export type NotificationType =
+  // notifications.notification_type
   | 'LIKE'
   | 'COMMENT'
   | 'FOLLOW'
@@ -70,7 +71,12 @@ export type SanctionRecord = {
   liftNote?: string // chỉ LOCK; không có liftedAt = đang bị khoá
 }
 /** = bản ghi LOCK chưa mở; KHÔNG có hạn (D8). */
-export type LockInfo = { sanctionId: Uuid; reason: string; lockedAt: IsoDateTime; lockedBy: StaffRef }
+export type LockInfo = {
+  sanctionId: Uuid
+  reason: string
+  lockedAt: IsoDateTime
+  lockedBy: StaffRef
+}
 export type AdminUserDetail = AdminUserListItem & {
   profile?: {
     // normal_users.*
@@ -87,7 +93,13 @@ export type CreateUserInput =
       email: string
       password: string
       phoneNumber: string
-      profile: { fullName: string; avatarUrl?: string; bio?: string; dateOfBirth: string; gender: number }
+      profile: {
+        fullName: string
+        avatarUrl?: string
+        bio?: string
+        dateOfBirth: string
+        gender: number
+      }
     }
   | { role: 'MODERATOR'; email: string; password: string; phoneNumber: string } // S11: không có permission level
   | { role: 'ADMIN'; email: string; password: string; phoneNumber: string }
@@ -309,5 +321,3 @@ export type TrendingPost = {
 }
 
 export type InteractionWeight = { name: InteractionType; weight: number }
-
-

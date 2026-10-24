@@ -35,7 +35,7 @@ export async function uploadPostMedia(file: File): Promise<PostMedia> {
   }
 
   const resourceType = mediaType === 'VIDEO' ? 'video' : 'image'
-  
+
   const signature = await requestPostUploadSignature()
   const formData = new FormData()
   formData.append('file', file)

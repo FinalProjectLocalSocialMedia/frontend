@@ -63,14 +63,62 @@ function buildUsers(): Pick<MockDb, 'users' | 'admins' | 'moderators' | 'normalU
 
   const people: Array<[number, string, string, string, string, number, number]> = [
     // [n, email, họ tên, bio, ngày sinh, vĩ độ, kinh độ]
-    [10, 'user@nearby.local', 'Nguyễn Minh', 'Chia sẻ nhịp sống Cầu Giấy.', '1999-04-12', 21.0333, 105.79],
-    [11, 'linh.tran@nearby.local', 'Trần Linh', 'Cà phê và những góc phố.', '2000-08-30', 21.0285, 105.8542],
-    [12, 'hoa.pham@nearby.local', 'Phạm Hoa', 'Hay đi chơi cuối tuần.', '1998-01-21', 20.9996, 105.815],
-    [13, 'nam.le@nearby.local', 'Lê Nam', 'Dân văn phòng Mỹ Đình.', '1997-11-02', 21.0286, 105.7646],
+    [
+      10,
+      'user@nearby.local',
+      'Nguyễn Minh',
+      'Chia sẻ nhịp sống Cầu Giấy.',
+      '1999-04-12',
+      21.0333,
+      105.79,
+    ],
+    [
+      11,
+      'linh.tran@nearby.local',
+      'Trần Linh',
+      'Cà phê và những góc phố.',
+      '2000-08-30',
+      21.0285,
+      105.8542,
+    ],
+    [
+      12,
+      'hoa.pham@nearby.local',
+      'Phạm Hoa',
+      'Hay đi chơi cuối tuần.',
+      '1998-01-21',
+      20.9996,
+      105.815,
+    ],
+    [
+      13,
+      'nam.le@nearby.local',
+      'Lê Nam',
+      'Dân văn phòng Mỹ Đình.',
+      '1997-11-02',
+      21.0286,
+      105.7646,
+    ],
     [14, 'an.do@nearby.local', 'Đỗ An', 'Thích ẩm thực đường phố.', '2001-06-15', 21.034, 105.8503],
     [15, 'mai.vu@nearby.local', 'Vũ Mai', 'Sinh viên năm cuối.', '2002-03-09', 21.0118, 105.8434],
-    [16, 'bach.hoang@nearby.local', 'Hoàng Bách', 'Ghi lại tin giao thông.', '1996-12-25', 21.0333, 105.79],
-    [17, 'locked@nearby.local', 'Bùi Tuấn', 'Tài khoản thử nghiệm bị khoá.', '1995-07-07', 21.0285, 105.8542],
+    [
+      16,
+      'bach.hoang@nearby.local',
+      'Hoàng Bách',
+      'Ghi lại tin giao thông.',
+      '1996-12-25',
+      21.0333,
+      105.79,
+    ],
+    [
+      17,
+      'locked@nearby.local',
+      'Bùi Tuấn',
+      'Tài khoản thử nghiệm bị khoá.',
+      '1995-07-07',
+      21.0285,
+      105.8542,
+    ],
   ]
 
   const users: DbUser[] = [
@@ -128,9 +176,14 @@ function buildContent(): Pick<
     locationType: type,
   }))
 
-  const hashtags: DbHashtag[] = ['TrafficJam', 'CafeHanoi', 'FoodStreet', 'WeekendVibes', 'Flood', 'Concert'].map(
-    (name, i) => ({ id: hid(i + 1), name }),
-  )
+  const hashtags: DbHashtag[] = [
+    'TrafficJam',
+    'CafeHanoi',
+    'FoodStreet',
+    'WeekendVibes',
+    'Flood',
+    'Concert',
+  ].map((name, i) => ({ id: hid(i + 1), name }))
 
   // S10: posts.content là TEXT — bài số 5 cố ý rất dài để kiểm tra "Xem thêm".
   const longText = Array.from(
@@ -143,7 +196,14 @@ function buildContent(): Pick<
   const rawPosts: Array<[number, number, string, number, number, DbPost['status']]> = [
     [1, 16, 'Kẹt xe nghiêm trọng đoạn Xuân Thuỷ, mọi người nên đi đường khác!', 2, 35, 'ACTIVE'],
     [2, 11, 'Cà phê trứng ở phố cổ vẫn là số một.', 6, 90, 'ACTIVE'],
-    [3, 15, 'Nghe nói tối nay sẽ ngập nặng ở khu Thống Nhất, ai biết thông tin không?', 4, 150, 'ACTIVE'],
+    [
+      3,
+      15,
+      'Nghe nói tối nay sẽ ngập nặng ở khu Thống Nhất, ai biết thông tin không?',
+      4,
+      150,
+      'ACTIVE',
+    ],
     [4, 12, 'Cuối tuần này Royal City có sự kiện âm nhạc rất vui.', 3, 240, 'ACTIVE'],
     [5, 14, longText, 6, 330, 'ACTIVE'],
     [6, 13, 'Concert tại Mỹ Đình tối qua đông kín người.', 5, 600, 'ACTIVE'],
@@ -185,33 +245,33 @@ function buildContent(): Pick<
   )
 
   // [n, tác giả, nội dung, bài viết, phút trước, trạng thái, bình luận cha]
-  const rawComments: Array<[number, number, string, number, number, DbComment['status'], number?]> = [
-    [1, 12, 'Cảm ơn bạn đã báo tin!', 1, 30, 'ACTIVE'],
-    [2, 13, 'Bình luận này chứa lời lẽ công kích cá nhân.', 1, 25, 'ACTIVE'],
-    [3, 14, 'Mình cũng thấy vậy.', 2, 80, 'ACTIVE'],
-    [4, 10, 'Đã gỡ vì vi phạm quy tắc cộng đồng.', 3, 100, 'REMOVED'],
-    [5, 11, 'Mình sẽ đến xem.', 4, 200, 'ACTIVE'],
-    [6, 16, 'Đồng ý với bạn.', 1, 20, 'ACTIVE', 1],
-  ]
-  const comments: DbComment[] = rawComments.map(([n, author, content, post, ago, status, parent]) => ({
-    id: cid(n),
-    authorId: uid(author),
-    content,
-    media: [],
-    parentCommentId: parent ? cid(parent) : undefined,
-    createdAt: minutesAgo(ago),
-    updatedAt: minutesAgo(ago),
-    postId: pid(post),
-    status,
-  }))
+  const rawComments: Array<[number, number, string, number, number, DbComment['status'], number?]> =
+    [
+      [1, 12, 'Cảm ơn bạn đã báo tin!', 1, 30, 'ACTIVE'],
+      [2, 13, 'Bình luận này chứa lời lẽ công kích cá nhân.', 1, 25, 'ACTIVE'],
+      [3, 14, 'Mình cũng thấy vậy.', 2, 80, 'ACTIVE'],
+      [4, 10, 'Đã gỡ vì vi phạm quy tắc cộng đồng.', 3, 100, 'REMOVED'],
+      [5, 11, 'Mình sẽ đến xem.', 4, 200, 'ACTIVE'],
+      [6, 16, 'Đồng ý với bạn.', 1, 20, 'ACTIVE', 1],
+    ]
+  const comments: DbComment[] = rawComments.map(
+    ([n, author, content, post, ago, status, parent]) => ({
+      id: cid(n),
+      authorId: uid(author),
+      content,
+      media: [],
+      parentCommentId: parent ? cid(parent) : undefined,
+      createdAt: minutesAgo(ago),
+      updatedAt: minutesAgo(ago),
+      postId: pid(post),
+      status,
+    }),
+  )
 
   return { locations, hashtags, posts, postHashtags, comments }
 }
 
-function buildModeration(): Pick<
-  MockDb,
-  'reports' | 'sanctions' | 'notifications' | 'auditLogs'
-> {
+function buildModeration(): Pick<MockDb, 'reports' | 'sanctions' | 'notifications' | 'auditLogs'> {
   const pending = (
     n: number,
     reporter: number,
@@ -338,12 +398,52 @@ function buildModeration(): Pick<
   })
 
   const auditLogs: DbAuditLog[] = [
-    audit(1, 2, 'USER_LOCKED', 'USER', uid(17), { reportId: rid(9), reason: 'Tài khoản giả mạo thương hiệu.' }, daysAgo(3)),
-    audit(2, 2, 'REPORT_RESOLVED', 'REPORT', rid(9), { actions: ['LOCK_USER'], note: 'Tài khoản giả mạo, đã khoá.' }, daysAgo(3)),
-    audit(3, 1, 'REPORT_REJECTED', 'REPORT', rid(10), { actions: ['REJECT'], note: 'Không vi phạm.' }, daysAgo(2)),
+    audit(
+      1,
+      2,
+      'USER_LOCKED',
+      'USER',
+      uid(17),
+      { reportId: rid(9), reason: 'Tài khoản giả mạo thương hiệu.' },
+      daysAgo(3),
+    ),
+    audit(
+      2,
+      2,
+      'REPORT_RESOLVED',
+      'REPORT',
+      rid(9),
+      { actions: ['LOCK_USER'], note: 'Tài khoản giả mạo, đã khoá.' },
+      daysAgo(3),
+    ),
+    audit(
+      3,
+      1,
+      'REPORT_REJECTED',
+      'REPORT',
+      rid(10),
+      { actions: ['REJECT'], note: 'Không vi phạm.' },
+      daysAgo(2),
+    ),
     audit(4, 3, 'POST_REMOVED', 'POST', pid(9), { reportId: rid(11) }, daysAgo(1)),
-    audit(5, 3, 'REPORT_RESOLVED', 'REPORT', rid(11), { actions: ['REMOVE_CONTENT'], note: 'Đã gỡ bài quảng cáo.' }, daysAgo(1)),
-    audit(6, 3, 'USER_WARNED', 'USER', uid(16), { message: 'Vui lòng không đăng tin chưa kiểm chứng.' }, daysAgo(10)),
+    audit(
+      5,
+      3,
+      'REPORT_RESOLVED',
+      'REPORT',
+      rid(11),
+      { actions: ['REMOVE_CONTENT'], note: 'Đã gỡ bài quảng cáo.' },
+      daysAgo(1),
+    ),
+    audit(
+      6,
+      3,
+      'USER_WARNED',
+      'USER',
+      uid(16),
+      { message: 'Vui lòng không đăng tin chưa kiểm chứng.' },
+      daysAgo(10),
+    ),
   ]
 
   return { reports, sanctions, notifications, auditLogs }

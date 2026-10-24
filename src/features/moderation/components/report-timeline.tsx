@@ -74,7 +74,11 @@ const ACTION_MAP: Record<
 
 const MODERATION_ACTION_LABELS: Record<
   string,
-  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: typeof ShieldAlert }
+  {
+    label: string
+    variant: 'default' | 'secondary' | 'destructive' | 'outline'
+    icon: typeof ShieldAlert
+  }
 > = {
   REMOVE_CONTENT: {
     label: 'Gỡ nội dung vi phạm',
@@ -133,7 +137,9 @@ function TimelineItem({ log }: { log: AuditLog }) {
       : null
 
   // Trích xuất danh sách báo cáo cùng đối tượng được giải quyết gộp
-  const reportIds: string[] = Array.isArray(details.reportIds) ? (details.reportIds as string[]) : []
+  const reportIds: string[] = Array.isArray(details.reportIds)
+    ? (details.reportIds as string[])
+    : []
 
   const hasRawDetails = Object.keys(details).length > 0
 
@@ -216,7 +222,8 @@ function TimelineItem({ log }: { log: AuditLog }) {
         )}
 
         {/* Thông tin thông báo & phạm vi gộp */}
-        {((notifications && (notifications.reporters !== undefined || notifications.owner !== undefined)) ||
+        {((notifications &&
+          (notifications.reporters !== undefined || notifications.owner !== undefined)) ||
           reportIds.length > 1) && (
           <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-muted-foreground">
             {notifications && (
@@ -230,7 +237,10 @@ function TimelineItem({ log }: { log: AuditLog }) {
                 )}
                 {notifications.owner !== undefined && (
                   <span>
-                    · <span className="font-medium text-foreground">{notifications.owner} chủ nội dung</span>
+                    ·{' '}
+                    <span className="font-medium text-foreground">
+                      {notifications.owner} chủ nội dung
+                    </span>
                   </span>
                 )}
               </div>
@@ -240,7 +250,8 @@ function TimelineItem({ log }: { log: AuditLog }) {
               <div className="inline-flex items-center gap-1.5 rounded bg-muted/50 px-2 py-1">
                 <Layers className="size-3 text-muted-foreground shrink-0" />
                 <span>
-                  Đã gộp xử lý <strong className="text-foreground">{reportIds.length}</strong> báo cáo cùng đối tượng
+                  Đã gộp xử lý <strong className="text-foreground">{reportIds.length}</strong> báo
+                  cáo cùng đối tượng
                 </span>
               </div>
             )}
@@ -256,7 +267,9 @@ function TimelineItem({ log }: { log: AuditLog }) {
               className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               <Code2 className="size-3" />
-              <span>{showRawJson ? 'Thu gọn dữ liệu kỹ thuật' : 'Xem dữ liệu kỹ thuật (JSON)'}</span>
+              <span>
+                {showRawJson ? 'Thu gọn dữ liệu kỹ thuật' : 'Xem dữ liệu kỹ thuật (JSON)'}
+              </span>
               {showRawJson ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
             </button>
 
@@ -275,7 +288,7 @@ function TimelineItem({ log }: { log: AuditLog }) {
 export function ReportTimeline({ history = [], className }: ReportTimelineProps) {
   // Sắp xếp mới nhất lên đầu
   const sortedHistory = [...history].sort(
-    (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()
+    (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
   )
 
   return (

@@ -14,13 +14,7 @@ import {
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePendingReportCount } from '@/features/admin-moderation/api/shell.queries'
 import { useAuth } from '@/features/admin-moderation/auth/auth-context'
@@ -31,12 +25,22 @@ import { ContentStatsChart } from '../components/content-stats-chart'
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const { data: postStats, isLoading: isStatsLoading, refetch: refetchStats, isFetching: isStatsFetching } =
-    usePostStats('7d')
-  const { data: trendingHashtags, isLoading: isHashtagsLoading, refetch: refetchHashtags } =
-    useTrendingHashtags('7d', 5)
-  const { data: trendingPosts, isLoading: isPostsLoading, refetch: refetchPosts } =
-    useTrendingPosts('7d', 3)
+  const {
+    data: postStats,
+    isLoading: isStatsLoading,
+    refetch: refetchStats,
+    isFetching: isStatsFetching,
+  } = usePostStats('7d')
+  const {
+    data: trendingHashtags,
+    isLoading: isHashtagsLoading,
+    refetch: refetchHashtags,
+  } = useTrendingHashtags('7d', 5)
+  const {
+    data: trendingPosts,
+    isLoading: isPostsLoading,
+    refetch: refetchPosts,
+  } = useTrendingPosts('7d', 3)
   const { data: pendingReportCount = 0 } = usePendingReportCount()
 
   const handleRefresh = () => {
@@ -53,7 +57,10 @@ export function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1">
+            <Badge
+              variant="outline"
+              className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1"
+            >
               <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Hệ thống trực tuyến
             </Badge>
@@ -172,7 +179,11 @@ export function DashboardPage() {
           <CardHeader className="pb-2">
             <CardDescription className="text-xs">Tổng số bài viết</CardDescription>
             <CardTitle className="text-2xl font-bold flex items-center justify-between">
-              {isStatsLoading ? <Skeleton className="h-8 w-20" /> : overview?.totalPosts.toLocaleString()}
+              {isStatsLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                overview?.totalPosts.toLocaleString()
+              )}
               <FileText className="size-5 text-muted-foreground/50" />
             </CardTitle>
           </CardHeader>
@@ -185,7 +196,11 @@ export function DashboardPage() {
           <CardHeader className="pb-2">
             <CardDescription className="text-xs">Tác giả hoạt động (7 ngày)</CardDescription>
             <CardTitle className="text-2xl font-bold flex items-center justify-between">
-              {isStatsLoading ? <Skeleton className="h-8 w-20" /> : overview?.activeAuthors.toLocaleString()}
+              {isStatsLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                overview?.activeAuthors.toLocaleString()
+              )}
               <Users className="size-5 text-muted-foreground/50" />
             </CardTitle>
           </CardHeader>
@@ -263,10 +278,13 @@ export function DashboardPage() {
                 [...Array(4)].map((_, i) => <Skeleton key={i} className="h-6 w-full" />)
               ) : trendingHashtags && trendingHashtags.length > 0 ? (
                 trendingHashtags.map((h, idx) => (
-                  <div key={h.hashtagId} className="flex items-center justify-between text-xs py-1 border-b last:border-b-0">
+                  <div
+                    key={h.hashtagId}
+                    className="flex items-center justify-between text-xs py-1 border-b last:border-b-0"
+                  >
                     <span className="font-medium text-foreground">
-                      <span className="text-muted-foreground mr-1.5 font-mono">#{idx + 1}</span>
-                      #{h.name}
+                      <span className="text-muted-foreground mr-1.5 font-mono">#{idx + 1}</span>#
+                      {h.name}
                     </span>
                     <span className="font-mono text-muted-foreground text-[11px]">
                       {h.postCount} bài
@@ -307,13 +325,14 @@ export function DashboardPage() {
                       <span className="font-semibold text-foreground truncate max-w-[150px]">
                         {p.author.displayName}
                       </span>
-                      <Badge variant="secondary" className="text-[10px] font-mono h-4 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] font-mono h-4 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                      >
                         {p.score} điểm
                       </Badge>
                     </div>
-                    <p className="text-muted-foreground line-clamp-1 text-[11px]">
-                      {p.content}
-                    </p>
+                    <p className="text-muted-foreground line-clamp-1 text-[11px]">{p.content}</p>
                   </div>
                 ))
               ) : (

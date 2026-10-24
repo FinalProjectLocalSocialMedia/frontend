@@ -187,9 +187,7 @@ export function createHttpClient(opts: CreateHttpClientOptions): AxiosInstance {
         }
 
         const message =
-          data?.message ||
-          error.message ||
-          `Yêu cầu thất bại với mã trạng thái ${status}`
+          data?.message || error.message || `Yêu cầu thất bại với mã trạng thái ${status}`
 
         const apiError = new ApiError({
           message,

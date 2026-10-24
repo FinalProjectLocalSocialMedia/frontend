@@ -21,13 +21,7 @@ type EmptyStateProps = {
 /**
  * Trạng thái trống chuẩn dùng cho bảng, danh sách, chi tiết khi không có dữ liệu.
  */
-export function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  action,
-  className,
-}: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   return (
     <Empty className={cn('border border-dashed py-12', className)}>
       <EmptyHeader>

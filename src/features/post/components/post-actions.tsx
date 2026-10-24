@@ -1,45 +1,31 @@
-import {
-  Bookmark,
-  BookmarkCheck,
-  Copy,
-  Flag,
-  MoreHorizontal,
-  Trash2,
-} from "lucide-react";
-import { toast } from "sonner";
+import { Bookmark, BookmarkCheck, Copy, Flag, MoreHorizontal, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { PostSearchItem } from '../types/post';
-
+} from '@/components/ui/dropdown-menu'
+import { PostSearchItem } from '../types/post'
 
 interface PostActionsProps {
-  post: PostSearchItem;
-  saved: boolean;
-  isOwn: boolean;
-  toggleSaved: (id: PostSearchItem["id"]) => void;
-  removePost: (id: PostSearchItem["id"]) => void;
+  post: PostSearchItem
+  saved: boolean
+  isOwn: boolean
+  toggleSaved: (id: PostSearchItem['id']) => void
+  removePost: (id: PostSearchItem['id']) => void
 }
 
-export function PostActions({
-  post,
-  saved,
-  isOwn,
-  toggleSaved,
-  removePost,
-}: PostActionsProps) {
+export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: PostActionsProps) {
   async function copyText(text: string) {
     try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Copied to clipboard");
+      await navigator.clipboard.writeText(text)
+      toast.success('Copied to clipboard')
     } catch {
-      toast.error("Could not copy. Please copy it manually.");
+      toast.error('Could not copy. Please copy it manually.')
     }
   }
 
@@ -61,21 +47,15 @@ export function PostActions({
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem
           onClick={() => {
-            toggleSaved(post.id);
-            toast(
-              saved
-                ? "Removed from saved posts"
-                : "Saved to your posts",
-            );
+            toggleSaved(post.id)
+            toast(saved ? 'Removed from saved posts' : 'Saved to your posts')
           }}
         >
           {saved ? <BookmarkCheck /> : <Bookmark />}
-          {saved ? "Unsave post" : "Save post"}
+          {saved ? 'Unsave post' : 'Save post'}
         </DropdownMenuItem>
 
-        <DropdownMenuItem
-          onClick={() => void copyText(post.content)}
-        >
+        <DropdownMenuItem onClick={() => void copyText(post.content)}>
           <Copy /> Copy text
         </DropdownMenuItem>
 
@@ -85,8 +65,8 @@ export function PostActions({
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
-              removePost(post.id);
-              toast.success("Post deleted");
+              removePost(post.id)
+              toast.success('Post deleted')
             }}
           >
             <Trash2 /> Delete post
@@ -95,9 +75,8 @@ export function PostActions({
           <DropdownMenuItem
             variant="destructive"
             onClick={() =>
-              toast.success("Report submitted", {
-                description:
-                  "Thanks for helping keep nearby. safe.",
+              toast.success('Report submitted', {
+                description: 'Thanks for helping keep nearby. safe.',
               })
             }
           >
@@ -106,5 +85,5 @@ export function PostActions({
         )}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

@@ -49,7 +49,6 @@ export function PostMediaUploader({
         })
       })
     }
-    
 
     if (inputRef.current) inputRef.current.value = ''
     if (uploadErrors.length) {

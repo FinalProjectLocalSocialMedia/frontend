@@ -2,6 +2,7 @@ import { Bell, LogIn, Navigation } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { navItems } from '@/lib/nav'
 import { useAuth } from '@/lib/auth-context'
+import { getDisplayName } from '@/features/auth/types/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ThemeToggle } from './theme-toggle'
 
@@ -9,6 +10,8 @@ const notifications = navItems.find((item) => item.to === '/notifications')
 
 export function MobileHeader() {
   const { user, isAuthenticated } = useAuth()
+  const displayName = user ? getDisplayName(user) : ''
+  const avatarUrl = user && 'avatarUrl' in user ? user.avatarUrl : undefined
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border/70 bg-card/90 px-4 py-3 backdrop-blur lg:hidden">
@@ -35,9 +38,9 @@ export function MobileHeader() {
         {isAuthenticated && user ? (
           <Link to="/profile" className="ml-1 shrink-0">
             <Avatar className="size-8 border border-primary/20">
-              <AvatarImage src={user.avatarUrl} alt={user.fullName} />
+              <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback className="bg-primary/10 text-[11px] font-bold text-primary">
-                {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : 'ME'}
+                {displayName ? displayName.slice(0, 2).toUpperCase() : 'ME'}
               </AvatarFallback>
             </Avatar>
           </Link>

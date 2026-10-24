@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { PostSearchItem } from '../types/post'
 
-
 interface PostEngagementProps {
   post: PostSearchItem
   liked: boolean

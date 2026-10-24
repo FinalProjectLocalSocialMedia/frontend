@@ -63,9 +63,7 @@ export function UserMenu({ className, align = 'end' }: UserMenuProps) {
         }
       >
         <Avatar size="sm" className="bg-primary/10 text-primary">
-          <AvatarFallback className="text-xs font-semibold uppercase">
-            {initials}
-          </AvatarFallback>
+          <AvatarFallback className="text-xs font-semibold uppercase">{initials}</AvatarFallback>
         </Avatar>
         <span className="hidden text-xs font-medium text-foreground sm:inline-block">
           {user.email}
@@ -75,9 +73,7 @@ export function UserMenu({ className, align = 'end' }: UserMenuProps) {
       <DropdownMenuContent align={align} className="w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex flex-col gap-1 p-2">
-            <span className="truncate text-xs font-semibold text-foreground">
-              {user.email}
-            </span>
+            <span className="truncate text-xs font-semibold text-foreground">{user.email}</span>
             <div>
               <StatusBadge type="role" value={user.role} className="text-[10px] py-0 px-1.5 h-4" />
             </div>
@@ -92,11 +88,7 @@ export function UserMenu({ className, align = 'end' }: UserMenuProps) {
           disabled={loggingOut}
           className="cursor-pointer gap-2"
         >
-          {loggingOut ? (
-            <Spinner className="size-4" />
-          ) : (
-            <LogOut className="size-4" />
-          )}
+          {loggingOut ? <Spinner className="size-4" /> : <LogOut className="size-4" />}
           <span>Đăng xuất</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

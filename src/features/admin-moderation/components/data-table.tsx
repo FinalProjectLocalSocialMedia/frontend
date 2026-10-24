@@ -232,9 +232,7 @@ export function DataTable<T>({
         <div className="flex flex-col items-center justify-between gap-3 px-1 sm:flex-row">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span>
-              {total > 0
-                ? `Hiển thị ${startItem} - ${endItem} trên tổng số ${total}`
-                : '0 kết quả'}
+              {total > 0 ? `Hiển thị ${startItem} - ${endItem} trên tổng số ${total}` : '0 kết quả'}
             </span>
             {onPageSizeChange && (
               <div className="flex items-center gap-1.5">
@@ -243,7 +241,11 @@ export function DataTable<T>({
                   onValueChange={(val) => val && onPageSizeChange(Number(val))}
                   items={pageSizeItems}
                 >
-                  <SelectTrigger size="sm" aria-label="Số bản ghi mỗi trang" className="h-7 text-xs">
+                  <SelectTrigger
+                    size="sm"
+                    aria-label="Số bản ghi mỗi trang"
+                    className="h-7 text-xs"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent align="start">

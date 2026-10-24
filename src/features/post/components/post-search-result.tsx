@@ -1,11 +1,9 @@
-
 import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { PostCard } from '@/features/post/components/post-card'
 import { currentUserId } from '@/lib/posts-context'
 import { PostSearchItem } from '../types/post'
-
 
 type PostSearchResultsProps = {
   query: string
@@ -53,15 +51,8 @@ export function PostSearchResults({
   if (isError && !hasData) {
     return (
       <div role="alert" className="rounded-2xl border border-destructive/30 bg-card p-5">
-        <p className="text-sm text-destructive">
-          {errorMessage}
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-3"
-          onClick={onRetry}
-        >
+        <p className="text-sm text-destructive">{errorMessage}</p>
+        <Button variant="outline" size="sm" className="mt-3" onClick={onRetry}>
           Try again
         </Button>
       </div>
@@ -73,24 +64,15 @@ export function PostSearchResults({
       <div className="rounded-2xl border border-border bg-card px-5 py-12 text-center">
         <Search aria-hidden="true" className="mx-auto size-5 text-muted-foreground" />
         <p className="mt-3 text-sm font-medium">No posts found</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Try another search term.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Try another search term.</p>
       </div>
     )
   }
 
   return (
-    <section
-      aria-label={`Search results for ${query}`}
-      className="flex flex-col gap-4"
-    >
+    <section aria-label={`Search results for ${query}`} className="flex flex-col gap-4">
       {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          currentUserId={currentUserId}
-        />
+        <PostCard key={post.id} post={post} currentUserId={currentUserId} />
       ))}
 
       {isFetchNextPageError && (

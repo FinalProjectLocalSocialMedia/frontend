@@ -22,11 +22,7 @@ export function ComingSoon({
   return (
     <div className="space-y-6">
       <PageHeader title={title} description={description} />
-      <EmptyState
-        icon={icon}
-        title="Tính năng đang được phát triển"
-        description={phaseText}
-      />
+      <EmptyState icon={icon} title="Tính năng đang được phát triển" description={phaseText} />
     </div>
   )
 }

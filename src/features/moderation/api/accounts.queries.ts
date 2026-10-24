@@ -11,16 +11,11 @@ import { reportKeys } from './reports.queries'
 
 export const accountKeys = {
   all: ['admin', 'accounts'] as const,
-  flagged: (params: FlaggedAccountsParams) =>
-    ['admin', 'accounts', 'flagged', params] as const,
-  sanctions: (userId: Uuid) =>
-    ['admin', 'accounts', 'sanctions', userId] as const,
+  flagged: (params: FlaggedAccountsParams) => ['admin', 'accounts', 'flagged', params] as const,
+  sanctions: (userId: Uuid) => ['admin', 'accounts', 'sanctions', userId] as const,
 }
 
-export function useFlaggedAccounts(
-  params: FlaggedAccountsParams = {},
-  enabled = true
-) {
+export function useFlaggedAccounts(params: FlaggedAccountsParams = {}, enabled = true) {
   return useQuery({
     queryKey: accountKeys.flagged(params),
     queryFn: ({ signal }) => accountsService.getFlaggedAccounts(params, { signal }),
@@ -70,13 +65,8 @@ export function useLockUser() {
 export function useUnlockUser() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({
-      userId,
-      input,
-    }: {
-      userId: Uuid
-      input: UnlockUserInput
-    }) => accountsService.unlockUser(userId, input),
+    mutationFn: ({ userId, input }: { userId: Uuid; input: UnlockUserInput }) =>
+      accountsService.unlockUser(userId, input),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: accountKeys.all })
       queryClient.invalidateQueries({

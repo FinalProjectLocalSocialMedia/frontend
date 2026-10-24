@@ -27,9 +27,11 @@ export interface ReportsService {
   list(params?: ReportListParams, options?: RequestOptions): Promise<Paginated<ReportListItem>>
   summary(options?: RequestOptions): Promise<ReportSummary>
   get(id: Uuid, options?: RequestOptions): Promise<ReportDetail>
-  resolve(id: Uuid, input: ResolveReportInput, options?: RequestOptions): Promise<ResolveReportResult>
+  resolve(
+    id: Uuid,
+    input: ResolveReportInput,
+    options?: RequestOptions,
+  ): Promise<ResolveReportResult>
 }
 
-export const reportsService: ReportsService = USE_MOCK
-  ? mockReportsService
-  : httpReportsService
+export const reportsService: ReportsService = USE_MOCK ? mockReportsService : httpReportsService

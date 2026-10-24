@@ -10,22 +10,17 @@ import { httpStatsService } from './stats.http'
 import { mockStatsService } from './stats.mock'
 
 export interface StatsService {
-  getPostStats(
-    range?: StatsRange,
-    options?: RequestOptions
-  ): Promise<PostStats>
+  getPostStats(range?: StatsRange, options?: RequestOptions): Promise<PostStats>
 
   getTrendingHashtags(
     params?: { range?: StatsRange; limit?: number },
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<TrendingHashtag[]>
 
   getTrendingPosts(
     params?: { range?: StatsRange; limit?: number },
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<TrendingPost[]>
 }
 
-export const statsService: StatsService = USE_MOCK
-  ? mockStatsService
-  : httpStatsService
+export const statsService: StatsService = USE_MOCK ? mockStatsService : httpStatsService

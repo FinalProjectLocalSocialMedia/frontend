@@ -13,12 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -76,12 +71,7 @@ const userFormSchema = z
 
 type UserFormValues = z.infer<typeof userFormSchema>
 
-export function UserFormDialog({
-  open,
-  onOpenChange,
-  user,
-  onSuccess,
-}: UserFormDialogProps) {
+export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserFormDialogProps) {
   const isEdit = Boolean(user)
   const [submitting, setSubmitting] = useState(false)
 
@@ -134,7 +124,10 @@ export function UserFormDialog({
           avatarUrl: user.avatarUrl || '',
           bio: detail?.profile?.bio || '',
           dateOfBirth: detail?.profile?.dateOfBirth || '',
-          gender: detail?.profile?.gender !== undefined ? (String(detail.profile.gender) as '0' | '1' | '2') : '1',
+          gender:
+            detail?.profile?.gender !== undefined
+              ? (String(detail.profile.gender) as '0' | '1' | '2')
+              : '1',
         })
       } else {
         reset({
@@ -304,11 +297,7 @@ export function UserFormDialog({
 
             <Field data-invalid={Boolean(errors.phoneNumber)}>
               <FieldLabel className="text-xs font-medium">Số điện thoại</FieldLabel>
-              <Input
-                {...register('phoneNumber')}
-                placeholder="0912345678"
-                className="text-xs"
-              />
+              <Input {...register('phoneNumber')} placeholder="0912345678" className="text-xs" />
               {errors.phoneNumber && (
                 <FieldError className="text-xs">{errors.phoneNumber.message}</FieldError>
               )}
@@ -353,11 +342,7 @@ export function UserFormDialog({
               <FieldGroup className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field>
                   <FieldLabel className="text-xs font-medium">Ngày sinh</FieldLabel>
-                  <Input
-                    {...register('dateOfBirth')}
-                    type="date"
-                    className="text-xs"
-                  />
+                  <Input {...register('dateOfBirth')} type="date" className="text-xs" />
                 </Field>
 
                 <Field>
@@ -382,7 +367,9 @@ export function UserFormDialog({
               </FieldGroup>
 
               <Field>
-                <FieldLabel className="text-xs font-medium">Đường dẫn ảnh đại diện (Avatar URL)</FieldLabel>
+                <FieldLabel className="text-xs font-medium">
+                  Đường dẫn ảnh đại diện (Avatar URL)
+                </FieldLabel>
                 <Input
                   {...register('avatarUrl')}
                   placeholder="https://..."
@@ -414,12 +401,7 @@ export function UserFormDialog({
             >
               Huỷ
             </Button>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={submitting}
-              className="text-xs gap-1.5"
-            >
+            <Button type="submit" size="sm" disabled={submitting} className="text-xs gap-1.5">
               {submitting && <Spinner className="size-3.5" />}
               {isEdit ? 'Lưu thay đổi' : 'Tạo tài khoản'}
             </Button>

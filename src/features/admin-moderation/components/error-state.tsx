@@ -14,7 +14,11 @@ function getErrorMessage(error: unknown): string {
   if (!error) return 'Đã có lỗi không mong muốn xảy ra.'
   if (typeof error === 'string') return error
   if (error instanceof Error) return error.message
-  if (typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string') {
+  if (
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof (error as { message: unknown }).message === 'string'
+  ) {
     return (error as { message: string }).message
   }
   return 'Đã có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.'
@@ -32,7 +36,13 @@ export function ErrorState({
   const message = getErrorMessage(error)
 
   return (
-    <Alert variant="destructive" className={cn('flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between', className)}>
+    <Alert
+      variant="destructive"
+      className={cn(
+        'flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between',
+        className,
+      )}
+    >
       <div className="flex items-start gap-3">
         <AlertTriangle className="size-5 shrink-0" />
         <div className="space-y-1">

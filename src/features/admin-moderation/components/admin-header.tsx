@@ -32,8 +32,7 @@ export function AdminHeader() {
   const breadcrumbItems = segments.map((segment, index) => {
     const fullPath = `${ADMIN_BASE}/${segments.slice(0, index + 1).join('/')}`
     const label =
-      BREADCRUMB_LABELS[segment] ??
-      (segment.length > 10 ? `${segment.slice(0, 8)}...` : segment)
+      BREADCRUMB_LABELS[segment] ?? (segment.length > 10 ? `${segment.slice(0, 8)}...` : segment)
     const isLast = index === segments.length - 1
 
     return { fullPath, label, isLast }
@@ -48,11 +47,7 @@ export function AdminHeader() {
         <Breadcrumb className="hidden sm:block">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink
-                render={<Link to={ADMIN_BASE} />}
-              >
-                Quản trị
-              </BreadcrumbLink>
+              <BreadcrumbLink render={<Link to={ADMIN_BASE} />}>Quản trị</BreadcrumbLink>
             </BreadcrumbItem>
 
             {breadcrumbItems.map((item) => (
@@ -62,9 +57,7 @@ export function AdminHeader() {
                   {item.isLast ? (
                     <BreadcrumbPage>{item.label}</BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink
-                      render={<Link to={item.fullPath} />}
-                    >
+                    <BreadcrumbLink render={<Link to={item.fullPath} />}>
                       {item.label}
                     </BreadcrumbLink>
                   )}

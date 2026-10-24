@@ -19,15 +19,8 @@ type UserSanctionsDialogProps = {
   user: UserRef | null
 }
 
-export function UserSanctionsDialog({
-  open,
-  onOpenChange,
-  user,
-}: UserSanctionsDialogProps) {
-  const { data: sanctions = [], isLoading } = useUserSanctions(
-    user?.id ?? '',
-    open && !!user?.id
-  )
+export function UserSanctionsDialog({ open, onOpenChange, user }: UserSanctionsDialogProps) {
+  const { data: sanctions = [], isLoading } = useUserSanctions(user?.id ?? '', open && !!user?.id)
 
   if (!user) return null
 
@@ -120,9 +113,7 @@ export function UserSanctionsDialog({
                           </div>
                         )}
                         {s.liftNote && (
-                          <p className="text-muted-foreground">
-                            Ghi chú: {s.liftNote}
-                          </p>
+                          <p className="text-muted-foreground">Ghi chú: {s.liftNote}</p>
                         )}
                       </div>
                     )}

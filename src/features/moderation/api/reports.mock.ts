@@ -10,10 +10,7 @@ import { mockNow } from '@/features/admin-moderation/api/mock/clock'
 import { newId } from '@/features/admin-moderation/api/mock/ids'
 import { mockDelay } from '@/features/admin-moderation/api/mock/latency'
 import { paginate } from '@/features/admin-moderation/api/mock/paginate'
-import {
-  mockError,
-  requirePermission,
-} from '@/features/admin-moderation/api/mock/session'
+import { mockError, requirePermission } from '@/features/admin-moderation/api/mock/session'
 import type { DbReport, DbSanction } from '@/features/admin-moderation/api/mock/db-types'
 import type {
   AuditLog,
@@ -85,9 +82,7 @@ export const mockReportsService: ReportsService = {
 
     // Lọc theo nhóm đối tượng: content (POST/COMMENT) vs user (USER)
     if (params.type === 'content') {
-      filtered = filtered.filter(
-        (r) => r.targetType === 'POST' || r.targetType === 'COMMENT',
-      )
+      filtered = filtered.filter((r) => r.targetType === 'POST' || r.targetType === 'COMMENT')
     } else if (params.type === 'user') {
       filtered = filtered.filter((r) => r.targetType === 'USER')
     }
@@ -122,25 +117,16 @@ export const mockReportsService: ReportsService = {
       const multiplier = dir === 'desc' ? -1 : 1
       filtered.sort((a, b) => {
         if (field === 'reportedAt') {
-          return (
-            (new Date(a.reportedAt).getTime() - new Date(b.reportedAt).getTime()) *
-            multiplier
-          )
+          return (new Date(a.reportedAt).getTime() - new Date(b.reportedAt).getTime()) * multiplier
         }
         return 0
       })
     } else {
       // Mặc định: nếu lọc PENDING thì Cũ nhất trước (xử lý theo thứ tự đến - D14/mục 7.1), ngược lại mới nhất trước
       if (params.status === 'PENDING') {
-        filtered.sort(
-          (a, b) =>
-            new Date(a.reportedAt).getTime() - new Date(b.reportedAt).getTime(),
-        )
+        filtered.sort((a, b) => new Date(a.reportedAt).getTime() - new Date(b.reportedAt).getTime())
       } else {
-        filtered.sort(
-          (a, b) =>
-            new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime(),
-        )
+        filtered.sort((a, b) => new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime())
       }
     }
 
@@ -229,9 +215,7 @@ export const mockReportsService: ReportsService = {
       const tagIds = mockDb.postHashtags
         .filter((ph) => ph.postId === p.id)
         .map((ph) => ph.hashtagId)
-      const hashtags = mockDb.hashtags
-        .filter((h) => tagIds.includes(h.id))
-        .map((h) => h.name)
+      const hashtags = mockDb.hashtags.filter((h) => tagIds.includes(h.id)).map((h) => h.name)
 
       const postTarget: PostTarget = {
         type: 'POST',
@@ -311,9 +295,7 @@ export const mockReportsService: ReportsService = {
             reportsAgainst: mockDb.reports.filter(
               (r) => r.targetType === 'USER' && r.targetId === u.id,
             ).length,
-            warnings: mockDb.sanctions.filter(
-              (s) => s.userId === u.id && s.type === 'WARN',
-            ).length,
+            warnings: mockDb.sanctions.filter((s) => s.userId === u.id && s.type === 'WARN').length,
           },
         },
         lock: lockRecord
@@ -346,10 +328,7 @@ export const mockReportsService: ReportsService = {
             (a.details.reportId === report.id || a.details.targetId === report.targetId)),
       )
       .map(toAuditDto)
-      .sort(
-        (a, b) =>
-          new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
-      )
+      .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
 
     // Lịch sử chế tài của chủ đối tượng
     const sanctions: SanctionRecord[] = mockDb.sanctions
@@ -366,10 +345,7 @@ export const mockReportsService: ReportsService = {
         liftedBy: s.liftedBy ? staffRefOf(s.liftedBy) : undefined,
         liftNote: s.liftNote,
       }))
-      .sort(
-        (a, b) =>
-          new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime(),
-      )
+      .sort((a, b) => new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime())
 
     let handledBy
     if (report.handleAdminId) handledBy = staffRefOf(report.handleAdminId)
@@ -428,7 +404,11 @@ export const mockReportsService: ReportsService = {
       ownerId = post.authorId
 
       if (actions.includes('WARN_USER') || actions.includes('LOCK_USER')) {
-        throw mockError(422, 'Hành động WARN_USER hoặc LOCK_USER chỉ áp dụng cho USER', 'ACTION_NOT_APPLICABLE')
+        throw mockError(
+          422,
+          'Hành động WARN_USER hoặc LOCK_USER chỉ áp dụng cho USER',
+          'ACTION_NOT_APPLICABLE',
+        )
       }
     } else if (report.targetType === 'COMMENT') {
       comment = mockDb.comments.find((c) => c.id === report.targetId)
@@ -436,7 +416,11 @@ export const mockReportsService: ReportsService = {
       ownerId = comment.authorId
 
       if (actions.includes('WARN_USER') || actions.includes('LOCK_USER')) {
-        throw mockError(422, 'Hành động WARN_USER hoặc LOCK_USER chỉ áp dụng cho USER', 'ACTION_NOT_APPLICABLE')
+        throw mockError(
+          422,
+          'Hành động WARN_USER hoặc LOCK_USER chỉ áp dụng cho USER',
+          'ACTION_NOT_APPLICABLE',
+        )
       }
     } else {
       ownerId = report.targetId
@@ -631,9 +615,7 @@ export const mockReportsService: ReportsService = {
 
     // 5. Gửi thông báo
     // A. Cho người báo cáo (cảm ơn)
-    const distinctReporterIds = Array.from(
-      new Set(pendingSameReports.map((r) => r.reporterId)),
-    )
+    const distinctReporterIds = Array.from(new Set(pendingSameReports.map((r) => r.reporterId)))
     distinctReporterIds.forEach((reporterId) => {
       mockDb.notifications.unshift({
         id: newId(),

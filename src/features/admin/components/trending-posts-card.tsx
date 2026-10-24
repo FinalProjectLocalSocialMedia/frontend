@@ -1,23 +1,9 @@
 import { useState } from 'react'
-import {
-  Calendar,
-  Eye,
-  Heart,
-  MapPin,
-  MessageSquare,
-  Share2,
-  Sparkles,
-} from 'lucide-react'
+import { Calendar, Eye, Heart, MapPin, MessageSquare, Share2, Sparkles } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -39,10 +25,7 @@ interface TrendingPostsCardProps {
   isLoading?: boolean
 }
 
-export function TrendingPostsCard({
-  posts = [],
-  isLoading = false,
-}: TrendingPostsCardProps) {
+export function TrendingPostsCard({ posts = [], isLoading = false }: TrendingPostsCardProps) {
   const [selectedPost, setSelectedPost] = useState<TrendingPost | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
@@ -78,7 +61,8 @@ export function TrendingPostsCard({
                 Bài viết thịnh hành
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Xếp hạng theo điểm tương tác tổng hợp từ lượt xem, thích, bình luận, chia sẻ và lưu bài
+                Xếp hạng theo điểm tương tác tổng hợp từ lượt xem, thích, bình luận, chia sẻ và lưu
+                bài
               </CardDescription>
             </div>
             <div className="text-[11px] text-muted-foreground bg-muted/30 px-2.5 py-1 rounded border">
@@ -116,10 +100,11 @@ export function TrendingPostsCard({
                         <span
                           className={cn(
                             'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-bold',
-                            index === 0 && 'bg-amber-500/20 text-amber-700 dark:text-amber-300 font-extrabold',
+                            index === 0 &&
+                              'bg-amber-500/20 text-amber-700 dark:text-amber-300 font-extrabold',
                             index === 1 && 'bg-slate-500/20 text-slate-700 dark:text-slate-300',
                             index === 2 && 'bg-amber-700/20 text-amber-900 dark:text-amber-500',
-                            index > 2 && 'text-muted-foreground'
+                            index > 2 && 'text-muted-foreground',
                           )}
                         >
                           {index + 1}
@@ -217,11 +202,7 @@ export function TrendingPostsCard({
         </CardContent>
       </Card>
 
-      <TrendingPostDetailSheet
-        post={selectedPost}
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-      />
+      <TrendingPostDetailSheet post={selectedPost} open={sheetOpen} onOpenChange={setSheetOpen} />
     </>
   )
 }

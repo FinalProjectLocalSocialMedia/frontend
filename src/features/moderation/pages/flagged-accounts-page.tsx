@@ -58,18 +58,10 @@ import { UserSanctionsDialog } from '../components/user-sanctions-dialog'
 export function FlaggedAccountsPage() {
   const { user: currentStaff } = useAuth()
 
-  const {
-    page,
-    pageSize,
-    sort,
-    getParam,
-    setPage,
-    setPageSize,
-    setSort,
-    setParam,
-  } = useUrlTableState({
-    sort: { field: 'pendingReports', direction: 'desc' },
-  })
+  const { page, pageSize, sort, getParam, setPage, setPageSize, setSort, setParam } =
+    useUrlTableState({
+      sort: { field: 'pendingReports', direction: 'desc' },
+    })
 
   const selectedStatus = (getParam('status') as UserStatus | 'ALL') || 'ALL'
   const searchQuery = getParam('q') || ''
@@ -95,15 +87,10 @@ export function FlaggedAccountsPage() {
       page,
       pageSize,
     }),
-    [selectedStatus, searchQuery, sort, page, pageSize]
+    [selectedStatus, searchQuery, sort, page, pageSize],
   )
 
-  const {
-    data: flaggedData,
-    isLoading,
-    isFetching,
-    refetch,
-  } = useFlaggedAccounts(queryParams)
+  const { data: flaggedData, isLoading, isFetching, refetch } = useFlaggedAccounts(queryParams)
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -183,9 +170,7 @@ export function FlaggedAccountsPage() {
               {item.user.displayName}
             </span>
             {item.user.email && (
-              <span className="text-[11px] text-muted-foreground truncate">
-                {item.user.email}
-              </span>
+              <span className="text-[11px] text-muted-foreground truncate">{item.user.email}</span>
             )}
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70 font-mono">
               <span>{item.user.id.slice(0, 8)}...</span>
@@ -224,7 +209,7 @@ export function FlaggedAccountsPage() {
             }}
             className={cn(
               'inline-flex text-left transition-transform',
-              canToggle && 'cursor-pointer hover:scale-105 active:scale-95'
+              canToggle && 'cursor-pointer hover:scale-105 active:scale-95',
             )}
             title={
               !canToggle
@@ -261,9 +246,7 @@ export function FlaggedAccountsPage() {
       align: 'center',
       className: 'w-[110px]',
       cell: (item) => (
-        <span className="text-xs font-medium text-foreground">
-          {item.totalReports}
-        </span>
+        <span className="text-xs font-medium text-foreground">{item.totalReports}</span>
       ),
     },
     {
@@ -274,7 +257,10 @@ export function FlaggedAccountsPage() {
       className: 'w-[100px]',
       cell: (item) =>
         item.warnings > 0 ? (
-          <Badge variant="outline" className="text-amber-600 dark:text-amber-500 border-amber-500/40 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="text-amber-600 dark:text-amber-500 border-amber-500/40 text-xs gap-1"
+          >
             <AlertTriangle className="size-3" />
             {item.warnings}
           </Badge>
@@ -308,9 +294,7 @@ export function FlaggedAccountsPage() {
       sortable: true,
       className: 'w-[140px]',
       cell: (item) => (
-        <span className="text-xs text-muted-foreground">
-          {formatDateTime(item.lastActivityAt)}
-        </span>
+        <span className="text-xs text-muted-foreground">{formatDateTime(item.lastActivityAt)}</span>
       ),
     },
     {
@@ -354,9 +338,7 @@ export function FlaggedAccountsPage() {
 
               {item.user.status === 'LOCKED' ? (
                 <DropdownMenuItem
-                  onClick={() =>
-                    setUnlockTarget({ ...item.user, lock: item.lock })
-                  }
+                  onClick={() => setUnlockTarget({ ...item.user, lock: item.lock })}
                   disabled={isSelf || isTargetAdmin}
                   className="gap-2 cursor-pointer text-primary focus:text-primary"
                 >
@@ -407,8 +389,12 @@ export function FlaggedAccountsPage() {
         }}
       >
         <TabsList className="bg-muted/60">
-          <TabsTrigger value="ALL" className="cursor-pointer">Tất cả tài khoản</TabsTrigger>
-          <TabsTrigger value="ACTIVE" className="cursor-pointer">Đang hoạt động</TabsTrigger>
+          <TabsTrigger value="ALL" className="cursor-pointer">
+            Tất cả tài khoản
+          </TabsTrigger>
+          <TabsTrigger value="ACTIVE" className="cursor-pointer">
+            Đang hoạt động
+          </TabsTrigger>
           <TabsTrigger value="LOCKED" className="gap-1.5 cursor-pointer">
             <UserX className="size-3.5" />
             Đang bị khoá

@@ -13,12 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { initialsOf } from '../lib/labels'
@@ -85,7 +80,8 @@ export function WarnDialog({ open, onOpenChange, user, onSubmit }: WarnDialogPro
               <DialogTitle>Gửi cảnh báo người dùng</DialogTitle>
             </div>
             <DialogDescription>
-              Cảnh báo sẽ được lưu vào lịch sử xử phạt của tài khoản và gửi thông báo trực tiếp đến người dùng.
+              Cảnh báo sẽ được lưu vào lịch sử xử phạt của tài khoản và gửi thông báo trực tiếp đến
+              người dùng.
             </DialogDescription>
           </DialogHeader>
 
@@ -99,9 +95,7 @@ export function WarnDialog({ open, onOpenChange, user, onSubmit }: WarnDialogPro
               <div className="font-semibold text-sm text-foreground truncate">
                 {user.displayName}
               </div>
-              <div className="text-xs text-muted-foreground font-mono">
-                ID: {user.id}
-              </div>
+              <div className="text-xs text-muted-foreground font-mono">ID: {user.id}</div>
             </div>
           </div>
 

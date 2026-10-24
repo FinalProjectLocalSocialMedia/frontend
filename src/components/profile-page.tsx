@@ -196,20 +196,21 @@ export function ProfilePage({
   const { posts: allPosts, savedIds, likedIds, removePost } = usePosts()
 
   // Đồng bộ thông tin profile của user đăng nhập thực tế nếu có
-  const effectiveProfile: ProfileData = isOwnProfile && user
-    ? {
-        id: user.id,
-        name: user.fullName || 'Người dùng',
-        username: user.email ? `@${user.email.split('@')[0]}` : '@user',
-        bio: user.bio || 'Chưa có tiểu sử giới thiệu.',
-        initials: user.fullName ? user.fullName.slice(0, 2).toUpperCase() : 'ME',
-        color: 'bg-primary/10 text-primary',
-        location: 'Hà Nội, Việt Nam',
-        followers: 120,
-        following: 85,
-        posts: allPosts.filter((post) => post.handle === `@${user.email.split('@')[0]}`),
-      }
-    : profile
+  const effectiveProfile: ProfileData =
+    isOwnProfile && user
+      ? {
+          id: user.id,
+          name: ('fullName' in user && user.fullName) || 'Người dùng',
+          username: user.email ? `@${user.email.split('@')[0]}` : '@user',
+          bio: ('bio' in user && user.bio) || 'Chưa có tiểu sử giới thiệu.',
+          initials:
+            'fullName' in user && user.fullName ? user.fullName.slice(0, 2).toUpperCase() : 'ME',
+          color: 'bg-primary/10 text-primary',
+          location: 'Hà Nội, Việt Nam',
+          followers: 120,
+          following: 85,
+        }
+      : profile
 
   const [data, setData] = useState(effectiveProfile)
   const [tab, setTab] = useState('Posts')
@@ -222,13 +223,14 @@ export function ProfilePage({
   const [draft, setDraft] = useState(data)
   const avatarInput = useRef<HTMLInputElement>(null)
 
+  const postItems = allPosts?.items ?? []
   const profileUserId = isOwnProfile ? currentUserId : profile.username.replace(/^@/, '')
-  const ownPosts = allPosts.filter((post) => post.author.id === profileUserId)
+  const ownPosts = postItems.filter((post: PostSearchItem) => post.author.id === profileUserId)
   const tabs = isOwnProfile ? ['Posts', 'Liked', 'Saved'] : ['Posts']
   const postsByTab: Record<string, PostSearchItem[]> = {
     Posts: ownPosts,
-    Liked: allPosts.filter((post) => likedIds.includes(post.id)),
-    Saved: allPosts.filter((post) => savedIds.includes(post.id)),
+    Liked: postItems.filter((post: PostSearchItem) => likedIds.includes(post.id)),
+    Saved: postItems.filter((post: PostSearchItem) => savedIds.includes(post.id)),
   }
   const visiblePeople = people.filter((person) =>
     `${person.name} ${person.username}`.toLowerCase().includes(peopleSearch.toLowerCase()),

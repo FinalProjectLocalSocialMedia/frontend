@@ -60,11 +60,7 @@ export function PostMediaModal({ media, initialIndex, onClose }: PostMediaModalP
         >
           <span aria-hidden="true">×</span>
         </DialogClose>
-        <Carousel
-          setApi={handleCarouselApi}
-          opts={{  startIndex: initialIndex }}
-          className="mx-12"
-        >
+        <Carousel setApi={handleCarouselApi} opts={{ startIndex: initialIndex }} className="mx-12">
           <CarouselContent className="ml-0">
             {media.map((item) => (
               <CarouselItem key={item.assetId} className="pl-0">

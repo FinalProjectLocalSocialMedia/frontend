@@ -123,7 +123,7 @@ export const mockUsersService: UsersService = {
           u.displayName.toLowerCase().includes(q) ||
           (u.email && u.email.toLowerCase().includes(q)) ||
           (u.phoneNumber && u.phoneNumber.includes(q)) ||
-          u.id.includes(q)
+          u.id.includes(q),
       )
     }
 
@@ -154,7 +154,11 @@ export const mockUsersService: UsersService = {
     await new Promise((r) => setTimeout(r, 200))
 
     // Check duplicate email
-    if (mockUsers.some((u) => u.email && u.email.toLowerCase() === input.email.toLowerCase() && !u.deletedAt)) {
+    if (
+      mockUsers.some(
+        (u) => u.email && u.email.toLowerCase() === input.email.toLowerCase() && !u.deletedAt,
+      )
+    ) {
       throw new ApiError({
         message: 'Email đã được sử dụng bởi một tài khoản khác',
         status: 409,
@@ -244,7 +248,9 @@ export const mockUsersService: UsersService = {
       throw new Error(`Không tìm thấy người dùng với ID: ${id}`)
     }
     if (user.role === 'ADMIN') {
-      const activeAdmins = mockUsers.filter((u) => u.role === 'ADMIN' && !u.deletedAt && u.id !== id)
+      const activeAdmins = mockUsers.filter(
+        (u) => u.role === 'ADMIN' && !u.deletedAt && u.id !== id,
+      )
       if (activeAdmins.length === 0) {
         throw new ApiError({
           message: 'Không thể xoá quản trị viên cuối cùng trong hệ thống',

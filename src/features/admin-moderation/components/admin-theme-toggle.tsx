@@ -18,10 +18,7 @@ type AdminThemeToggleProps = {
  * Nút chuyển đổi giao diện sáng/tối cục bộ trong khu vực Admin
  * (Tuân thủ quy tắc kiến trúc 5.2: không import từ layout của ứng dụng chính).
  */
-export function AdminThemeToggle({
-  className,
-  align = 'end',
-}: AdminThemeToggleProps) {
+export function AdminThemeToggle({ className, align = 'end' }: AdminThemeToggleProps) {
   const { theme, setTheme } = useTheme()
 
   return (

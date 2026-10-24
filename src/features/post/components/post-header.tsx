@@ -3,14 +3,11 @@ import { UserAvatar } from './user-avatar'
 import { formatDistanceToNow } from 'date-fns'
 import { PostSearchItem } from '../types/post'
 
-
 interface PostHeaderProps {
   post: PostSearchItem
 }
 
 export function PostHeader({ post }: PostHeaderProps) {
-
-
   return (
     <Link
       to={`/posts/${post.id}`}
@@ -32,8 +29,6 @@ export function PostHeader({ post }: PostHeaderProps) {
             </>
           )}
         </p>
-
-       
       </div>
     </Link>
   )

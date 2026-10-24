@@ -13,7 +13,7 @@ import { AdminLayout } from '../features/admin-moderation/components/admin-layou
 import { ComingSoon } from '../features/admin-moderation/components/coming-soon'
 import AdminNotFoundPage from '../features/admin-moderation/pages/admin-not-found-page'
 import ForbiddenPage from '../features/admin-moderation/pages/forbidden-page'
-import LoginPage from '../features/admin-moderation/pages/login-page'
+import StaffLoginPage from '../features/admin-moderation/pages/staff-login-page'
 import { ContentReportDetailPage } from '../features/moderation/pages/content-report-detail-page'
 import { FlaggedAccountsPage } from '../features/moderation/pages/flagged-accounts-page'
 import { ReportsPage } from '../features/moderation/pages/reports-page'
@@ -36,11 +36,15 @@ export default function AdminRoutes() {
         <TooltipProvider>
           <Routes>
             {/* Các trang công khai trong khu vực admin */}
-            <Route path="login" element={<LoginPage />} />
+            <Route path="login" element={<StaffLoginPage />} />
             <Route path="403" element={<ForbiddenPage />} />
 
             {/* Các trang yêu cầu đăng nhập nhân viên */}
-            <Route element={<RequireAuth />}>
+            <Route
+              element={
+                <RequireAuth loginPath="/admin/login" allowedRoles={['ADMIN', 'MODERATOR']} />
+              }
+            >
               <Route element={<AdminLayout />}>
                 {/* Trang gốc /admin tự động chuyển hướng theo vai trò (mục 5.3) */}
                 <Route index element={<AdminIndexRedirect />} />

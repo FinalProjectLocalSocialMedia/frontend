@@ -13,12 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { initialsOf } from '../lib/labels'
@@ -85,7 +80,8 @@ export function LockDialog({ open, onOpenChange, user, onSubmit }: LockDialogPro
               <DialogTitle>Khoá tài khoản người dùng</DialogTitle>
             </div>
             <DialogDescription>
-              Tài khoản sẽ bị đình chỉ hoạt động ngay lập tức và không có thời hạn (cho đến khi được mở lại thủ công).
+              Tài khoản sẽ bị đình chỉ hoạt động ngay lập tức và không có thời hạn (cho đến khi được
+              mở lại thủ công).
             </DialogDescription>
           </DialogHeader>
 
@@ -99,9 +95,7 @@ export function LockDialog({ open, onOpenChange, user, onSubmit }: LockDialogPro
               <div className="font-semibold text-sm text-foreground truncate">
                 {user.displayName}
               </div>
-              <div className="text-xs text-muted-foreground font-mono">
-                ID: {user.id}
-              </div>
+              <div className="text-xs text-muted-foreground font-mono">ID: {user.id}</div>
             </div>
           </div>
 
@@ -109,8 +103,10 @@ export function LockDialog({ open, onOpenChange, user, onSubmit }: LockDialogPro
           <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex gap-2">
             <AlertCircle className="size-4 shrink-0 mt-0.5" />
             <div className="leading-relaxed">
-              <strong className="font-semibold">Lưu ý quan trọng:</strong> Biện pháp khoá tài khoản áp dụng{' '}
-              <strong>cho đến khi được mở lại</strong> (không có thời hạn tự động hết hiệu lực). Người dùng sẽ không thể đăng nhập hoặc thực hiện bất kỳ tương tác nào trên ứng dụng.
+              <strong className="font-semibold">Lưu ý quan trọng:</strong> Biện pháp khoá tài khoản
+              áp dụng <strong>cho đến khi được mở lại</strong> (không có thời hạn tự động hết hiệu
+              lực). Người dùng sẽ không thể đăng nhập hoặc thực hiện bất kỳ tương tác nào trên ứng
+              dụng.
             </div>
           </div>
 
@@ -143,11 +139,7 @@ export function LockDialog({ open, onOpenChange, user, onSubmit }: LockDialogPro
             >
               Huỷ
             </Button>
-            <Button
-              type="submit"
-              variant="destructive"
-              disabled={submitting}
-            >
+            <Button type="submit" variant="destructive" disabled={submitting}>
               {submitting && <Spinner className="size-4 mr-2" />}
               Xác nhận khoá tài khoản
             </Button>
