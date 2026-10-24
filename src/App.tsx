@@ -12,6 +12,10 @@ import ExplorePage from '@/pages/explore'
 import HomePage from '@/pages/home'
 import NotFoundPage from '@/pages/not-found'
 import AuthPage from '@/pages/auth'
+import HomeFeed from './features/post/pages/home-feed'
+import PostDetail from './features/post/pages/post-detail'
+import PostSearch from './features/post/pages/post-search'
+
 
 export default function App() {
   return (
@@ -19,23 +23,25 @@ export default function App() {
       <AuthProvider>
         <PostsProvider>
           <Routes>
-            {/* Every page shares AppLayout (Sidebar on desktop, header + bottom nav on mobile). */}
-            <Route element={<AppLayout />}>
-              <Route index element={<HomePage />} />
-              <Route path="explore" element={<ExplorePage />} />
-              <Route path="messages" element={<ChatPage />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="login" element={<AuthPage initialMode="login" />} />
-              <Route path="register" element={<AuthPage initialMode="register" />} />
-              <Route
-                path="notifications"
-                element={<ComingSoonPage title="Notifications" icon={Bell} />}
-              />
-              <Route path="*" element={<NotFoundPage />} />
-            </Route>
-          </Routes>
-          <Toaster position="top-center" />
-        </PostsProvider>
+          {/* Every page shares AppLayout (Sidebar on desktop, header + bottom nav on mobile). */}
+          <Route element={<AppLayout />}>
+            <Route index element={<HomeFeed />} />
+            <Route path="posts/:postId" element={<PostDetail />} />
+            <Route path="search" element={<PostSearch />} />
+            <Route path="explore" element={<ExplorePage />} />
+            <Route path="messages" element={<ChatPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="login" element={<AuthPage initialMode="login" />} />
+            <Route path="register" element={<AuthPage initialMode="register" />} />
+            <Route
+              path="notifications"
+              element={<ComingSoonPage title="Notifications" icon={Bell} />}
+            />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+        <Toaster position="top-center" />
+      </PostsProvider>
       </AuthProvider>
     </ThemeProvider>
   )

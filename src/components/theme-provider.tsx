@@ -1,6 +1,5 @@
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -57,14 +56,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
   }, [resolvedTheme])
 
-  const setTheme = useCallback((next: Theme) => {
+  const setTheme = (next: Theme) => {
     setThemeState(next)
     try {
       window.localStorage.setItem(STORAGE_KEY, next)
     } catch {
       /* ignore */
     }
-  }, [])
+  }
 
   const value = useMemo(
     () => ({ theme, resolvedTheme, setTheme }),

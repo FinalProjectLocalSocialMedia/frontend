@@ -2,7 +2,7 @@
 
 Giao diện web của mạng xã hội **location-based**: xem bài viết quanh vị trí hiện tại, khám phá xu hướng/hotspot theo khu vực, nhắn tin và quản lý hồ sơ.
 
-> **Trạng thái:** prototype giao diện chạy hoàn toàn bằng **mock data** (chưa gọi backend, chưa có auth, bản đồ là hình minh hoạ). Xem [docs/roadmap.md](docs/roadmap.md) để biết cái gì đã có và cái gì còn thiếu.
+> **Trạng thái:** prototype vẫn dùng mock data cho nhiều khu vực; luồng bài viết có API tìm kiếm/tạo bài và upload media trực tiếp lên Cloudinary. Chưa có auth hoàn chỉnh, bản đồ là hình minh hoạ. Xem [docs/roadmap.md](docs/roadmap.md) để biết cái gì đã có và cái gì còn thiếu.
 
 ## Công nghệ
 
@@ -30,7 +30,12 @@ npm run dev        # http://localhost:5173
 | `npm test` | Chạy toàn bộ test (Vitest, 19 test) |
 | `npm run format` | Prettier cho `src` (bỏ qua `src/components/ui`) |
 
-Biến môi trường (tuỳ chọn): `VITE_API_BASE_URL` — base URL cho `src/lib/api.ts` (hiện chưa được dùng ở đâu).
+Biến môi trường cần cho upload media:
+
+- `VITE_API_BASE_URL` — base URL của backend; API ký upload tại `/api/v1/post/signature`.
+- `VITE_CLOUDINARY_CLOUD_NAME` và `VITE_CLOUDINARY_API_KEY` — cấu hình upload có chữ ký trực tiếp lên Cloudinary.
+
+Backend cấp `timestamp`, `folder` và `signature`; frontend không cần upload preset. URL media dùng `f_auto,q_auto` để tối ưu định dạng/chất lượng khi phân phối, không làm giảm dung lượng asset gốc được lưu trên Cloudinary.
 
 ## Các trang
 

@@ -1,4 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
+import { formatDistanceToNow } from 'date-fns'
 import {
   Camera,
   Check,
@@ -33,9 +34,10 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { nearbyPosts, type NearbyPost } from '@/lib/mock-nearby'
-import { usePosts } from '@/lib/posts-context'
+import { currentUserId, usePosts } from '@/lib/posts-context'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
+import type { PostSearchItem } from '@/features/post/types/post'
 
 export type ProfileData = {
   id: string
@@ -47,7 +49,6 @@ export type ProfileData = {
   location: string
   followers: number
   following: number
-  posts: NearbyPost[]
 }
 
 const ownerProfile: ProfileData = {
@@ -60,7 +61,6 @@ const ownerProfile: ProfileData = {
   location: 'Cầu Giấy, Hanoi',
   followers: 248,
   following: 186,
-  posts: nearbyPosts.filter((post) => post.handle === '@minhnguyen'),
 }
 
 const people = [
@@ -116,20 +116,40 @@ function Dialog({
   )
 }
 
+function getInitials(name: string) {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'U'
+  )
+}
+
+function formatPostTime(createdAt: string) {
+  const date = new Date(createdAt)
+  return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true })
+}
+
 /** `onDelete` is only passed for posts the current user is allowed to delete. */
-function ProfilePost({ post, onDelete }: { post: NearbyPost; onDelete?: () => void }) {
+function ProfilePost({ post, onDelete }: { post: PostSearchItem; onDelete?: () => void }) {
+  const topic = post.content.match(/#[\p{L}\p{N}_]+/u)?.[0]
+
   return (
     <article className="border-b border-border p-5 last:border-0">
       <div className="flex gap-3">
         <Avatar>
-          <AvatarFallback className={post.color}>{post.initials}</AvatarFallback>
+          <AvatarFallback>{getInitials(post.author.fullName)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold">{post.name}</p>
+              <p className="text-sm font-semibold">{post.author.fullName}</p>
               <p className="text-xs text-muted-foreground">
-                {post.time} · {post.location}
+                {formatPostTime(post.createdAt)} · {post.location?.name ?? 'Nearby'}
               </p>
             </div>
             {onDelete && (
@@ -144,11 +164,11 @@ function ProfilePost({ post, onDelete }: { post: NearbyPost; onDelete?: () => vo
               </Button>
             )}
           </div>
-          <p className="mt-3 leading-6">{post.text}</p>
-          <p className="mt-2 text-xs font-semibold text-primary">{post.topic}</p>
+          <p className="mt-3 leading-6">{post.content}</p>
+          {topic && <p className="mt-2 text-xs font-semibold text-primary">{topic}</p>}
           <div className="mt-4 flex gap-5 text-xs text-muted-foreground">
-            <span>♡ {post.likes}</span>
-            <span>Comments {post.comments}</span>
+            <span>♡ {post.likeCount}</span>
+            <span>Comments {post.commentCount}</span>
           </div>
         </div>
       </div>
@@ -202,9 +222,10 @@ export function ProfilePage({
   const [draft, setDraft] = useState(data)
   const avatarInput = useRef<HTMLInputElement>(null)
 
-  const ownPosts = allPosts.filter((post) => post.handle === profile.username)
+  const profileUserId = isOwnProfile ? currentUserId : profile.username.replace(/^@/, '')
+  const ownPosts = allPosts.filter((post) => post.author.id === profileUserId)
   const tabs = isOwnProfile ? ['Posts', 'Liked', 'Saved'] : ['Posts']
-  const postsByTab: Record<string, NearbyPost[]> = {
+  const postsByTab: Record<string, PostSearchItem[]> = {
     Posts: ownPosts,
     Liked: allPosts.filter((post) => likedIds.includes(post.id)),
     Saved: allPosts.filter((post) => savedIds.includes(post.id)),

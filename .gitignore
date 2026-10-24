@@ -2,3 +2,5 @@
 dist/
 node_modules/
 powershell.cmd
+.env
+.idea

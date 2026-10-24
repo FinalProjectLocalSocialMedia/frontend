@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Toggle } from '@/components/ui/toggle'
-import { PostCard } from '@/components/post-card'
+import { PostCard } from '@/features/post/components/post-card'
 import {
   currentLocation,
   defaultRadius,
@@ -19,7 +19,7 @@ import {
   radiusPostLimit,
   trending,
 } from '@/lib/mock-nearby'
-import { usePosts } from '@/lib/posts-context'
+import { currentUserId, usePosts } from '@/lib/posts-context'
 
 export default function ExplorePage() {
   const { posts } = usePosts()
@@ -27,7 +27,10 @@ export default function ExplorePage() {
   const [heatmap, setHeatmap] = useState(true)
   const [selected, setSelected] = useState<string | null>(null)
   const [zoom, setZoom] = useState(1)
-  const visiblePosts = useMemo(() => posts.slice(0, radiusPostLimit[radius]), [posts, radius])
+  const visiblePosts = useMemo(
+    () => posts.items.slice(0, radiusPostLimit[radius]),
+    [posts.items, radius],
+  )
   const selectedHotspot = hotspots.find((item) => item.id === selected)
   const selectedTrend = trending.find((item) => item.tag === selected)
   return (
@@ -114,11 +117,19 @@ export default function ExplorePage() {
                 .filter(
                   (post) =>
                     !selectedTrend ||
-                    post.topic === selectedTrend.tag ||
+                    post.content.includes(selectedTrend.tag) ||
                     selectedTrend.tag === '#TrafficJam',
                 )
                 .map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard
+                    key={post.id}
+                    post={{
+                      ...post,
+                      likeCount: post.likeCount ?? 0,
+                      commentCount: post.commentCount ?? 0,
+                    }}
+                    currentUserId={currentUserId}
+                  />
                 ))}
             </div>
           </div>
