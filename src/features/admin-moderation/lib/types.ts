@@ -255,3 +255,59 @@ export type LoginInput = { email: string; password: string }
 // ===== Tuỳ chọn request =====
 /** Truyền `signal` từ TanStack Query xuống service để huỷ request cũ. */
 export type RequestOptions = { signal?: AbortSignal }
+
+// ===== Thống kê nội dung & Trending (Pha 6) =====
+export type StatsRange = '7d' | '30d' | '90d'
+
+export type PostStatsOverviewNewPosts = {
+  today: number
+  last7d: number
+  last30d: number
+}
+
+export type PostStatsOverview = {
+  totalPosts: number
+  newPosts: PostStatsOverviewNewPosts
+  growthPct: number
+  activeAuthors: number
+}
+
+export type PostsTimePoint = {
+  date: string
+  count: number
+}
+
+export type PostStats = {
+  overview: PostStatsOverview
+  series: PostsTimePoint[]
+}
+
+export type TrendingHashtag = {
+  hashtagId: Uuid
+  name: string
+  postCount: number
+  previousPostCount: number
+  changePct: number
+}
+
+export type TrendingPostCounts = {
+  views: number
+  likes: number
+  comments: number
+  shares: number
+  saves: number
+}
+
+export type TrendingPost = {
+  id: Uuid
+  content: string
+  author: UserRef
+  locationName: string
+  createdAt: IsoDateTime
+  counts: TrendingPostCounts
+  score: number // Σ (interaction_types.weight × count)
+}
+
+export type InteractionWeight = { name: InteractionType; weight: number }
+
+
