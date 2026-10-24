@@ -1,5 +1,5 @@
-import { LikeComment } from "./LikeComment"
-import { NormalUser } from "./NormalUser"
+import { LikeComment } from "./like-comment"
+import { NormalUser } from "./normal-user"
 
 export interface Comment{
     id: string

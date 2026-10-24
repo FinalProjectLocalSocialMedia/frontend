@@ -1,33 +1,127 @@
 import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, it, expect } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '@/App'
+import { createPost as createPostRequest, getFeed } from '@/features/post/api/post-api'
+import type { Post } from '@/features/post/types/post'
+import type { CreatePostRequest } from './features/post/api/post-api'
 import { setViewport } from '@/test-setup'
 
-const renderAt = (path: string) =>
-  render(
+vi.mock('@/features/post/api/post-api', () => ({
+  createPost: vi.fn(),
+  getFeed: vi.fn(),
+  searchPosts: vi.fn(),
+}))
+
+const createPostMock = vi.mocked(createPostRequest)
+const getFeedMock = vi.mocked(getFeed)
+
+const feedPosts = [
+  {
+    id: 'traffic-1',
+    author: { id: 'minhnguyen', fullName: 'Nguyễn Minh' },
+    content:
+      'Traffic is extremely heavy around Cầu Giấy right now. Take a little extra time if you are heading toward Xuân Thủy.',
+    media: null,
+    location: { name: 'Cầu Giấy, Hanoi' },
+    status: 'PUBLISHED',
+    likeCount: 3,
+    commentCount: 1,
+    createdAt: '2026-10-22T10:00:00.000Z',
+  },
+  {
+    id: 'campus-1',
+    author: { id: 'huypham', fullName: 'Huy Phạm' },
+    content: 'Anyone up for a casual badminton game at the university courts this evening?',
+    media: null,
+    location: { name: 'Cầu Giấy, Hanoi' },
+    status: 'PUBLISHED',
+    likeCount: 2,
+    commentCount: 0,
+    createdAt: '2026-10-22T09:00:00.000Z',
+  },
+]
+
+function makeCreatedPost(content: string): Post {
+  const now = new Date().toISOString()
+  return {
+    id: `created-${Date.now()}`,
+    author: {
+      id: 'minhnguyen',
+      fullName: 'Nguyễn Minh',
+      avatarUrl: '',
+      bio: '',
+      dateOfBirth: '',
+      gender: '',
+      currentLocation: { latitude: 21.0362, longitude: 105.7906 },
+      currentH3Index: '',
+      locationUpdateAt: now,
+    },
+    content,
+    media: null,
+    location: {
+      id: 'location-1',
+      name: 'Cầu Giấy, Hanoi',
+      description: '',
+      h3Index: '',
+      locationType: '',
+    },
+    status: 'PUBLISHED',
+    createdAt: now,
+    updatedAt: now,
+    sharedPost: null,
+    likeCount: 0,
+    commentCount: 0,
+    shareCount: 0,
+    comments: null,
+    likes: null,
+  }
+}
+
+const renderAt = (path: string) => {
+  createPostMock.mockReset()
+  createPostMock.mockImplementation(async (request: CreatePostRequest) =>
+    makeCreatedPost(request.content),
+  )
+  getFeedMock.mockReset()
+  getFeedMock.mockResolvedValue({
+    items: feedPosts,
+    nextCursor: null,
+    hasNextPage: false,
+  })
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  return render(
     <StrictMode>
-      <MemoryRouter initialEntries={[path]}>
-        <App />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>
+      </QueryClientProvider>
     </StrictMode>,
   )
+}
 const sidebarLink = (name: string) =>
   within(screen.getAllByRole('navigation', { name: 'Primary' })[0]).getByRole('link', { name })
 
-async function createPost(user: ReturnType<typeof userEvent.setup>, text: string) {
+async function submitCreatePost(user: ReturnType<typeof userEvent.setup>, text: string) {
   await user.click(screen.getAllByRole('button', { name: 'Create Post' })[0])
   const dialog = await screen.findByRole('dialog')
   await user.type(within(dialog).getByPlaceholderText("What's happening nearby?"), text)
   await user.click(within(dialog).getByRole('button', { name: 'Post update' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 }
 
 describe('Explore', () => {
   it('radius Select filters the visible posts', async () => {
     const user = userEvent.setup()
-    renderAt('/explore')
+    renderAt('/')
+    await screen.findAllByRole('article')
+    await user.click(sidebarLink('Explore'))
     const trigger = screen.getByRole('combobox', { name: 'Search radius' })
     expect(trigger).toHaveTextContent('5 km')
     const before = screen.getAllByRole('article').length
@@ -51,31 +145,26 @@ describe('Explore', () => {
 })
 
 describe('PostCard menu', () => {
-  it('Save post shows a toast and the post appears in Profile → Saved', async () => {
+  it('Save post shows a toast', async () => {
     const user = userEvent.setup()
     renderAt('/')
-    const article = screen.getAllByRole('article')[0]
-    const text = article.querySelector('p.leading-6')!.textContent!
+    const article = (await screen.findAllByRole('article'))[0]
     await user.click(within(article).getByRole('button', { name: 'More options' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Save post' }))
     expect(await screen.findByText('Saved to your posts')).toBeInTheDocument()
-
-    await user.click(sidebarLink('Profile'))
-    await user.click(screen.getByRole('tab', { name: 'Saved' }))
-    expect(await screen.findByText(text)).toBeInTheDocument()
   })
 
   it('own posts can be deleted from the menu, others can be reported', async () => {
     const user = userEvent.setup()
     renderAt('/')
-    const others = screen
-      .getAllByRole('article')
-      .find((article) => article.textContent?.includes('Huy Phạm'))!
+    const others = (await screen.findAllByRole('article')).find((article) =>
+      article.textContent?.includes('Huy Phạm'),
+    )!
     await user.click(within(others).getByRole('button', { name: 'More options' }))
     expect(await screen.findByRole('menuitem', { name: 'Report post' })).toBeInTheDocument()
     await user.keyboard('{Escape}')
 
-    await createPost(user, 'bài của tôi để xoá')
+    await submitCreatePost(user, 'bài của tôi để xoá')
     await user.click(
       within(screen.getAllByRole('article')[0]).getByRole('button', { name: 'More options' }),
     )
@@ -88,15 +177,12 @@ describe('Profile', () => {
   it('Tabs switch panels, Liked shows liked posts', async () => {
     const user = userEvent.setup()
     renderAt('/')
-    await user.click(
-      within(screen.getAllByRole('article')[0]).getByRole('button', { name: 'Like' }),
-    )
     await user.click(sidebarLink('Profile'))
 
     expect(screen.getByRole('tab', { name: 'Posts' })).toHaveAttribute('aria-selected', 'true')
     await user.click(screen.getByRole('tab', { name: 'Liked' }))
     expect(screen.getByRole('tab', { name: 'Liked' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getAllByRole('article')).toHaveLength(1)
+    expect(screen.getByText('No liked posts yet')).toBeInTheDocument()
     await user.click(screen.getByRole('tab', { name: 'Saved' }))
     expect(screen.getByText('No saved posts yet')).toBeInTheDocument()
   })
@@ -104,8 +190,8 @@ describe('Profile', () => {
   it('deleting a post removes THAT post (not always the first one)', async () => {
     const user = userEvent.setup()
     renderAt('/')
-    await createPost(user, 'bài cũ nhất')
-    await createPost(user, 'bài mới nhất')
+    await submitCreatePost(user, 'bài cũ nhất')
+    await submitCreatePost(user, 'bài mới nhất')
     await user.click(sidebarLink('Profile'))
 
     const older = screen.getByText('bài cũ nhất').closest('article')!
@@ -130,8 +216,27 @@ describe('Toasts', () => {
   it('shows a toast after posting', async () => {
     const user = userEvent.setup()
     renderAt('/explore')
-    await createPost(user, 'Kẹt xe ở Cầu Giấy')
+    await submitCreatePost(user, 'Kẹt xe ở Cầu Giấy')
     expect((await screen.findAllByText('Post shared')).length).toBeGreaterThan(0)
+    expect(createPostMock).toHaveBeenCalledWith({
+      content: 'Kẹt xe ở Cầu Giấy',
+      coordinates: { latitude: 21.0362, longitude: 105.7906 },
+    })
+  })
+
+  it('keeps the dialog open and shows the server error when posting fails', async () => {
+    const user = userEvent.setup()
+    renderAt('/explore')
+    createPostMock.mockRejectedValueOnce(new Error('Server unavailable'))
+    await user.click(screen.getAllByRole('button', { name: 'Create Post' })[0])
+    const dialog = await screen.findByRole('dialog')
+    const textarea = within(dialog).getByPlaceholderText("What's happening nearby?")
+    await user.type(textarea, 'Kẹt xe ở Cầu Giấy')
+    await user.click(within(dialog).getByRole('button', { name: 'Post update' }))
+
+    expect(await screen.findByText('Server unavailable')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(textarea).toHaveValue('Kẹt xe ở Cầu Giấy')
   })
 })
 

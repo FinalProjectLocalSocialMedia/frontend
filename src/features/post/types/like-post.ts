@@ -1,5 +1,5 @@
-import { NormalUser } from "./NormalUser";
-import { Post } from "./Post";
+import { NormalUser } from "./normal-user";
+import { Post } from "./post";
 
 export interface LikePost{
     user: NormalUser

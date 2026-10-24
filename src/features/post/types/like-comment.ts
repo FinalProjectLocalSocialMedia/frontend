@@ -1,4 +1,4 @@
-import { NormalUser } from "./NormalUser"
+import { NormalUser } from "./normal-user"
 
 export interface LikeComment{
     user: NormalUser

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { MapPin, Users } from 'lucide-react'
 import { useCreatePost } from '@/components/layout/create-post-context'
-import { PostCard } from '@/features/post/components/PostCard'
+import { PostCard } from '@/features/post/components/post-card'
 import { currentLocation, trending } from '@/lib/mock-nearby'
 import { currentUserId, usePosts } from '@/lib/posts-context'
 
@@ -30,8 +30,16 @@ export default function HomePage() {
           </div>
         </button>
         <div className="mt-5 flex flex-col gap-4">
-          {posts.map((post) => (
-            <PostCard key={post.id} post={post} currentUserId={currentUserId} />
+          {posts.items.map((post) => (
+            <PostCard
+              key={post.id}
+              post={{
+                ...post,
+                likeCount: post.likeCount ?? 0,
+                commentCount: post.commentCount ?? 0,
+              }}
+              currentUserId={currentUserId}
+            />
           ))}
         </div>
       </section>

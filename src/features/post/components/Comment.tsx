@@ -1,35 +1,20 @@
 import { formatDistanceToNow } from 'date-fns'
 import { Heart } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import type { Comment as CommentData } from '@/features/post/types/Comment'
+import type { Comment as CommentData } from '@/features/post/types/comment'
+import { UserAvatar } from './user-avatar'
 
 function formatCommentTime(createdAt: string) {
   const date = new Date(createdAt)
   return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true })
 }
 
-function getInitials(name: string) {
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((part) => part[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || 'U'
-  )
-}
+
 
 export function Comment({ comment }: { comment: CommentData }) {
   return (
     <article className="flex gap-3 py-3">
-      <Avatar size="sm">
-        {comment.author.avatarUrl && (
-          <AvatarImage src={comment.author.avatarUrl} alt={comment.author.fullName} />
-        )}
-        <AvatarFallback>{getInitials(comment.author.fullName)}</AvatarFallback>
-      </Avatar>
+      <UserAvatar user={comment.author} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2">
           <p className="text-sm font-semibold">{comment.author.fullName}</p>

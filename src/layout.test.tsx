@@ -1,21 +1,140 @@
 import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, it, expect } from 'vitest'
-import { render, screen, within, cleanup } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { afterEach, describe, it, expect, vi } from 'vitest'
+import { render, screen, within, cleanup, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '@/App'
+import { createPost, getFeed } from '@/features/post/api/post-api'
+import type { GetFeedParams } from '@/features/post/api/post-api'
+import type { PostCursorPage } from './features/post/types/post'
+import { uploadPostMedia } from '@/features/post/api/post-upload-api'
+import type { Post } from '@/features/post/types/post'
+import type { CreatePostRequest } from './features/post/api/post-api'
+import type { PostMedia } from '@/features/post/types/post-media'
 
-const renderAt = (path: string) =>
-  render(
+vi.mock('@/features/post/api/post-api', () => ({
+  createPost: vi.fn(),
+  getFeed: vi.fn(),
+  searchPosts: vi.fn(),
+}))
+
+vi.mock('@/features/post/api/post-upload-api', () => ({
+  uploadPostMedia: vi.fn(),
+}))
+
+const createPostMock = vi.mocked(createPost)
+const getFeedMock = vi.mocked(getFeed)
+const uploadPostMediaMock = vi.mocked(uploadPostMedia)
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+function makeCreatedPost(content: string): Post {
+  const now = new Date().toISOString()
+  return {
+    id: `created-${Date.now()}`,
+    author: {
+      id: 'minhnguyen',
+      fullName: 'Nguyễn Minh',
+      avatarUrl: '',
+      bio: '',
+      dateOfBirth: '',
+      gender: '',
+      currentLocation: { latitude: 21.0362, longitude: 105.7906 },
+      currentH3Index: '',
+      locationUpdateAt: now,
+    },
+    content,
+    media: null,
+    location: {
+      id: 'location-1',
+      name: 'Cầu Giấy, Hanoi',
+      description: '',
+      h3Index: '',
+      locationType: '',
+    },
+    status: 'PUBLISHED',
+    createdAt: now,
+    updatedAt: now,
+    sharedPost: null,
+    likeCount: 0,
+    commentCount: 0,
+    shareCount: 0,
+    comments: null,
+    likes: null,
+  }
+}
+
+const renderAt = (
+  path: string,
+  feedResponder?: (params: GetFeedParams) => Promise<PostCursorPage>,
+) => {
+  createPostMock.mockReset()
+  createPostMock.mockImplementation(async (request: CreatePostRequest) =>
+    makeCreatedPost(request.content),
+  )
+  getFeedMock.mockReset()
+  getFeedMock.mockImplementation(
+    feedResponder ?? (async () => ({ items: [], nextCursor: null, hasNextPage: false })),
+  )
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  return render(
     <StrictMode>
-      <MemoryRouter initialEntries={[path]}>
-        <App />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>
+      </QueryClientProvider>
     </StrictMode>,
   )
+}
 const navs = () => screen.getAllByRole('navigation', { name: 'Primary' })
 
 describe('AppLayout', () => {
+  it('loads the first Home feed page from the feed API', async () => {
+    renderAt('/')
+    await waitFor(() => expect(getFeedMock).toHaveBeenCalledWith({ cursor: undefined, limit: 20 }))
+  })
+
+  it('loads the next Home feed page when the end sentinel intersects', async () => {
+    let intersectionCallback: IntersectionObserverCallback | undefined
+    class TestIntersectionObserver implements IntersectionObserver {
+      readonly root = null
+      readonly rootMargin = '240px'
+      readonly thresholds = [0]
+      observe = vi.fn()
+      disconnect = vi.fn()
+      unobserve = vi.fn()
+      takeRecords = () => []
+
+      constructor(callback: IntersectionObserverCallback) {
+        intersectionCallback = callback
+      }
+    }
+
+    vi.stubGlobal('IntersectionObserver', TestIntersectionObserver)
+    renderAt('/', async ({ cursor }) => ({
+      items: [],
+      nextCursor: cursor ? null : 'cursor-2',
+      hasNextPage: false,
+    }))
+
+    await waitFor(() => expect(intersectionCallback).toBeDefined())
+    act(() => {
+      intersectionCallback?.(
+        [{ isIntersecting: true } as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+      )
+    })
+    await waitFor(() =>
+      expect(getFeedMock).toHaveBeenNthCalledWith(2, { cursor: 'cursor-2', limit: 20 }),
+    )
+  })
+
   it('renders ONE sidebar nav + ONE bottom nav, and exactly one <main>', () => {
     renderAt('/')
     expect(navs()).toHaveLength(2)
@@ -76,11 +195,50 @@ describe('AppLayout', () => {
       'Mưa to ở Cầu Giấy #Mưa',
     )
     await user.click(submit)
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     await user.click(within(navs()[0]).getByRole('link', { name: 'Home' }))
-    expect(screen.getByText('Mưa to ở Cầu Giấy #Mưa')).toBeInTheDocument()
+    expect(
+      screen
+        .getAllByRole('article')
+        .some((article) => article.textContent?.includes('Mưa to ở Cầu Giấy #Mưa')),
+    ).toBe(true)
     await user.click(within(navs()[0]).getByRole('link', { name: 'Profile' }))
-    expect(screen.getByText('Mưa to ở Cầu Giấy #Mưa')).toBeInTheDocument()
+    expect(
+      screen
+        .getAllByRole('article')
+        .some((article) => article.textContent?.includes('Mưa to ở Cầu Giấy #Mưa')),
+    ).toBe(true)
+  })
+
+  it('allows creating a media-only post after uploading an attachment', async () => {
+    const user = userEvent.setup()
+    const media: PostMedia = {
+      type: 'IMAGE',
+      publicId: 'photo',
+      assetId: 'asset-photo',
+      url: 'https://res.cloudinary.com/test/image/upload/f_auto,q_auto/photo.jpg',
+      width: 640,
+      height: 480,
+      format: 'jpg',
+      size: 1200,
+    }
+    uploadPostMediaMock.mockResolvedValue(media)
+    renderAt('/')
+    await user.click(screen.getAllByRole('button', { name: 'Create Post' })[0])
+    const dialog = await screen.findByRole('dialog')
+    await user.upload(
+      within(dialog).getByLabelText('Choose photos or videos'),
+      new File(['photo'], 'photo.jpg', { type: 'image/jpeg' }),
+    )
+
+    await screen.findByRole('button', { name: 'Remove photo' })
+    await user.click(within(dialog).getByRole('button', { name: 'Post update' }))
+
+    await waitFor(() =>
+      expect(createPostMock).toHaveBeenCalledWith(
+        expect.objectContaining({ content: '', media: [media] }),
+      ),
+    )
   })
 
   it('Home composer card opens the same dialog', async () => {

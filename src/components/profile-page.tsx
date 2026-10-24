@@ -35,7 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { currentUserId, usePosts } from '@/lib/posts-context'
 import { cn } from '@/lib/utils'
-import type { Post } from '@/features/post/types/Post'
+import type { PostSearchItem } from '@/features/post/types/post'
 
 export type ProfileData = {
   id: string
@@ -133,7 +133,7 @@ function formatPostTime(createdAt: string) {
 }
 
 /** `onDelete` is only passed for posts the current user is allowed to delete. */
-function ProfilePost({ post, onDelete }: { post: Post; onDelete?: () => void }) {
+function ProfilePost({ post, onDelete }: { post: PostSearchItem; onDelete?: () => void }) {
   const topic = post.content.match(/#[\p{L}\p{N}_]+/u)?.[0]
 
   return (
@@ -147,7 +147,7 @@ function ProfilePost({ post, onDelete }: { post: Post; onDelete?: () => void }) 
             <div>
               <p className="text-sm font-semibold">{post.author.fullName}</p>
               <p className="text-xs text-muted-foreground">
-                {formatPostTime(post.createdAt)} · {post.location.name}
+                {formatPostTime(post.createdAt)} · {post.location?.name ?? 'Nearby'}
               </p>
             </div>
             {onDelete && (
@@ -190,7 +190,8 @@ export function ProfilePage({
   isOwnProfile?: boolean
 }) {
   const navigate = useNavigate()
-  const { posts: allPosts, savedIds, likedIds, removePost } = usePosts()
+  const { posts, savedIds, likedIds, removePost } = usePosts()
+  const allPosts = posts.items
   const [data, setData] = useState(profile)
   const [tab, setTab] = useState('Posts')
   const [following, setFollowing] = useState(false)
@@ -205,7 +206,7 @@ export function ProfilePage({
   const profileUserId = isOwnProfile ? currentUserId : profile.username.replace(/^@/, '')
   const ownPosts = allPosts.filter((post) => post.author.id === profileUserId)
   const tabs = isOwnProfile ? ['Posts', 'Liked', 'Saved'] : ['Posts']
-  const postsByTab: Record<string, Post[]> = {
+  const postsByTab: Record<string, PostSearchItem[]> = {
     Posts: ownPosts,
     Liked: allPosts.filter((post) => likedIds.includes(post.id)),
     Saved: allPosts.filter((post) => savedIds.includes(post.id)),

@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Toggle } from '@/components/ui/toggle'
-import { PostCard } from '@/features/post/components/PostCard'
+import { PostCard } from '@/features/post/components/post-card'
 import {
   currentLocation,
   defaultRadius,
@@ -27,7 +27,10 @@ export default function ExplorePage() {
   const [heatmap, setHeatmap] = useState(true)
   const [selected, setSelected] = useState<string | null>(null)
   const [zoom, setZoom] = useState(1)
-  const visiblePosts = useMemo(() => posts.slice(0, radiusPostLimit[radius]), [posts, radius])
+  const visiblePosts = useMemo(
+    () => posts.items.slice(0, radiusPostLimit[radius]),
+    [posts.items, radius],
+  )
   const selectedHotspot = hotspots.find((item) => item.id === selected)
   const selectedTrend = trending.find((item) => item.tag === selected)
   return (
@@ -118,7 +121,15 @@ export default function ExplorePage() {
                     selectedTrend.tag === '#TrafficJam',
                 )
                 .map((post) => (
-                  <PostCard key={post.id} post={post} currentUserId={currentUserId} />
+                  <PostCard
+                    key={post.id}
+                    post={{
+                      ...post,
+                      likeCount: post.likeCount ?? 0,
+                      commentCount: post.commentCount ?? 0,
+                    }}
+                    currentUserId={currentUserId}
+                  />
                 ))}
             </div>
           </div>

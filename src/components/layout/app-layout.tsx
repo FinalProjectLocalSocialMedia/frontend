@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import {  useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav } from './bottom-nav'
 import { CreatePostContext } from './create-post-context'
@@ -15,7 +15,7 @@ import { Sidebar } from './sidebar'
 export function AppLayout() {
   const { pathname } = useLocation()
   const [createOpen, setCreateOpen] = useState(false)
-  const openCreate = useCallback(() => setCreateOpen(true), [])
+  const openCreate = () => setCreateOpen(true)
 
   useEffect(() => {
     window.scrollTo(0, 0)
