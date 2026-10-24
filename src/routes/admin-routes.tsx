@@ -17,6 +17,8 @@ import LoginPage from '../features/admin-moderation/pages/login-page'
 import { ContentReportDetailPage } from '../features/moderation/pages/content-report-detail-page'
 import { FlaggedAccountsPage } from '../features/moderation/pages/flagged-accounts-page'
 import { ReportsPage } from '../features/moderation/pages/reports-page'
+import { ContentOverviewPage } from '../features/admin/pages/content-overview-page'
+import { DashboardPage } from '../features/admin/pages/dashboard-page'
 import { UserDetailPage } from '../features/admin/pages/user-detail-page'
 import { UsersPage } from '../features/admin/pages/users-page'
 
@@ -56,28 +58,10 @@ export default function AdminRoutes() {
                   <Route path="accounts" element={<FlaggedAccountsPage />} />
                 </Route>
 
-                {/* Nhóm Quản trị: Tổng quan (Pha 6) & Nội dung (Pha 5) */}
+                {/* Nhóm Quản trị: Tổng quan & Nội dung (Pha 6) */}
                 <Route element={<RequirePermission permission="content.analytics" />}>
-                  <Route
-                    path="dashboard"
-                    element={
-                      <ComingSoon
-                        title="Tổng quan hệ thống"
-                        description="Báo cáo các chỉ số thời gian thực và biểu đồ phân tích."
-                        phaseText="Trang tổng quan thống kê sẽ được hoàn thiện ở Pha 6."
-                      />
-                    }
-                  />
-                  <Route
-                    path="content"
-                    element={
-                      <ComingSoon
-                        title="Quản lý nội dung"
-                        description="Tra cứu, duyệt và kiểm soát các bài viết, bình luận trong toàn hệ thống."
-                        phaseText="Chức năng quản lý nội dung sẽ được hoàn thiện ở Pha 5."
-                      />
-                    }
-                  />
+                  <Route path="dashboard" element={<DashboardPage />} />
+                  <Route path="content" element={<ContentOverviewPage />} />
                 </Route>
 
                 {/* Nhóm Quản trị: Người dùng (Pha 5) */}
