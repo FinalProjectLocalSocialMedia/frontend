@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { nearbyPosts, type NearbyPost } from '@/lib/mock-nearby'
 import { usePosts } from '@/lib/posts-context'
+import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 
 export type ProfileData = {
@@ -171,8 +172,26 @@ export function ProfilePage({
   isOwnProfile?: boolean
 }) {
   const navigate = useNavigate()
+  const { user, isAuthenticated } = useAuth()
   const { posts: allPosts, savedIds, likedIds, removePost } = usePosts()
-  const [data, setData] = useState(profile)
+
+  // Đồng bộ thông tin profile của user đăng nhập thực tế nếu có
+  const effectiveProfile: ProfileData = isOwnProfile && user
+    ? {
+        id: user.id,
+        name: user.fullName || 'Người dùng',
+        username: user.email ? `@${user.email.split('@')[0]}` : '@user',
+        bio: user.bio || 'Chưa có tiểu sử giới thiệu.',
+        initials: user.fullName ? user.fullName.slice(0, 2).toUpperCase() : 'ME',
+        color: 'bg-primary/10 text-primary',
+        location: 'Hà Nội, Việt Nam',
+        followers: 120,
+        following: 85,
+        posts: allPosts.filter((post) => post.handle === `@${user.email.split('@')[0]}`),
+      }
+    : profile
+
+  const [data, setData] = useState(effectiveProfile)
   const [tab, setTab] = useState('Posts')
   const [following, setFollowing] = useState(false)
   const [editOpen, setEditOpen] = useState(false)

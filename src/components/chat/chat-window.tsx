@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   ArrowLeft,
   BellOff,
+  Check,
+  CheckCheck,
   Copy,
   ImagePlus,
   MoreHorizontal,
@@ -26,6 +28,9 @@ type Props = {
   onSend: (text: string, replyTo?: string) => void
   onBack: () => void
   onToggleDetails: () => void
+  onTyping?: (isTyping: boolean) => void
+  isOtherTyping?: boolean
+  currentUserId?: string
 }
 
 export function ChatWindow({
@@ -35,14 +40,18 @@ export function ChatWindow({
   onSend,
   onBack,
   onToggleDetails,
+  onTyping,
+  isOtherTyping,
+  currentUserId,
 }: Props) {
   const [text, setText] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [reply, setReply] = useState<ChatMessage | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const otherId = conversation.memberIds.find((id) => id !== 'me') ?? 'me'
+  const otherId = conversation.memberIds.find((id) => id !== 'me' && id !== currentUserId) ?? 'me'
   const other = userById(otherId)
   const term = search.trim().toLowerCase()
   const visible = term
@@ -53,11 +62,31 @@ export function ChatWindow({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' })
-  }, [messages.length, conversation.id])
+  }, [messages.length, conversation.id, isOtherTyping])
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const val = e.target.value
+      setText(val)
+
+      if (onTyping) {
+        onTyping(true)
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = setTimeout(() => {
+          onTyping(false)
+        }, 1500)
+      }
+    },
+    [onTyping],
+  )
 
   function send() {
     const value = text.trim()
     if (!value || conversation.blocked) return
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    onTyping?.(false)
+
     onSend(value, reply?.id)
     setText('')
     setReply(null)
@@ -70,7 +99,7 @@ export function ChatWindow({
 
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
-      <header className="border-b border-border bg-card px-4 py-3">
+      <header className="border-b border-border bg-card px-4 py-3 shadow-xs">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -82,21 +111,26 @@ export function ChatWindow({
             <ArrowLeft />
           </Button>
           {conversation.kind === 'group' ? (
-            <GroupAvatars ids={conversation.memberIds.filter((id) => id !== 'me')} />
+            <GroupAvatars ids={conversation.memberIds.filter((id) => id !== 'me' && id !== currentUserId)} />
           ) : (
-            <Avatar id={otherId} />
+            <Avatar id={otherId} name={conversation.name} online={other?.online} />
           )}
           <div className="min-w-0 flex-1">
             <h2 className="flex items-center gap-2 truncate font-semibold">
               {conversation.name}
               {conversation.muted && <BellOff className="size-4 shrink-0 text-muted-foreground" />}
             </h2>
-            <p className="text-xs text-muted-foreground">
-              {conversation.kind === 'group'
-                ? `${conversation.memberIds.length} members`
-                : other?.online
-                  ? 'Online'
-                  : other?.lastSeen}
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              {conversation.kind === 'group' ? (
+                `${conversation.memberIds.length} members`
+              ) : other?.online ? (
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Online
+                </span>
+              ) : (
+                other?.lastSeen ?? 'Trực tuyến gần đây'
+              )}
             </p>
           </div>
           <Button
@@ -139,9 +173,27 @@ export function ChatWindow({
               message={message}
               quoted={message.replyTo ? messages.find((m) => m.id === message.replyTo) : undefined}
               onReply={() => setReply(message)}
+              currentUserId={currentUserId}
+              partnerName={conversation.name}
             />
           ))}
-          {visible.length === 0 && (
+
+          {/* Typing Indicator */}
+          {isOtherTyping && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground py-1 animate-in fade-in duration-200">
+              <Avatar id={otherId} name={conversation.name} small />
+              <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-muted/80 px-3.5 py-2 text-xs">
+                <span className="size-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:-0.3s]" />
+                <span className="size-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:-0.15s]" />
+                <span className="size-1.5 rounded-full bg-primary/70 animate-bounce" />
+                <span className="ml-1 text-[11px] font-medium text-foreground/80">
+                  {conversation.name} đang soạn tin...
+                </span>
+              </div>
+            </div>
+          )}
+
+          {visible.length === 0 && !isOtherTyping && (
             <p className="py-10 text-center text-sm text-muted-foreground">
               {term ? 'No messages match your search.' : 'Say hi to start the conversation.'}
             </p>
@@ -153,7 +205,7 @@ export function ChatWindow({
       {reply && (
         <div className="flex items-center justify-between border-t border-border bg-muted/40 px-4 py-2 text-xs">
           <span className="truncate">
-            Replying to {userById(reply.senderId)?.name}: {reply.text ?? reply.attachmentLabel}
+            Replying to {userById(reply.senderId)?.name || conversation.name}: {reply.text ?? reply.attachmentLabel}
           </span>
           <Button
             variant="ghost"
@@ -179,7 +231,7 @@ export function ChatWindow({
           </Button>
           <Textarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={(e) => {
               // Don't send while a Vietnamese/IME composition is being confirmed.
               if (
@@ -195,7 +247,7 @@ export function ChatWindow({
             placeholder={conversation.blocked ? 'Chat blocked' : 'Write a message...'}
             disabled={conversation.blocked}
             rows={1}
-            className="min-h-9 flex-1 rounded-xl"
+            className="min-h-10 flex-1 rounded-xl text-sm resize-none"
           />
           <Button
             variant="ghost"
@@ -210,6 +262,7 @@ export function ChatWindow({
             aria-label="Send message"
             onClick={send}
             disabled={!text.trim() || conversation.blocked}
+            className="rounded-xl shadow-xs"
           >
             <Send />
           </Button>
@@ -223,30 +276,41 @@ function MessageRow({
   message,
   quoted,
   onReply,
+  currentUserId,
+  partnerName,
 }: {
-  message: ChatMessage
+  message: ChatMessage & { status?: string }
   quoted?: ChatMessage
   onReply: () => void
+  currentUserId?: string
+  partnerName?: string
 }) {
-  const mine = message.senderId === 'me'
+  const mine =
+    message.senderId === 'me' ||
+    (currentUserId && message.senderId === currentUserId)
+
+  const senderName = mine ? 'Tôi' : userById(message.senderId)?.name || partnerName || 'Người dùng'
+
   return (
     <div className={cn('group flex gap-2', mine && 'justify-end')}>
-      {!mine && <Avatar id={message.senderId} small />}
+      {!mine && <Avatar id={message.senderId} name={senderName} small />}
       <div className={cn('flex max-w-[78%] flex-col', mine && 'items-end')}>
         {!mine && (
           <span className="mb-1 px-1 text-[11px] font-medium text-muted-foreground">
-            {userById(message.senderId)?.name}
+            {senderName}
           </span>
         )}
         <div
           className={cn(
-            'rounded-2xl px-4 py-2.5 text-sm leading-6',
-            mine ? 'rounded-br-md bg-primary text-primary-foreground' : 'rounded-bl-md bg-muted',
+            'rounded-2xl px-4 py-2.5 text-sm leading-6 shadow-2xs transition-all',
+            mine
+              ? 'rounded-br-xs bg-primary text-primary-foreground'
+              : 'rounded-bl-xs bg-muted',
           )}
         >
           {quoted && (
-            <p className="mb-1.5 truncate border-l-2 border-current/40 pl-2 text-xs opacity-70">
-              {userById(quoted.senderId)?.name}: {quoted.text ?? quoted.attachmentLabel}
+            <p className="mb-1.5 truncate border-l-2 border-current/40 pl-2 text-xs opacity-75">
+              {userById(quoted.senderId)?.name ?? 'Tin nhắn'}: {quoted.text ?? quoted.attachmentLabel}
             </p>
           )}
           {message.kind === 'image' || message.kind === 'video' ? (
@@ -265,13 +329,26 @@ function MessageRow({
             <span className="ml-2">{message.reactions.join(' ')}</span>
           ) : null}
         </div>
-        <div className="flex items-center gap-3 px-1 pt-1 text-[11px] text-muted-foreground focus-within:opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
+
+        <div className="flex items-center gap-2 px-1 pt-1 text-[11px] text-muted-foreground focus-within:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
           <span>
             {new Date(message.createdAt).toLocaleTimeString('vi-VN', {
               hour: '2-digit',
               minute: '2-digit',
             })}
           </span>
+
+          {/* Delivery & Read Receipts for my messages */}
+          {mine && (
+            <span title={message.status === 'SEEN' ? 'Đã xem' : 'Đã gửi'} className="inline-flex items-center">
+              {message.status === 'SEEN' ? (
+                <CheckCheck className="size-3 text-sky-500" />
+              ) : (
+                <Check className="size-3 text-muted-foreground" />
+              )}
+            </span>
+          )}
+
           {message.text && (
             <Button
               variant="ghost"

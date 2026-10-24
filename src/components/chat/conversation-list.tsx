@@ -1,4 +1,4 @@
-import { BellOff, Search, UserPlus } from 'lucide-react'
+import { BellOff, Search, UserPlus, Radio } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@ type Props = {
   onSelect: (id: string) => void
   onCreateGroup: () => void
   onReset: () => void
+  isRealtimeConnected?: boolean
 }
 
 export function ConversationList({
@@ -26,6 +27,7 @@ export function ConversationList({
   onSelect,
   onCreateGroup,
   onReset,
+  isRealtimeConnected,
 }: Props) {
   const rows = conversations
     .filter((c) => c.name.toLowerCase().includes(query.toLowerCase()))
@@ -38,9 +40,25 @@ export function ConversationList({
       <div className="p-5">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              nearby.
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                nearby.
+              </p>
+              {isRealtimeConnected !== undefined && (
+                <span
+                  title={isRealtimeConnected ? 'STOMP WebSocket trực tuyến' : 'Đang chờ WebSocket'}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors',
+                    isRealtimeConnected
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : 'bg-muted text-muted-foreground',
+                  )}
+                >
+                  <Radio className={cn('size-2.5', isRealtimeConnected && 'animate-pulse text-emerald-500')} />
+                  {isRealtimeConnected ? 'Trực tuyến' : 'Offline'}
+                </span>
+              )}
+            </div>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">Messages</h1>
           </div>
           <Button
@@ -48,6 +66,7 @@ export function ConversationList({
             size="icon-lg"
             aria-label="Create group chat"
             onClick={onCreateGroup}
+            title="Tạo cuộc trò chuyện mới"
           >
             <UserPlus />
           </Button>
@@ -72,14 +91,14 @@ export function ConversationList({
               onClick={() => onSelect(conversation.id)}
               aria-current={activeId === conversation.id}
               className={cn(
-                'flex items-center gap-3 rounded-xl p-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                'flex items-center gap-3 rounded-xl p-3 text-left outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
                 activeId === conversation.id ? 'bg-primary/10' : 'hover:bg-muted',
               )}
             >
               {conversation.kind === 'group' ? (
                 <GroupAvatars ids={conversation.memberIds.filter((id) => id !== 'me')} />
               ) : (
-                <Avatar id={otherId} />
+                <Avatar id={otherId} name={conversation.name} />
               )}
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1 truncate text-sm font-semibold">
@@ -105,7 +124,7 @@ export function ConversationList({
         variant="ghost"
         size="xs"
         onClick={onReset}
-        className="m-3 self-start text-muted-foreground"
+        className="m-3 self-start text-muted-foreground hover:text-foreground"
       >
         Reset demo data
       </Button>

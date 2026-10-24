@@ -17,6 +17,7 @@ export type ChatMessage = {
   createdAt: string
   reactions?: string[]
   replyTo?: string
+  status?: 'SENT' | 'DELIVERED' | 'SEEN' | string
 }
 export type Conversation = {
   id: string
@@ -202,6 +203,10 @@ export type ChatState = { conversations: Conversation[]; messages: ChatMessage[]
 
 export const chatStorageKey = 'nearby-chat-demo-v1'
 
+export function isUuid(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+}
+
 export function defaultChatState(): ChatState {
   return { conversations: initialConversations, messages: initialMessages }
 }
@@ -211,7 +216,15 @@ export function loadChatState(): ChatState {
     const raw = window.localStorage.getItem(chatStorageKey)
     if (!raw) return defaultChatState()
     const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed?.conversations) && Array.isArray(parsed?.messages)) return parsed
+    if (Array.isArray(parsed?.conversations) && Array.isArray(parsed?.messages)) {
+      // Chỉ tải mock demo conversations/messages, loại bỏ hoàn toàn dữ liệu có UUID từ backend DB
+      const mockConvs = parsed.conversations.filter((c: any) => c?.id && !isUuid(c.id))
+      const mockMsgs = parsed.messages.filter((m: any) => m?.conversationId && !isUuid(m.conversationId))
+      return {
+        conversations: mockConvs.length > 0 ? mockConvs : initialConversations,
+        messages: mockMsgs.length > 0 ? mockMsgs : initialMessages,
+      }
+    }
   } catch {
     /* fall through to defaults */
   }
@@ -220,7 +233,12 @@ export function loadChatState(): ChatState {
 
 export function saveChatState(state: ChatState) {
   try {
-    window.localStorage.setItem(chatStorageKey, JSON.stringify(state))
+    // Chỉ lưu mock data cho mục đích demo prototype, tuyệt đối không cache tin nhắn và phòng chat thực tế từ DB
+    const mockState: ChatState = {
+      conversations: state.conversations.filter((c) => !isUuid(c.id)),
+      messages: state.messages.filter((m) => !isUuid(m.conversationId)),
+    }
+    window.localStorage.setItem(chatStorageKey, JSON.stringify(mockState))
   } catch {
     /* storage is optional for the prototype */
   }

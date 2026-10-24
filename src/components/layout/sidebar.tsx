@@ -1,9 +1,19 @@
-import { Navigation, Plus, Sparkles } from 'lucide-react'
-import { Link, NavLink } from 'react-router-dom'
+import { LogIn, LogOut, Navigation, Plus, Sparkles, UserRound } from 'lucide-react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { navItems } from '@/lib/nav'
+import { useAuth } from '@/lib/auth-context'
 import { ThemeToggle } from './theme-toggle'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 // Text that only appears once the rail has expanded (on hover or keyboard focus).
@@ -18,6 +28,9 @@ const revealOnExpand =
  * page (like Instagram) instead of pushing it.
  */
 export function Sidebar({ onCreate }: { onCreate: () => void }) {
+  const { user, isAuthenticated, logout } = useAuth()
+  const navigate = useNavigate()
+
   return (
     <div className="sticky top-0 z-30 hidden h-dvh w-[72px] shrink-0 lg:block">
       <aside
@@ -89,9 +102,61 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
           <span className={revealOnExpand}>Create Post</span>
         </Button>
 
+        {/* User profile / Login button */}
+        <div className="mt-auto pt-4 border-t border-border/50">
+          {isAuthenticated && user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex h-12 w-full items-center gap-3 rounded-xl p-1.5 outline-none hover:bg-muted text-left transition-colors">
+                <Avatar className="size-9 shrink-0 border border-primary/20">
+                  <AvatarImage src={user.avatarUrl} alt={user.fullName} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+                    {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : 'ME'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className={cn(revealOnExpand, 'min-w-0 flex-1')}>
+                  <p className="truncate text-xs font-semibold text-foreground">
+                    {user.fullName || 'Người dùng'}
+                  </p>
+                  <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="right" align="end" className="w-56">
+                <div className="p-2 text-xs">
+                  <p className="font-semibold text-foreground">{user.fullName}</p>
+                  <p className="text-muted-foreground truncate">{user.email}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
+                  <UserRound className="mr-2 size-4" />
+                  <span>Hồ sơ cá nhân</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={async () => {
+                    await logout()
+                    toast.success('Đã đăng xuất tài khoản')
+                  }}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <LogOut className="mr-2 size-4" />
+                  <span>Đăng xuất</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/login"
+              className="flex h-11 w-full items-center justify-start gap-3 rounded-xl border border-primary/30 bg-primary/10 px-3.5 text-sm font-semibold text-primary hover:bg-primary/20 transition-colors"
+            >
+              <LogIn className="size-5 shrink-0" />
+              <span className={revealOnExpand}>Đăng nhập</span>
+            </Link>
+          )}
+        </div>
+
         <ThemeToggle
           side="right"
-          className="mt-auto h-11 w-full justify-start gap-3 rounded-xl px-3.5 text-muted-foreground"
+          className="mt-2 h-11 w-full justify-start gap-3 rounded-xl px-3.5 text-muted-foreground"
           iconClassName="size-5"
           label={<span className={revealOnExpand}>Theme</span>}
         />
@@ -99,7 +164,7 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
         <div
           className={cn(
             revealOnExpand,
-            'mt-4 w-56 shrink-0 whitespace-normal rounded-2xl border border-border bg-muted/40 p-4',
+            'mt-3 w-56 shrink-0 whitespace-normal rounded-2xl border border-border bg-muted/40 p-4',
           )}
         >
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
