@@ -9,6 +9,7 @@ import type {
   Uuid,
 } from '@/features/admin-moderation/lib/types'
 import type { UsersService } from './users.service'
+import { ApiError } from '@/lib/http-client'
 
 const now = new Date().toISOString()
 
@@ -150,7 +151,31 @@ export const mockUsersService: UsersService = {
   },
 
   async create(input: CreateUserInput): Promise<AdminUserDetail> {
-    await new Promise((r) => setTimeout(r, 300))
+    await new Promise((r) => setTimeout(r, 200))
+
+    // Check duplicate email
+    if (mockUsers.some((u) => u.email && u.email.toLowerCase() === input.email.toLowerCase() && !u.deletedAt)) {
+      throw new ApiError({
+        message: 'Email đã được sử dụng bởi một tài khoản khác',
+        status: 409,
+        code: 'EMAIL_ALREADY_EXISTS',
+        fieldErrors: { email: 'Email đã được sử dụng' },
+      })
+    }
+
+    // Check duplicate phone
+    if (
+      input.phoneNumber &&
+      mockUsers.some((u) => u.phoneNumber === input.phoneNumber && !u.deletedAt)
+    ) {
+      throw new ApiError({
+        message: 'Số điện thoại đã được sử dụng bởi một tài khoản khác',
+        status: 409,
+        code: 'PHONE_ALREADY_EXISTS',
+        fieldErrors: { phoneNumber: 'Số điện thoại đã được sử dụng' },
+      })
+    }
+
     const newId = crypto.randomUUID()
     const role = (input.role as string) === 'USER' ? 'NORMAL_USER' : input.role
     const displayName =
@@ -217,6 +242,16 @@ export const mockUsersService: UsersService = {
     const user = mockUsers.find((u) => u.id === id)
     if (!user) {
       throw new Error(`Không tìm thấy người dùng với ID: ${id}`)
+    }
+    if (user.role === 'ADMIN') {
+      const activeAdmins = mockUsers.filter((u) => u.role === 'ADMIN' && !u.deletedAt && u.id !== id)
+      if (activeAdmins.length === 0) {
+        throw new ApiError({
+          message: 'Không thể xoá quản trị viên cuối cùng trong hệ thống',
+          status: 409,
+          code: 'LAST_ADMIN',
+        })
+      }
     }
     user.deletedAt = new Date().toISOString()
   },

@@ -23,13 +23,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useAuth } from '@/features/admin-moderation/auth/auth-context'
+import { useAuth, usePermission } from '@/features/admin-moderation/auth/auth-context'
 import { Can } from '@/features/admin-moderation/auth/guards'
 import { LockDialog } from '@/features/admin-moderation/components/lock-dialog'
 import { StatusBadge } from '@/features/admin-moderation/components/status-badge'
 import { UnlockDialog } from '@/features/admin-moderation/components/unlock-dialog'
 import { WarnDialog } from '@/features/admin-moderation/components/warn-dialog'
-import { formatDateTime } from '@/features/admin-moderation/lib/formatters'
+import { formatDateTime, maskEmail, maskPhone } from '@/features/admin-moderation/lib/formatters'
 import { initialsOf, ROLE_LABELS, SANCTION_TYPE_LABELS } from '@/features/admin-moderation/lib/labels'
 import type { Role, UserRef } from '@/features/admin-moderation/lib/types'
 import {
@@ -46,6 +46,7 @@ export function UserDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user: currentStaff } = useAuth()
+  const canReadPii = usePermission('users.pii.read')
 
   const { data: user, isLoading, error, refetch, isFetching } = useAdminUserDetail(id)
 
@@ -313,28 +314,34 @@ export function UserDetailPage() {
               {user.email && (
                 <div className="flex items-center gap-1.5">
                   <Mail className="size-3.5" />
-                  <span>{user.email}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(user.email!, 'Email')}
-                    className="hover:text-foreground cursor-pointer"
-                  >
-                    <Copy className="size-3" />
-                  </button>
+                  <span>{canReadPii ? user.email : maskEmail(user.email)}</span>
+                  {canReadPii && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(user.email!, 'Email')}
+                      className="hover:text-foreground cursor-pointer"
+                      title="Sao chép Email"
+                    >
+                      <Copy className="size-3" />
+                    </button>
+                  )}
                 </div>
               )}
 
               {user.phoneNumber && (
                 <div className="flex items-center gap-1.5">
                   <Phone className="size-3.5" />
-                  <span>{user.phoneNumber}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(user.phoneNumber!, 'Số điện thoại')}
-                    className="hover:text-foreground cursor-pointer"
-                  >
-                    <Copy className="size-3" />
-                  </button>
+                  <span>{canReadPii ? user.phoneNumber : maskPhone(user.phoneNumber)}</span>
+                  {canReadPii && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(user.phoneNumber!, 'Số điện thoại')}
+                      className="hover:text-foreground cursor-pointer"
+                      title="Sao chép Số điện thoại"
+                    >
+                      <Copy className="size-3" />
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -448,7 +455,9 @@ export function UserDetailPage() {
             <div className="grid grid-cols-3 gap-2 py-1.5 border-b">
               <span className="text-muted-foreground">Ngày sinh:</span>
               <span className="col-span-2 font-medium">
-                {user.profile?.dateOfBirth ? user.profile.dateOfBirth : 'Chưa cập nhật'}
+                {canReadPii
+                  ? (user.profile?.dateOfBirth ? user.profile.dateOfBirth : 'Chưa cập nhật')
+                  : '••••-••-•• (Đã ẩn PII)'}
               </span>
             </div>
 

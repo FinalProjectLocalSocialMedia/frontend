@@ -39,7 +39,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useAuth } from '@/features/admin-moderation/auth/auth-context'
+import { useAuth, usePermission } from '@/features/admin-moderation/auth/auth-context'
 import { Can } from '@/features/admin-moderation/auth/guards'
 import { DataTable, type DataTableColumn } from '@/features/admin-moderation/components/data-table'
 import { LockDialog } from '@/features/admin-moderation/components/lock-dialog'
@@ -47,7 +47,7 @@ import { PageHeader } from '@/features/admin-moderation/components/page-header'
 import { StatusBadge } from '@/features/admin-moderation/components/status-badge'
 import { UnlockDialog } from '@/features/admin-moderation/components/unlock-dialog'
 import { WarnDialog } from '@/features/admin-moderation/components/warn-dialog'
-import { formatDateTime } from '@/features/admin-moderation/lib/formatters'
+import { formatDateTime, maskEmail, maskPhone } from '@/features/admin-moderation/lib/formatters'
 import { initialsOf, ROLE_LABELS } from '@/features/admin-moderation/lib/labels'
 import type {
   AdminUserListItem,
@@ -70,6 +70,7 @@ import { UserFormDialog } from '../components/user-form-dialog'
 export function UsersPage() {
   const navigate = useNavigate()
   const { user: currentStaff } = useAuth()
+  const canReadPii = usePermission('users.pii.read')
 
   const {
     page,
@@ -215,7 +216,7 @@ export function UsersPage() {
             </span>
             {item.email && (
               <span className="text-[11px] text-muted-foreground truncate">
-                {item.email}
+                {canReadPii ? item.email : maskEmail(item.email)}
               </span>
             )}
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70 font-mono">
@@ -326,7 +327,7 @@ export function UsersPage() {
       className: 'w-[120px]',
       cell: (item) => (
         <span className="text-xs font-mono text-muted-foreground">
-          {item.phoneNumber || '—'}
+          {canReadPii ? (item.phoneNumber || '—') : maskPhone(item.phoneNumber)}
         </span>
       ),
     },
