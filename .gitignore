@@ -1,6 +1,9 @@
 .vercel
 dist/
-node_modules/
+
 powershell.cmd
-.env
 .idea
+
+node_modules/
+.env
+admin-moderator-plan.md

@@ -4,7 +4,7 @@ import { activitySpots, hotspots, radiusScale, trending } from '@/lib/mock-nearb
 export function MapView({
   radius,
   heatmap,
-  selected,
+  selected: _selected,
   setSelected,
   zoom,
   setZoom,

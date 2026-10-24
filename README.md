@@ -14,7 +14,7 @@ Giao diện web của mạng xã hội **location-based**: xem bài viết quanh
 | Routing | React Router (`react-router-dom`, `BrowserRouter`) |
 | Icon / Toast | `lucide-react` / `sonner` |
 | Test | Vitest + jsdom + Testing Library |
-| Format | Prettier (`.prettierrc`), **chưa có ESLint** |
+| Lint / Format | ESLint (flat config) + React Compiler rules + Prettier (`.prettierrc`) |
 
 ## Chạy dự án
 
@@ -26,8 +26,9 @@ npm run dev        # http://localhost:5173
 | Lệnh | Tác dụng |
 |---|---|
 | `npm run dev` | Dev server |
+| `npm run lint` | Chạy ESLint kiểm tra code và luật React Compiler |
 | `npm run build` | `tsc -b` rồi `vite build` (build phải sạch lỗi type) |
-| `npm test` | Chạy toàn bộ test (Vitest, 19 test) |
+| `npm test` | Chạy toàn bộ test (Vitest) |
 | `npm run format` | Prettier cho `src` (bỏ qua `src/components/ui`) |
 
 Biến môi trường cần cho upload media:
@@ -46,9 +47,16 @@ Backend cấp `timestamp`, `folder` và `signature`; frontend không cần uploa
 | `/messages` | Chat (danh sách + khung chat + panel chi tiết) | `src/components/chat-page.tsx` |
 | `/profile` | Hồ sơ cá nhân, tab Posts / Liked / Saved | `src/components/profile-page.tsx` |
 | `/notifications` | Placeholder "Coming soon" | `src/pages/coming-soon.tsx` |
+| `/admin/*` | Khu vực Quản trị & Kiểm duyệt (Admin Console) | `src/routes/admin-routes.tsx` |
 | `*` | 404 | `src/pages/not-found.tsx` |
 
-Mọi trang đều nằm trong `AppLayout` (Sidebar trên desktop, header + bottom nav trên mobile).
+Mọi trang người dùng đều nằm trong `AppLayout` (Sidebar trên desktop, header + bottom nav trên mobile). Khu vực `/admin/*` có layout và router riêng (`AdminLayout`, tải lười).
+
+### Tài khoản thử nghiệm khu vực Quản trị (`VITE_USE_MOCK=true`):
+- **Admin**: `admin@nearby.local` (Mật khẩu: `Passw0rd!`)
+- **Moderator**: `moderator@nearby.local` hoặc `moderator2@nearby.local` (Mật khẩu: `Passw0rd!`)
+- **Tài khoản bị khoá**: `locked@nearby.local` (Báo lỗi `ACCOUNT_LOCKED`)
+- **Người dùng thường**: `user@nearby.local` (Báo lỗi `NOT_STAFF`)
 
 ## Cấu trúc thư mục
 
@@ -73,7 +81,7 @@ src/
 │  ├─ posts-context.tsx    # Store bài viết/like/save (in-memory)
 │  ├─ mock-nearby.ts       # Mock: bài viết, hotspot, trending, bán kính
 │  ├─ mock-chat.ts         # Mock + lưu localStorage cho chat
-│  ├─ api.ts               # HTTP client mỏng (chưa dùng)
+│  ├─ http-client.ts       # Axios client dùng chung, ApiError, chuẩn hoá lỗi
 │  └─ utils.ts             # re-export `cn` từ package "cn"
 ├─ test-setup.ts           # Setup Vitest (matchMedia stub, setViewport)
 └─ *.test.tsx              # Test hành vi
