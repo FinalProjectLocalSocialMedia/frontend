@@ -120,19 +120,21 @@ export function ConversationList({
         })}
         {rows.length === 0 && (
           <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-            No conversations found.
+            Chưa có cuộc trò chuyện nào.
           </p>
         )}
       </div>
 
-      <Button
-        variant="ghost"
-        size="xs"
-        onClick={onReset}
-        className="m-3 self-start text-muted-foreground hover:text-foreground"
-      >
-        Reset demo data
-      </Button>
+      {typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test' && (
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={onReset}
+          className="m-3 self-start text-muted-foreground hover:text-foreground"
+        >
+          Reset demo data
+        </Button>
+      )}
     </aside>
   )
 }

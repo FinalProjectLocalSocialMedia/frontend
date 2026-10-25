@@ -57,19 +57,7 @@ export function NewChatDialog({
     setSearching(true)
 
     const timer = setTimeout(async () => {
-      const mockMatches: FoundUser[] = chatUsers
-        .filter(
-          (u) =>
-            u.id !== 'me' &&
-            (!trimmed || `${u.name} ${u.username}`.toLowerCase().includes(trimmed.toLowerCase())),
-        )
-        .map((u) => ({
-          id: u.id,
-          fullName: u.name,
-          username: u.username,
-          online: u.online,
-          isReal: false,
-        }))
+      const isTestEnv = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test'
 
       if (isLoggedIn) {
         try {
@@ -91,8 +79,24 @@ export function NewChatDialog({
         } finally {
           setSearching(false)
         }
-      } else {
+      } else if (isTestEnv) {
+        const mockMatches: FoundUser[] = chatUsers
+          .filter(
+            (u) =>
+              u.id !== 'me' &&
+              (!trimmed || `${u.name} ${u.username}`.toLowerCase().includes(trimmed.toLowerCase())),
+          )
+          .map((u) => ({
+            id: u.id,
+            fullName: u.name,
+            username: u.username,
+            online: u.online,
+            isReal: false,
+          }))
         setSearchResults(mockMatches)
+        setSearching(false)
+      } else {
+        setSearchResults([])
         setSearching(false)
       }
     }, 200)

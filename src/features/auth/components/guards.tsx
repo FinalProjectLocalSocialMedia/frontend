@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Spinner } from '@/components/ui/spinner'
 import { useAuth } from '../context/auth-context'
 import { usePermission } from '../hooks/use-permission'
 import type { Permission } from '../lib/permissions'
@@ -16,7 +17,11 @@ export function RequireAuth({ loginPath = '/login', allowedRoles }: RequireAuthP
   const location = useLocation()
 
   if (isLoading) {
-    return null
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Spinner className="size-6 text-primary" />
+      </div>
+    )
   }
 
   if (!user) {

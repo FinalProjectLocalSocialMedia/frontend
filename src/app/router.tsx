@@ -13,6 +13,8 @@ import PostSearch from '@/features/post/pages/post-search'
 import { ChatPage } from '@/features/chat/pages/chat-page'
 import AuthPage from '@/features/auth/pages/auth-page'
 
+import { RequireAuth } from '@/features/auth/components/guards'
+
 const AdminRoutes = lazy(() => import('@/routes/admin-routes'))
 
 export function AppRouter() {
@@ -40,14 +42,19 @@ export function AppRouter() {
         <Route path="posts/:postId" element={<PostDetail />} />
         <Route path="search" element={<PostSearch />} />
         <Route path="explore" element={<ExplorePage />} />
-        <Route path="messages" element={<ChatPage />} />
-        <Route path="profile" element={<ProfilePage />} />
+
+        {/* Các trang yêu cầu đăng nhập: Notifications, Messages (Chat), Profile */}
+        <Route element={<RequireAuth loginPath="/login" />}>
+          <Route path="messages" element={<ChatPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route
+            path="notifications"
+            element={<ComingSoonPage title="Notifications" icon={Bell} />}
+          />
+        </Route>
+
         <Route path="login" element={<AuthPage initialMode="login" />} />
         <Route path="register" element={<AuthPage initialMode="register" />} />
-        <Route
-          path="notifications"
-          element={<ComingSoonPage title="Notifications" icon={Bell} />}
-        />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

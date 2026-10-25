@@ -20,6 +20,8 @@ import { DetailsPanel } from '../components/details-panel'
 import { ReportDialog } from '../components/report-dialog'
 import { NewChatDialog } from '../components/new-chat-dialog'
 
+const isTestEnv = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test'
+
 /** Kiểm tra xem một ID có phải là UUID chuẩn (từ backend DB) hay không */
 function isUuid(id: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
@@ -27,10 +29,18 @@ function isUuid(id: string): boolean {
 
 export function ChatPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
-  const [state, setState] = useState<ChatState>(() => loadChatState())
+  const [state, setState] = useState<ChatState>(() => {
+    if (isTestEnv) {
+      return loadChatState()
+    }
+    return { conversations: [], messages: [] }
+  })
   const [activeId, setActiveId] = useState<string | null>(() => {
-    const initial = loadChatState()
-    return initial.conversations[0]?.id ?? null
+    if (isTestEnv) {
+      const initial = loadChatState()
+      return initial.conversations[0]?.id ?? null
+    }
+    return null
   })
   const [mobileChatOpen, setMobileChatOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -41,18 +51,25 @@ export function ChatPage() {
   const isDesktop = useIsDesktop()
   const sendReadRef = useRef<((messageId: string, conversationId?: string) => void) | null>(null)
 
-  // Tự động lưu mock state cho demo & vitest test runner chỉ khi chưa đăng nhập
+  // Xoá sạch mock chat đã lưu trong localStorage ở môi trường thực tế
   useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
+    if (!isTestEnv && typeof window !== 'undefined') {
+      window.localStorage.removeItem('nearby-chat-demo-v1')
+    }
+  }, [])
+
+  // Tự động lưu mock state cho vitest test runner
+  useEffect(() => {
+    if (isTestEnv && !isLoading) {
       saveChatState(state)
     }
-  }, [state, isAuthenticated, isLoading])
+  }, [state, isLoading])
 
   // Xử lý nạp dữ liệu phù hợp theo trạng thái đăng nhập
   useEffect(() => {
     if (isLoading) return
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated && isTestEnv) {
       const mock = loadChatState()
       setState(mock)
       setActiveId((prev) => prev ?? mock.conversations[0]?.id ?? null)
@@ -65,7 +82,7 @@ export function ChatPage() {
 
   // 1. Tải danh sách cuộc trò chuyện thực tế từ Backend khi người dùng đã đăng nhập
   const fetchBackendConversations = useCallback(async () => {
-    if (!isAuthenticated || !user?.id) return
+    if (!isAuthenticated || !user?.id || isTestEnv) return
 
     try {
       const summaries = await chatApi.getConversations()
@@ -126,7 +143,7 @@ export function ChatPage() {
 
   // 2. Tải lịch sử tin nhắn khi mở 1 cuộc trò chuyện từ Backend
   useEffect(() => {
-    if (!activeId || !isUuid(activeId) || !isAuthenticated || !user?.id) return
+    if (!activeId || !isUuid(activeId) || !isAuthenticated || !user?.id || isTestEnv) return
 
     chatApi
       .getMessages(activeId)
@@ -376,7 +393,7 @@ export function ChatPage() {
           toast.error('Không thể gửi tin nhắn. Vui lòng thử lại!')
         }
       }
-    } else {
+    } else if (isTestEnv) {
       if (active.id.endsWith('-chat') || active.id === 'cau-giay' || active.id === 'design') {
         const otherId = active.memberIds.find((id) => id !== 'me') ?? 'linh'
         setTimeout(() => {

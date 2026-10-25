@@ -29,6 +29,15 @@ const processQueue = (error: unknown) => {
   failedQueue = []
 }
 
+let lastUnauthorizedEmit = 0
+const emitUnauthorized = () => {
+  const now = Date.now()
+  if (now - lastUnauthorizedEmit > 1500) {
+    lastUnauthorizedEmit = now
+    authEvents.emit('unauthorized')
+  }
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -60,7 +69,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError)
-        authEvents.emit('unauthorized')
+        emitUnauthorized()
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

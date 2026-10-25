@@ -37,9 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return authEvents.on('unauthorized', () => {
       queryClient.setQueryData(authKeys.me(), null)
-      queryClient.clear()
-      toast.error('Phiên đăng nhập đã hết hạn', {
-        description: 'Vui lòng đăng nhập lại.',
+      queryClient.removeQueries({
+        predicate: (query) => query.queryKey[0] !== 'auth',
       })
     })
   }, [queryClient])

@@ -55,7 +55,9 @@ export function useLogoutMutation() {
     },
     onSuccess: () => {
       queryClient.setQueryData(authKeys.me(), null)
-      queryClient.clear()
+      queryClient.removeQueries({
+        predicate: (query) => query.queryKey[0] !== 'auth',
+      })
     },
   })
 }

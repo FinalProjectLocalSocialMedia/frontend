@@ -82,6 +82,15 @@ const renderAt = (
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
+  queryClient.setQueryData(['auth', 'me'], {
+    id: 'minhnguyen',
+    email: 'minhnguyen@example.com',
+    fullName: 'Nguyễn Minh',
+    role: 'USER',
+    avatarUrl: '',
+    bio: '',
+    status: 'ACTIVE',
+  })
   return render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>

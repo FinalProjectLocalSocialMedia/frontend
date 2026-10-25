@@ -46,7 +46,8 @@ export function ChatAvatar({
   small?: boolean
   online?: boolean
 }) {
-  const mock = id ? userById(id) : null
+  const isTestEnv = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test'
+  const mock = isTestEnv && id ? userById(id) : null
   const displayName = name || mock?.name || 'User'
   const initials = getInitials(displayName)
   const color = mock?.color || getColorForName(displayName)

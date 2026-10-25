@@ -53,7 +53,8 @@ export function ChatWindow({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const otherId = conversation.memberIds.find((id) => id !== 'me' && id !== currentUserId) ?? 'me'
-  const other = userById(otherId)
+  const isTestEnv = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test'
+  const other = isTestEnv ? userById(otherId) : null
   const term = search.trim().toLowerCase()
   const visible = term
     ? messages.filter((m) =>

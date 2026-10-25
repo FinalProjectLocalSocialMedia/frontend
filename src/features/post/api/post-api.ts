@@ -25,22 +25,12 @@ export interface CreatePostRequest {
 
 export async function requestPostUploadSignature(): Promise<PostUploadSignature> {
   const response = await postHttp.post<PostUploadSignature>('post/signature', undefined, {
-    headers: {
-      'X-User-Id': CURRENT_USER_ID,
-      Authorization:
-        'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIwMjEzOWIyZi1mYmVkLTQwMDktYjE2ZC1hOTZiNDdlMjFiM2MiLCJlbWFpbCI6ImxhbUB0ZXN0LmNvbSIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE3OTI2MDkxNjYsImV4cCI6MTc5MjY5NTU2Nn0.0AfsB5Ep6Z6Vf9NpxVj6_Z6lEBQKFv_HSZOvCbh16irxOlfGc8_IFb51-Zzje09UYWBlqFdUaEDw33Lp8Gjb5w',
-    },
   })
   return response.data
 }
 
 export async function createPost(request: CreatePostRequest): Promise<Post> {
   const response = await postHttp.post<Post>('/post/posts', request, {
-    headers: {
-      'X-User-Id': CURRENT_USER_ID,
-      Authorization:
-        'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIwMjEzOWIyZi1mYmVkLTQwMDktYjE2ZC1hOTZiNDdlMjFiM2MiLCJlbWFpbCI6ImxhbUB0ZXN0LmNvbSIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE3OTI2MDkxNjYsImV4cCI6MTc5MjY5NTU2Nn0.0AfsB5Ep6Z6Vf9NpxVj6_Z6lEBQKFv_HSZOvCbh16irxOlfGc8_IFb51-Zzje09UYWBlqFdUaEDw33Lp8Gjb5w',
-    },
   })
   return response.data
 }
@@ -51,12 +41,7 @@ export async function getFeed({ cursor, limit = 20 }: GetFeedParams): Promise<Po
   }
 
   const response = await postHttp.get<PostCursorPage>('feed/feed/local', {
-    params: { cursor, limit },
-    headers: {
-      'X-User-Id': CURRENT_USER_ID,
-      Authorization:
-        'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIwMjEzOWIyZi1mYmVkLTQwMDktYjE2ZC1hOTZiNDdlMjFiM2MiLCJlbWFpbCI6ImxhbUB0ZXN0LmNvbSIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE3OTI2MDkxNjYsImV4cCI6MTc5MjY5NTU2Nn0.0AfsB5Ep6Z6Vf9NpxVj6_Z6lEBQKFv_HSZOvCbh16irxOlfGc8_IFb51-Zzje09UYWBlqFdUaEDw33Lp8Gjb5w',
-    },
+    params: { cursor, limit }
   })
   return response.data
 }

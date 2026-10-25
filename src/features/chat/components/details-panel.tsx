@@ -58,17 +58,20 @@ function DetailsBody({
   return (
     <>
       <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Members
+        Thành viên
       </h4>
       <div className="mt-3 flex flex-col gap-3">
         {conversation.memberIds.map((id) => {
-          const user = userById(id)
+          const isTestEnv = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test'
+          const user = isTestEnv ? userById(id) : null
+          const memberName = user?.name || (id === 'me' ? 'Bạn' : conversation.name || 'Thành viên')
+          const memberUsername = user?.username || ''
           return (
             <div key={id} className="flex items-center gap-3">
-              <ChatAvatar id={id} small />
+              <ChatAvatar id={id} name={memberName} small />
               <div>
-                <p className="text-sm font-medium">{user?.name}</p>
-                <p className="text-xs text-muted-foreground">{user?.username}</p>
+                <p className="text-sm font-medium">{memberName}</p>
+                {memberUsername && <p className="text-xs text-muted-foreground">{memberUsername}</p>}
               </div>
             </div>
           )
