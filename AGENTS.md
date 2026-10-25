@@ -22,14 +22,14 @@ Nếu thay đổi hành vi, **thêm hoặc cập nhật test** trong `src/*.test
 2. **Dùng shadcn trước.** Cần Dialog, Select, Tabs, Menu, Sheet, Toast, Input… thì dùng/thêm component shadcn, đừng tự viết `<select>`, modal, dropdown thủ công. Không thêm thư viện UI mới khi chưa thảo luận.
 3. **Màu sắc dùng design token**, không hard-code: `bg-background`, `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary`… (không dùng `bg-white`, `bg-[#...]`, `text-slate-*`). Ngoại lệ: `MapView` được khoá sáng bằng class `force-light`.
 4. **Điều hướng bằng `<Link>` / `<NavLink>`** (hoặc `useNavigate` khi là hành động), không dùng `<button>` để đổi trang.
-5. **Trang mới** → tạo trong `src/pages/`, khai báo route trong `src/App.tsx` **và** thêm mục vào `src/lib/nav.ts` nếu cần hiện trên menu. Trang **không** tự render `<main>`, Sidebar, header hay bottom nav — `AppLayout` lo việc đó (`<main>` chỉ có một).
+5. **Trang mới** → tạo trong `src/features/<tên>/pages/<tên>-page.tsx`, khai báo route trong `src/app/router.tsx` **và** thêm mục vào `src/components/layout/nav.ts` nếu cần hiện trên menu. Trang **không** tự render `<main>`, Sidebar, header hay bottom nav — `AppLayout` lo việc đó (`<main>` chỉ có một).
 6. **Icon-only button phải có `aria-label`.** Toggle dùng `aria-pressed`.
 7. **Tách file nhỏ, đã format.** Mỗi component một khối rõ ràng; không dồn nhiều component vào một file hay một dòng dài. Chạy `npm run format` trước khi commit.
-8. **Không gọi `fetch` hay `axios` trực tiếp trong component.** Mọi HTTP đi qua `src/lib/http-client.ts` (`createHttpClient`, `ApiError`, base URL từ `VITE_API_BASE_URL`).
-9. **Truy cập `localStorage`/`matchMedia` luôn có guard** (`try/catch`, kiểm tra `typeof window.matchMedia`), theo mẫu có sẵn trong `mock-chat.ts`, `theme-provider.tsx`, `use-media-query.ts`.
+8. **Không gọi `fetch` hay `axios` trực tiếp trong component.** Mọi HTTP và Server State đi qua `src/features/<tên>/api/` kết hợp TanStack Query (`src/lib/api-client.ts` cho auth/chat/app với cookie tự động và `src/lib/http-client.ts`).
+9. **Truy cập `localStorage`/`matchMedia` luôn có guard** (`try/catch`, kiểm tra `typeof window.matchMedia`), theo mẫu có sẵn trong `theme-provider.tsx`, `use-media-query.ts`.
 10. **Không dùng `"use client"`, `next/*`** hay mẫu Next.js — đây là Vite SPA.
 11. Code hết light theme trước dark tính sau
-12. **Quy tắc phụ thuộc admin & moderation (5.2):** `admin` -> `moderation` -> `admin-moderation`. App người dùng không được import từ `src/features/{admin,moderation,admin-moderation}` (vẫn có thể import các feature khác trong `src/features` nếu có).
+12. **Quy tắc phụ thuộc feature:** `app -> features -> components/hooks/lib/config`. App người dùng không được import từ `src/features/{admin,moderation,admin-moderation}`. Xem chi tiết tại [docs/architecture.md](docs/architecture.md).
 13. **React Compiler:** Viết React thuần, tuân thủ Rules of React (không mutate state/props/context, không đọc/ghi `ref.current` lúc render, không gọi synchronous `setState` trong body effect). Không thêm `useMemo`/`useCallback` bừa bãi. Thư viện không tương thích (như `useReactTable`) gom vào component riêng và đánh dấu `'use no memo'` kèm comment lý do. Form dùng `useWatch({ control, name })` thay vì `watch()`.
 ## Mẫu hay gặp
 

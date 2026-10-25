@@ -1,106 +1,269 @@
-# Kiến trúc frontend
+# Kiến Trúc Frontend & Hướng Dẫn Phát Triển Cho AI Agent (Nearby Frontend Architecture)
 
-## 1. Tổng quan luồng render
+> **Tài liệu chuẩn dành cho AI Agent và lập trình viên.**
+> Mọi thành viên và AI Agent khi triển khai tính năng, refactor hoặc sửa lỗi trên repository `frontend/` **bắt buộc tuân thủ tài liệu này**.
 
+---
+
+## 1. Tổng quan Dự Án & Technology Stack
+
+Ứng dụng web frontend của mạng xã hội chia sẻ và tương tác nội dung theo vị trí địa lý (**nearby.**):
+- **Core:** React 19, TypeScript (strict mode), Vite 6.
+- **Styling & Design System:** Tailwind CSS v4 (`@tailwindcss/vite`), Base UI (`@base-ui/react`), shadcn/ui (style `base-nova`), Lucide Icons.
+- **Routing:** React Router v7 (`react-router-dom`, `BrowserRouter`, `Routes`, `Route`, `Outlet`).
+- **Server State & Data Fetching:** TanStack React Query v5.
+- **Form & Validation:** React Hook Form, Zod.
+- **HTTP & Realtime:** Axios (`apiClient` với HttpOnly cookie auth interceptor), STOMP Client qua WebSockets (`@stomp/stompjs` + `sockjs-client`).
+- **Notification & Toasts:** Sonner (`toast`).
+- **Quality Assurance:** Vitest, Testing Library, ESLint flat config.
+
+---
+
+## 2. Cấu Trúc Thư Mục Chuẩn (Feature-Driven Architecture)
+
+Dự án tổ chức mã nguồn theo mô hình **Feature-Driven Architecture**. Toàn bộ logic nghiệp vụ được module hóa trong `src/features/<feature-name>/`, các thành phần dùng chung nằm ở tầng root tương ứng.
+
+```text
+frontend/src/
+├── app/                              # Wiring ứng dụng, KHÔNG chứa nghiệp vụ
+│   ├── providers.tsx                 # Toàn bộ Provider bọc toàn app (Theme, Query, Auth, Toaster)
+│   ├── query-client.ts               # QueryClient cấu hình mặc định cho app
+│   └── router.tsx                    # Định nghĩa toàn bộ cây Routes (bao gồm lazy admin routes)
+│
+├── components/
+│   ├── ui/                           # shadcn / Base UI primitives (CẤM sửa tay)
+│   ├── layout/                       # AppLayout, Sidebar, BottomNav, MobileHeader, ThemeToggle, nav.ts
+│   └── shared/                       # Component UI dùng chung ≥ 2 feature (empty-state, confirm-dialog...)
+│
+├── hooks/                            # Hooks tiện ích toàn cục (use-media-query, use-mobile...)
+├── lib/                              # Tiện ích thuần, KHÔNG phụ thuộc feature nào
+│   ├── utils.ts                      # cn() helper
+│   ├── http-client.ts                # Generic fetch client bọc base URL (dùng cho service độc lập)
+│   └── api-client.ts                 # Axios instance chính + Cookie Refresh Interceptor (Auth & Chat)
+│
+├── config/
+│   └── env.ts                        # Nơi DUY NHẤT đọc import.meta.env (API_BASE_URL, CLOUDINARY...)
+│
+├── features/                         # Module hóa theo từng tính năng nghiệp vụ
+│   ├── auth/                         # Xác thực người dùng thường & quản trị viên
+│   ├── chat/                         # Nhắn tin 1-1, nhóm, WebSocket STOMP thời gian thực
+│   ├── post/                         # Bài viết, Newsfeed theo vị trí, bình luận, tương tác, upload media
+│   ├── explore/                      # Bản đồ, lọc bán kính, xu hướng địa phương
+│   ├── profile/                      # Hồ sơ cá nhân, bài viết đã lưu, đã thích
+│   ├── admin/                        # Nghiệp vụ quản trị viên
+│   ├── moderation/                   # Nghiệp vụ kiểm duyệt viên
+│   └── admin-moderation/             # Vỏ giao diện và trang đăng nhập khu vực Admin/Moderation
+│
+├── routes/
+│   └── admin-routes.tsx              # Lazy-loaded router chunk cho khu vực /admin/*
+│
+├── App.tsx                           # <Providers><AppRouter /></Providers>
+├── main.tsx                          # Entry point: BrowserRouter + StrictMode
+└── index.css                         # Tailwind imports, Design Tokens (light/dark)
 ```
-main.tsx
- └─ <StrictMode><BrowserRouter>
-     └─ App.tsx
-         └─ <ThemeProvider>          (theme-provider.tsx — class "dark" trên <html>)
-             └─ <PostsProvider>      (lib/posts-context.tsx — store bài viết)
-                 ├─ <Routes>
-                 │   └─ <Route element={<AppLayout/>}>  → các trang con qua <Outlet/>
-                 └─ <Toaster/>       (sonner)
+
+---
+
+## 3. Cấu Trúc Bên Trong Một Feature
+
+Mỗi feature trong `src/features/<tên>/` phải tuân theo cấu trúc module đồng nhất:
+
+```text
+features/<tên-feature>/
+├── api/
+│   ├── <tên>-api.ts                  # Các hàm gọi API (REST endpoints qua apiClient / postHttp)
+│   └── <tên>-queries.ts              # TanStack Query keys và custom hooks (useXxxQuery, useXxxMutation)
+├── components/                       # Các component UI nội bộ thuộc riêng feature này
+├── hooks/                            # Custom hooks riêng của feature (vd: use-chat-socket.ts)
+├── pages/                            # Component gắn trực tiếp vào router (vd: <tên>-page.tsx)
+├── types/                            # TypeScript interfaces, types, enums của feature
+├── context/                          # (Tuỳ chọn) React Context nếu feature cần state riêng
+└── mocks/                            # (Tuỳ chọn) Mock data, fixtures phục vụ test/demo
 ```
 
-`AppLayout` (`components/layout/app-layout.tsx`) là khung chung cho **mọi** trang:
+> **Quy tắc:** Không tạo thư mục rỗng. Không dùng file `index.ts` (barrel export) bừa bãi để tránh circular dependency.
 
-- Desktop (`lg` ≥ 1024px): `Sidebar` (rail bên trái) + nội dung.
-- Mobile: `MobileHeader` (logo + chuông + đổi theme) + nội dung + `BottomNav`.
-- Sở hữu `CreatePostDialog` (dialog "Create Post" dùng chung). Trang nào cũng mở được qua hook `useCreatePost()` hoặc nút trong Sidebar/BottomNav.
-- Tự cuộn lên đầu khi đổi route; ẩn `MobileHeader` ở `/messages` (chat có header riêng).
-- Chỉ có **một** `<main>` trong toàn app (nằm trong `AppLayout`).
+---
 
-## 2. Routing & điều hướng
+## 4. Các Nguyên Tắc & Ràng Buộc Bắt Buộc (Agent Rules)
 
-- Route khai báo trong `src/App.tsx`.
-- Menu (Sidebar + BottomNav) lấy từ **một** nguồn: `src/lib/nav.ts` (`navItems`, `bottomNavLeft`, `bottomNavRight`). Thêm trang vào menu = sửa file này.
-- Dùng `NavLink` nên link hiện tại có `aria-current="page"` (test dựa vào đó).
-- Chưa có route chi tiết (`/post/:id`, `/u/:handle`).
-- `BrowserRouter` cần **SPA fallback** khi deploy (xem roadmap).
+### 4.1 Quy tắc phụ thuộc một chiều (Dependency Hierarchy)
+```text
+app/ -> features/ -> components/layout -> components/shared -> hooks -> lib -> config
+```
+1. **App layer (`src/app/`):** Có thể import từ `features/`, `components/`, `lib/`.
+2. **Feature layer (`src/features/<A>/`):**
+   - **KHÔNG** import ngang sang `src/features/<B>/`, ngoại trừ `src/features/auth` (vì toàn bộ app đều cần `useAuth` và type `AuthUser`).
+   - App người dùng bình thường **TUYỆT ĐỐI KHÔNG** import từ `src/features/{admin,moderation,admin-moderation}`.
+3. **Core layers (`components/shared`, `hooks/`, `lib/`):**
+   - **TUYỆT ĐỐI KHÔNG** import từ bất kỳ `src/features/*` nào.
 
-## 3. State
+### 4.2 Quy ước đặt tên file và Component
+- **File name:** Bắt buộc dùng `kebab-case` cho mọi file:
+  - Component: `chat-window.tsx`, `post-card.tsx`, `login-form.tsx`.
+  - Module/API: `chat-api.ts`, `auth-queries.ts`, `use-chat-socket.ts`.
+  - Type: `chat.ts`, `post.ts`, `auth.ts`.
+- **Component name:** Xuất (export) theo chuẩn `PascalCase`:
+  ```tsx
+  export function ChatWindow() { ... }
+  export function AuthPage() { ... }
+  ```
 
-| State | Ở đâu | Lưu trữ | Ghi chú |
-|---|---|---|---|
-| Bài viết, bài đã lưu, bài đã thích | `PostsProvider` (`lib/posts-context.tsx`) | **In-memory** (mất khi reload) | API: `posts`, `savedIds`, `likedIds`, `addPost`, `removePost`, `toggleSaved`, `toggleLiked`. `currentUserHandle = '@minhnguyen'` |
-| Hội thoại + tin nhắn | `ChatPage` (`useState(loadChatState)`) | `localStorage` key `nearby-chat-demo-v1` | Đọc bằng lazy initializer, ghi bằng `useEffect`. Nút "Reset demo data" xoá key |
-| Theme | `ThemeProvider` | `localStorage` key `nearby-theme` (`light\|dark\|system`) | Script nội tuyến trong `index.html` áp class `dark` trước khi vẽ để tránh nháy |
-| Bộ lọc Explore (bán kính, heatmap, zoom, mục đang chọn) | `useState` cục bộ trong `pages/explore.tsx` | Không lưu | |
-| Tab/dialog của Profile | `useState` cục bộ trong `profile-page.tsx` | Không lưu | Hồ sơ chỉnh sửa chỉ sống trong component |
+### 4.3 Quản lý Server State với TanStack Query
+- Mọi lời gọi API lấy dữ liệu (GET) phải được bọc trong TanStack Query `useQuery`.
+- Mọi hành động thay đổi dữ liệu (POST, PUT, PATCH, DELETE) dùng `useMutation`.
+- Các query key phải khai báo tập trung dạng hằng số trong `<tên>-queries.ts`:
+  ```ts
+  export const chatKeys = {
+    all: ['chat'] as const,
+    conversations: () => [...chatKeys.all, 'conversations'] as const,
+    messages: (id: string) => [...chatKeys.all, 'messages', id] as const,
+  }
+  ```
+- **Không bao giờ gọi trực tiếp `axios`/`fetch` trong thân React Component.**
 
-Quy ước: state dùng ở nhiều trang → context trong `lib/`; state của một màn hình → `useState` tại màn hình đó. Chưa dùng thư viện state/data-fetching; khi nối backend nên cân nhắc TanStack Query (xem roadmap).
+### 4.4 Quy tắc Giao diện & Design Tokens
+- **Design Tokens:** Bắt buộc dùng tokens định nghĩa trong `src/index.css`: `bg-background`, `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary`... Không dùng màu cứng (hardcoded colors) như `bg-white`, `text-black`, `bg-[#123456]`.
+- **shadcn & Base UI:**
+  - Không tự ý sửa tay file trong `src/components/ui/*`.
+  - Base UI dùng thuộc tính `render={...}` thay cho `asChild` của Radix UI.
+  - Các phần tử tương tác không có text (icon-only button) **bắt buộc** phải có `aria-label`.
 
-## 4. Mô hình dữ liệu (mock)
+---
 
-`lib/mock-nearby.ts`
+## 5. Kiến Trúc Xác Thực (Authentication & Security)
+
+### 5.1 Cơ chế HttpOnly Cookie
+- Hệ thống sử dụng **HttpOnly Cookies** (`accessToken`, `refreshToken`) được set trực tiếp bởi API Gateway và Backend.
+- **Frontend KHÔNG bao giờ lưu JWT vào `localStorage` hay `sessionStorage`** (chống XSS).
+- Request tự động đính kèm cookie thông qua Axios Client:
+  ```ts
+  // src/lib/api-client.ts
+  export const apiClient = axios.create({
+    baseURL: env.API_BASE_URL,
+    withCredentials: true,
+  })
+  ```
+
+### 5.2 Mô hình Người dùng (Discriminated Union)
+Toàn bộ hệ thống dùng chung một kiểu dữ liệu người dùng tại `src/features/auth/types/auth.ts`:
+
 ```ts
-type NearbyPost = {
-  id: string; name: string; handle: string; initials: string; color: string
-  time: string        // chuỗi hiển thị ("8 min ago"), CHƯA phải ISO timestamp
-  location: string    // tên địa điểm dạng chuỗi, CHƯA có lat/lng
-  text: string; topic: string
-  likes: string; comments: string   // đang là string
+export type Role = 'USER' | 'MODERATOR' | 'ADMIN'
+
+export interface NormalUser {
+  id: string
+  email: string
+  fullName: string
+  phoneNumber?: string
+  avatarUrl?: string
+  bio?: string
+  gender?: string
+  dateOfBirth?: string
+  role: 'USER'
+  status: UserStatus
+  createdAt: string
+  updatedAt: string
 }
-```
-Ngoài ra: `currentLocation` (Cầu Giấy, có `latitude`/`longitude`), `hotspots`, `trending`, `activitySpots`, `radiusOptions`, `radiusScale`, `radiusPostLimit`.
 
-`lib/mock-chat.ts`: `ChatUser`, `ChatMessage` (`kind: text|image|video|audio`, `replyTo`, `reactions`), `Conversation` (`kind: direct|group`, `muted`, `blocked`, `unread`), cùng `ChatState`, `loadChatState/saveChatState/resetChatState`.
+export interface StaffUser {
+  id: string
+  email: string
+  role: 'ADMIN' | 'MODERATOR'
+  status: UserStatus
+  grantedAt?: string | null
+  createdAt: string
+  updatedAt: string
+}
 
-> Lưu ý: người dùng "tôi" trong chat là `id: 'me'` (`@minhanh`), còn ở bài viết/profile là `@minhnguyen`. Hai danh tính chưa thống nhất.
-
-## 5. Sidebar
-
-`components/layout/sidebar.tsx` — chỉ hiện từ `lg` trở lên.
-
-```
-<div class="sticky top-0 h-dvh w-[72px] ...">      ← giữ chỗ cố định trong flow (nội dung KHÔNG bị đẩy)
-  <aside class="absolute inset-y-0 left-0 w-[72px]
-                 hover:w-64 has-[:focus-visible]:w-64 has-[[aria-expanded=true]]:w-64 ...">
-    ← mở rộng thành 256px và PHỦ LÊN nội dung (kiểu Instagram)
+export type AuthUser = NormalUser | StaffUser
+export const isStaff = (u: AuthUser | null): u is StaffUser => !!u && u.role !== 'USER'
 ```
 
-- Nhãn chữ ẩn bằng `opacity-0` và hiện khi `group-hover/sidebar`, focus bàn phím, hoặc khi có menu con đang mở (`aria-expanded=true`, ví dụ menu chọn theme).
-- Badge số của Notifications thu gọn thành chấm đỏ khi rail đang đóng.
+### 5.3 Hai Trang Đăng Nhập Riêng Biệt
+- **/login:** Trang đăng nhập người dùng thường.
+  - Sử dụng `<LoginForm allowedRoles={['USER']} />`.
+  - Nếu tài khoản staff đăng nhập tại đây, hệ thống lập tức logout (hủy cookie) và hiển thị thông báo hướng dẫn sang trang quản trị.
+- **/admin/login:** Trang đăng nhập dành riêng cho Staff (`ADMIN` và `MODERATOR`).
+  - Nằm tại `src/features/admin-moderation/pages/staff-login-page.tsx`.
+  - Sử dụng `<LoginForm allowedRoles={['ADMIN', 'MODERATOR']} />`.
+  - Nếu tài khoản `USER` thường đăng nhập tại đây sẽ bị từ chối truy cập.
 
-## 6. Responsive & chiều cao
+### 5.4 Tự động Refresh Token & Xử lý 401
+- `src/lib/api-client.ts` cài đặt response interceptor:
+  1. Khi gặp lỗi 401 trên các API nghiệp vụ, interceptor tự động gọi `/user/auth/refresh` một lần.
+  2. Các request đang chờ được xếp vào hàng đợi (`refreshSubscribers`) và thử lại sau khi refresh thành công.
+  3. Nếu refresh thất bại: phát sự kiện `authEvents.emit('unauthorized')`.
+  4. `AuthProvider` bắt sự kiện `unauthorized`, xóa cache query `['auth', 'me']`, đưa `user` về `null` và hiển thị thông báo phiên hết hạn.
 
-- Breakpoint điều khiển layout: `lg` = 1024px. Trong JS dùng `useIsDesktop()` (`hooks/use-media-query.ts`) — chỉ khi **bắt buộc** (ví dụ chọn `Sheet` vs panel). Ưu tiên class Tailwind.
-- Biến CSS `--bottom-nav-h` (`index.css`): `4rem + safe-area` trên mobile, `0px` từ `lg`. `AppLayout` thêm `pb-[var(--bottom-nav-h)]`; trang full-height dùng `h-[calc(100dvh-var(--bottom-nav-h))]`.
-- `index.html` có `viewport-fit=cover` để `env(safe-area-inset-*)` hoạt động trên iOS.
+---
 
-## 7. Trang Chat
+## 6. Kiến Trúc Các Feature Cốt Lõi
 
-Container `chat-page.tsx` giữ state; các phần trong `components/chat/`.
+### 6.1 Feature `post` (Bài viết & Tương tác)
+- Quản lý Newsfeed theo vị trí địa lý (H3 geospatial coordinates).
+- Tải feed dạng phân trang con trỏ (`PostCursorPage`, cursor-based pagination).
+- **Tạo bài viết & Upload Media:**
+  1. Frontend gọi `requestPostUploadSignature()` tới `/api/v1/post/signature` để lấy chữ ký bảo mật từ backend.
+  2. Upload trực tiếp file ảnh/video từ trình duyệt lên Cloudinary qua HTTPS POST có chữ ký.
+  3. Nhận `secure_url` từ Cloudinary và gửi payload bài viết tới `/api/v1/post/posts`.
 
-- **Desktop:** `ConversationList` (330px) **luôn hiện** bên trái, `ChatWindow` bên phải, `DetailsPanel` là cột 280px bên phải cùng.
-- **Mobile:** một khung mỗi lần, quyết định bằng `mobileChatOpen` + class `hidden`/`flex` (cả hai khung luôn được mount). Nút mũi tên trong `ChatWindow` quay về danh sách.
-- `DetailsPanel` render là **cột** trên desktop và **`Sheet`** trên mobile (`asSheet={!isDesktop}`). Khi mở dialog Report từ Sheet, Sheet được đóng trước.
-- `ChatWindow` được `key={active.id}` để reset ô nhập/tìm kiếm/reply khi đổi hội thoại.
-- Danh sách sắp xếp theo tin mới nhất; hội thoại mới tạo (chưa có tin) nằm đầu.
-- Phím Enter gửi tin, có chặn khi đang gõ IME tiếng Việt (`isComposing`).
+### 6.2 Feature `chat` (Nhắn tin Thời gian thực)
+- **REST API:** Quản lý hội thoại và tải lịch sử tin nhắn qua `chatApi` (`/api/v1/chat/*`).
+- **WebSocket STOMP:**
+  - Kết nối qua `useChatSocket`: Handshake tại `/ws`, xác thực qua cookie hoặc token.
+  - Subscribe:
+    - Tin nhắn hội thoại: `/topic/conversation.{conversationId}`
+    - Trạng thái đang gõ: `/topic/conversation.{conversationId}.typing`
+    - Thông báo cá nhân: `/user/queue/notifications`
+  - Publish:
+    - Gửi tin nhắn: `/app/chat.send`
+    - Gửi trạng thái gõ: `/app/chat.typing`
+- **UI Responsiveness:**
+  - Desktop: 3 cột cố định (`ConversationList` 330px, `ChatWindow`, `DetailsPanel` 280px).
+  - Mobile: Chuyển đổi giữa danh sách và khung chat bằng state `mobileChatOpen` kết hợp CSS `hidden lg:flex` (luôn giữ mount component để duy trì trạng thái).
 
-## 8. Theme & token màu
+### 6.3 Feature `admin-moderation`
+- Module độc lập, tải lười (lazy load) qua `routes/admin-routes.tsx` để tối ưu bundle size cho người dùng thường.
+- Cung cấp:
+  - Thống kê bài viết và hashtag (`/api/v1/admin/stats/*`).
+  - Quản lý người dùng, khóa/mở tài khoản (`/api/v1/admin/users/*`).
+  - Hàng đợi duyệt nội dung vi phạm (`/api/v1/moderation/reports/*`).
 
-- Token (`--background`, `--card`, `--primary`, `--muted`, …) khai báo trong `src/index.css`: khối `:root, .force-light` (sáng) và `.dark` (tối), ánh xạ sang Tailwind bằng `@theme inline`.
-- Dark mode bật bằng class `dark` trên `<html>`; variant `dark:` định nghĩa bằng `@custom-variant dark (&:is(.dark *))`.
-- `.force-light` ép một vùng dùng token sáng kể cả khi app đang tối (dùng cho `MapView`).
-- Đổi giao diện toàn app = sửa token, không sửa từng component.
+---
 
-## 9. Test
+## 7. Giao Diện & Bố Cục (Layout & Responsive Guidelines)
 
-- Công cụ: Vitest + jsdom + Testing Library (+ `user-event`). Cấu hình trong `vite.config.ts` (`test`), setup ở `src/test-setup.ts` (stub `matchMedia`, `scrollTo`, `scrollIntoView`, dọn `localStorage`; export `setViewport(desktop)`).
-- `src/layout.test.tsx` — layout, điều hướng, Create Post, chat cơ bản.
-- `src/shadcn-ui.test.tsx` — Select, Toggle, DropdownMenu, Tabs, Sheet, toast, theme, xoá đúng bài.
-- Render qua `<MemoryRouter><App/></MemoryRouter>` trong `StrictMode`.
-- **Giới hạn:** jsdom không tính CSS/layout, nên hover, kích thước và responsive thực tế phải kiểm bằng mắt trên trình duyệt.
+### 7.1 Cấu trúc Layout Duy Nhất
+- Toàn bộ app người dùng render bên trong `AppLayout` (`src/components/layout/app-layout.tsx`).
+- **Chỉ có DUY NHẤT một thẻ `<main>` trong toàn bộ DOM tree.** Các page chỉ render nội dung bên trong `<Outlet />`.
+- Chiều cao trên thiết bị di động:
+  - Thanh BottomNav chiếm chiều cao biến `--bottom-nav-h` (`4rem + safe-area`).
+  - Các trang tràn màn hình (như Chat) bắt buộc dùng: `h-[calc(100dvh-var(--bottom-nav-h))] lg:h-dvh`.
+  - **TUYỆT ĐỐI KHÔNG dùng `min-h-screen` hay `100vh`** vì sẽ gây tràn thanh cuộn trên Safari/Chrome mobile.
+
+### 7.2 Sidebar (Desktop)
+- Rail cố định chiếm không gian trong DOM: `w-[72px]`.
+- Khi hover hoặc mở menu con, panel tự mở rộng thành `w-64` (256px) theo kiểu **overlay phủ lên nội dung**, không bao giờ làm co kéo hay giật nội dung chính.
+
+---
+
+## 8. Quy Trình Kiểm Thử & Tiêu Chuẩn Hoàn Thành (Definition of Done)
+
+Mọi thay đổi code của AI Agent trước khi hoàn tất bắt buộc phải vượt qua 4 bước kiểm tra nghiêm ngặt:
+
+```bash
+# 1. Kiểm tra toàn bộ kiểu dữ liệu (Strict TypeScript)
+npx tsc -b
+
+# 2. Kiểm tra chất lượng mã nguồn & luật React Compiler
+npm run lint
+
+# 3. Chạy toàn bộ bộ test tự động (Vitest)
+npm test
+
+# 4. Kiểm tra đóng gói production bundle
+npm run build
+```
+
+> **Nguyên tắc kiểm thử:** Nếu sửa đổi logic tính năng, agent phải chủ động cập nhật hoặc viết thêm unit/integration test tương ứng trong `src/*.test.tsx`. Tuyệt đối không xóa test hoặc bỏ qua lỗi test.
