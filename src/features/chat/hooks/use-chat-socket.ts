@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Client, type StompSubscription } from '@stomp/stompjs'
-import type { MessageDto, TypingEvent, ReadReceiptEvent, ConversationSummary } from '../types/chat'
+import type { MessageDto, TypingEvent, ReadReceiptEvent, ConversationSummary, MediaItem } from '../types/chat'
 
 export interface UseChatSocketOptions {
   userId?: string | null
@@ -179,19 +179,23 @@ export function useChatSocket({
     }
   }, [activeConversationId, subscribeToConversation])
 
-  const sendMessage = useCallback((conversationId: string, content: string): boolean => {
-    if (!clientRef.current || !clientRef.current.connected) {
-      return false
-    }
-    clientRef.current.publish({
-      destination: '/app/chat.send',
-      body: JSON.stringify({
-        conversationId,
-        content,
-      }),
-    })
-    return true
-  }, [])
+  const sendMessage = useCallback(
+    (conversationId: string, content: string, media?: MediaItem[]): boolean => {
+      if (!clientRef.current || !clientRef.current.connected) {
+        return false
+      }
+      clientRef.current.publish({
+        destination: '/app/chat.send',
+        body: JSON.stringify({
+          conversationId,
+          content,
+          media,
+        }),
+      })
+      return true
+    },
+    [],
+  )
 
   const sendTyping = useCallback((conversationId: string, typing: boolean) => {
     if (!clientRef.current || !clientRef.current.connected) return

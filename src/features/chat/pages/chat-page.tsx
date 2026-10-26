@@ -13,6 +13,7 @@ import type {
   ChatState,
   Conversation,
   ConversationSummary,
+  MediaItem,
 } from '../types/chat'
 import { ChatWindow } from '../components/chat-window'
 import { ConversationList } from '../components/conversation-list'
@@ -88,7 +89,9 @@ export function ChatPage() {
       const summaries = await chatApi.getConversations()
       const list: ConversationSummary[] = Array.isArray(summaries)
         ? summaries
-        : (summaries as any)?.items || (summaries as any)?.data || []
+        : (summaries as { items?: ConversationSummary[]; data?: ConversationSummary[] })?.items ||
+          (summaries as { items?: ConversationSummary[]; data?: ConversationSummary[] })?.data ||
+          []
 
       // Tải thông tin hồ sơ người dùng thực tế cho các cuộc trò chuyện trực tiếp
       const realConversations: Conversation[] = await Promise.all(
@@ -116,13 +119,32 @@ export function ChatPage() {
         }),
       )
 
+      // Nạp tin nhắn gần nhất từ backend để hiển thị preview và hỗ trợ tìm kiếm
+      const initialLastMessages: ChatMessage[] = list
+        .filter((s) => s.lastMessage)
+        .map((s) => {
+          const lm = s.lastMessage!
+          return {
+            id: lm.id,
+            conversationId: s.id,
+            senderId: lm.senderId,
+            text: lm.content,
+            content: lm.content,
+            createdAt: lm.sentAt,
+            status: lm.status,
+            media: lm.media,
+          }
+        })
+
       setState((prev) => {
         const realConvIds = new Set(realConversations.map((c) => c.id))
         const validMessages = prev.messages.filter((m) => realConvIds.has(m.conversationId))
+        const existingIds = new Set(validMessages.map((m) => m.id))
+        const newLast = initialLastMessages.filter((m) => !existingIds.has(m.id))
 
         return {
           conversations: realConversations,
-          messages: validMessages,
+          messages: [...validMessages, ...newLast],
         }
       })
 
@@ -135,7 +157,7 @@ export function ChatPage() {
     } catch (err) {
       console.warn('Chưa tải được danh sách chat từ backend:', err)
     }
-  }, [isAuthenticated, user?.id])
+  }, [isAuthenticated, user])
 
   useEffect(() => {
     fetchBackendConversations()
@@ -156,6 +178,7 @@ export function ChatPage() {
             conversationId: dto.conversationId,
             senderId: dto.senderId,
             text: dto.content,
+            media: dto.media,
             createdAt: dto.sentAt,
             status: dto.status,
           }))
@@ -189,12 +212,14 @@ export function ChatPage() {
       content: string
       sentAt: string
       status: string
+      media?: MediaItem[]
     }) => {
       const chatMsg: ChatMessage = {
         id: msg.id,
         conversationId: msg.conversationId,
         senderId: msg.senderId,
         text: msg.content,
+        media: msg.media,
         createdAt: msg.sentAt,
         status: msg.status as 'SENT' | 'DELIVERED' | 'SEEN',
       }
@@ -256,7 +281,7 @@ export function ChatPage() {
         sendReadRef.current?.(chatMsg.id, chatMsg.conversationId)
       }
     },
-    [activeId, user?.id, fetchBackendConversations],
+    [activeId, user, fetchBackendConversations],
   )
 
   const handleTypingReceived = useCallback(
@@ -265,7 +290,7 @@ export function ChatPage() {
         setIsOtherTyping(evt.typing)
       }
     },
-    [activeId, user?.id],
+    [activeId, user],
   )
 
   const handleReadReceiptReceived = useCallback(
@@ -280,15 +305,15 @@ export function ChatPage() {
         ),
       }))
     },
-    [user?.id],
+    [user],
   )
 
   const handleConversationReceived = useCallback(
-    async (summary: any) => {
+    async (summary: ConversationSummary) => {
       if (!summary || !summary.id) return
 
       const otherMember =
-        summary.members?.find((m: any) => m.id !== user?.id) || summary.members?.[0]
+        summary.members?.find((m: ChatMember) => m.id !== user?.id) || summary.members?.[0]
       let displayName = summary.name
       if (summary.type === 'GROUP') {
         displayName = summary.name || 'Nhóm trò chuyện'
@@ -305,7 +330,7 @@ export function ChatPage() {
         id: summary.id,
         kind: summary.type === 'GROUP' ? 'group' : 'direct',
         name: displayName || 'Người dùng',
-        memberIds: summary.members?.map((m: any) => m.id) || [],
+        memberIds: summary.members?.map((m: ChatMember) => m.id) || [],
         unread: 0,
       }
 
@@ -319,7 +344,7 @@ export function ChatPage() {
       })
       toast.info(`Có cuộc trò chuyện mới từ ${displayName}`)
     },
-    [user?.id],
+    [user],
   )
 
   const {
@@ -333,6 +358,7 @@ export function ChatPage() {
     onMessageReceived: handleMessageReceived,
     onTypingReceived: handleTypingReceived,
     onReadReceiptReceived: handleReadReceiptReceived,
+    onConversationReceived: handleConversationReceived,
   })
 
   useEffect(() => {
@@ -359,8 +385,10 @@ export function ChatPage() {
   }
 
   // 4. Gửi tin nhắn
-  async function sendMessage(text: string, replyTo?: string) {
+  async function sendMessage(text: string, replyTo?: string, media?: MediaItem[]) {
     if (!active || active.blocked) return
+    const trimmed = text.trim()
+    if (!trimmed && (!media || media.length === 0)) return
 
     const tempId = `local-${Date.now()}`
     const myId = user?.id || 'me'
@@ -369,7 +397,8 @@ export function ChatPage() {
       id: tempId,
       conversationId: active.id,
       senderId: myId,
-      text,
+      text: trimmed,
+      media,
       createdAt: new Date().toISOString(),
       replyTo,
       status: 'SENT',
@@ -378,10 +407,10 @@ export function ChatPage() {
     setState((s) => ({ ...s, messages: [...s.messages, localMsg] }))
 
     if (isUuid(active.id) && isAuthenticated) {
-      const sentViaWs = socketSend(active.id, text)
+      const sentViaWs = socketSend(active.id, trimmed, media)
       if (!sentViaWs) {
         try {
-          const res = await chatApi.sendMessage(active.id, { content: text })
+          const res = await chatApi.sendMessage(active.id, { content: trimmed, media })
           setState((s) => ({
             ...s,
             messages: s.messages.map((m) =>
@@ -460,10 +489,12 @@ export function ChatPage() {
         setMobileChatOpen(true)
         toast.success(`Đã mở cuộc trò chuyện với ${targetUser.fullName}`)
         return
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Lỗi khi tạo direct chat:', err)
         const errMsg =
-          err?.response?.data?.message || err?.message || 'Không thể tạo cuộc trò chuyện mới'
+          (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+          (err as Error)?.message ||
+          'Không thể tạo cuộc trò chuyện mới'
         toast.error(errMsg)
         return
       }
@@ -565,6 +596,8 @@ export function ChatPage() {
           onCreateGroup={() => setNewChatOpen(true)}
           onReset={resetDemo}
           isRealtimeConnected={isAuthenticated ? isConnected : undefined}
+          onSelectUser={handleStartDirect}
+          currentUserId={user?.id}
         />
       </div>
 
