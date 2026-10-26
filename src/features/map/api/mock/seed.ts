@@ -8,7 +8,7 @@ import type {
   PublicProfile,
 } from '../../lib/types'
 
-// Simple deterministic Linear Congruential Generator (LCG)
+// Bộ tạo số giả ngẫu nhiên xác định tuyến tính LCG
 export function createPRNG(seed = 42) {
   let s = seed
   return function next() {
@@ -17,7 +17,7 @@ export function createPRNG(seed = 42) {
   }
 }
 
-// 25 deterministic authors
+// Danh sách 25 tác giả mẫu
 export const SEED_AUTHORS: AuthorRef[] = [
   { id: 'usr-1', displayName: 'Minh Anh', avatarUrl: 'https://picsum.photos/seed/u1/100/100' },
   { id: 'usr-2', displayName: 'Tuấn Hoàng', avatarUrl: 'https://picsum.photos/seed/u2/100/100' },
@@ -46,7 +46,7 @@ export const SEED_AUTHORS: AuthorRef[] = [
   { id: 'usr-25', displayName: 'Hà My', avatarUrl: 'https://picsum.photos/seed/u25/100/100' },
 ]
 
-// 20 Vietnamese hashtags (without '#')
+// 20 hashtag tiếng Việt mẫu (không có '#')
 export const SEED_TOPICS: string[] = [
   'totnghiep',
   'cafengon',
@@ -70,7 +70,7 @@ export const SEED_TOPICS: string[] = [
   'chill',
 ]
 
-// Raw seed location definitions across Hanoi districts
+// Danh sách địa điểm gốc tại các quận Hà Nội
 const RAW_LOCATIONS = [
   // Cầu Giấy
   { id: 'plc-1', name: 'Đại học Quốc gia Hà Nội', type: 'university', lat: 21.0372, lng: 105.7828 },
@@ -135,13 +135,13 @@ export type SeedDatabase = {
 }
 
 /**
- * Builds a deterministic mock database.
- * @param referenceTime The base "now" date used to anchor past dates (default: 2026-10-26T12:00:00Z)
+ * Khởi tạo cơ sở dữ liệu mẫu xác định (deterministic mock database).
+ * @param referenceTime Mốc thời gian 'hiện tại' làm neo cho các bài viết trong quá khứ (mặc định: 2026-10-26T12:00:00Z)
  */
 export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.000Z')): SeedDatabase {
   const rand = createPRNG(42)
 
-  // 1. Build MapPlaces with H3 index at resolution 8
+  // 1. Tạo danh sách MapPlaces với chỉ mục H3 ở độ phân giải 8
   const places: MapPlace[] = RAW_LOCATIONS.map((loc) => {
     const h3Index = latLngToCell(loc.lat, loc.lng, 8)
     return {
@@ -156,17 +156,17 @@ export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.
     }
   })
 
-  // 2. Build ~800 posts distributed over the last 45 days
+  // 2. Tạo ~800 bài viết phân bổ trong vòng 45 ngày qua
   const posts: PostDetail[] = []
   const totalPosts = 800
   const nowMs = referenceTime.getTime()
   const fortyFiveDaysMs = 45 * 24 * 60 * 60 * 1000
 
-  // Hot places get more recent activity
+  // Các địa điểm 'nóng' có tần suất hoạt động cao hơn
   const hotPlaceIds = new Set(['plc-1', 'plc-9', 'plc-16', 'plc-24', 'plc-30', 'plc-33'])
 
   for (let i = 1; i <= totalPosts; i++) {
-    // Select place with bias towards hot places
+    // Chọn địa điểm với xác suất ưu tiên địa điểm hot
     let place = places[Math.floor(rand() * places.length)]
     if (rand() < 0.35) {
       const hotList = places.filter((p) => hotPlaceIds.has(p.id))
@@ -175,13 +175,12 @@ export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.
 
     const author = SEED_AUTHORS[Math.floor(rand() * SEED_AUTHORS.length)]
 
-    // Time distribution: bias towards recent days
-    // Using square of uniform random to concentrate closer to now
+    // Phân bổ thời gian: ưu tiên các ngày gần đây (dùng hàm mũ để tập trung bài gần mốc hiện tại)
     const ageFactor = Math.pow(rand(), 1.8)
     const postTimeMs = nowMs - Math.floor(ageFactor * fortyFiveDaysMs)
     const createdAt = new Date(postTimeMs).toISOString()
 
-    // Assign 1 to 3 topics
+    // Gán từ 1 đến 3 chủ đề (topics)
     const topicCount = 1 + Math.floor(rand() * 3)
     const assignedTopics: string[] = []
     for (let t = 0; t < topicCount; t++) {
@@ -191,7 +190,7 @@ export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.
       }
     }
 
-    // Determine image count (0 to 3)
+    // Xác định số lượng hình ảnh (0 đến 3)
     const imageCount = rand() < 0.65 ? 1 + Math.floor(rand() * 3) : 0
     const imageUrls: string[] = []
     for (let img = 0; img < imageCount; img++) {
@@ -229,7 +228,7 @@ export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.
   // Sắp xếp bài theo thời gian giảm dần (mới nhất trước)
   posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-  // 3. Generate comments for the top recent posts
+  // 3. Tạo bình luận mẫu cho các bài viết gần đây
   const comments: CommentItem[] = []
   let commentCounter = 1
   for (let pIdx = 0; pIdx < Math.min(60, posts.length); pIdx++) {
@@ -249,7 +248,7 @@ export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.
     }
   }
 
-  // 4. Generate user profiles
+  // 4. Khởi tạo hồ sơ người dùng mẫu
   const profiles: PublicProfile[] = SEED_AUTHORS.map((author, index) => {
     const authorPosts = posts.filter((p) => p.author.id === author.id)
     return {
@@ -271,5 +270,5 @@ export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.
   }
 }
 
-// Global cached seed database instantiated once
+// Cơ sở dữ liệu seed toàn cục khởi tạo một lần
 export const seedDatabase = buildSeedDatabase()
