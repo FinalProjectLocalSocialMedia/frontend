@@ -15,15 +15,15 @@ export type DeckOverlayProps = {
 }
 
 /**
- * Manages a SINGLE GoogleMapsOverlay instance for the map.
- * Supports a layer registry so sub-components can register/unregister their own layers dynamically.
+ * Quản lý DUY NHẤT một instance GoogleMapsOverlay cho bản đồ.
+ * Hỗ trợ cơ chế đăng ký layer tập trung để các component con có thể tự động thêm/xoá layer của mình.
  */
 export function DeckOverlay({ children }: DeckOverlayProps) {
   const { map } = useMapContext()
   const overlayRef = useRef<GoogleMapsOverlay | null>(null)
   const layerRegistryRef = useRef<Map<string, Layer[]>>(new Map())
 
-  // Push updated layers to the active overlay
+  // Đẩy danh sách layer đã cập nhật vào overlay đang hoạt động
   const syncLayers = () => {
     if (!overlayRef.current) return
     const allLayers: Layer[] = []
@@ -33,11 +33,11 @@ export function DeckOverlay({ children }: DeckOverlayProps) {
     overlayRef.current.setProps({ layers: allLayers })
   }
 
-  // Initialize and clean up the overlay instance
+  // Khởi tạo và dọn dẹp instance overlay
   useEffect(() => {
     if (!map) return
 
-    // Determine rendering type: 'VECTOR' enables interleaved deck.gl rendering
+    // Xác định kiểu render: 'VECTOR' cho phép hiển thị đan xen (interleaved) deck.gl
     const renderingType = typeof map.getRenderingType === 'function' ? map.getRenderingType() : 'RASTER'
     const interleaved = renderingType === 'VECTOR'
 
@@ -48,7 +48,7 @@ export function DeckOverlay({ children }: DeckOverlayProps) {
     overlay.setMap(map)
     overlayRef.current = overlay
 
-    // Sync any layers registered prior to or upon map attachment
+    // Đồng bộ bất kỳ layer nào đã đăng ký trước đó hoặc ngay khi gắn bản đồ
     syncLayers()
 
     return () => {
@@ -56,7 +56,7 @@ export function DeckOverlay({ children }: DeckOverlayProps) {
       try {
         overlay.finalize()
       } catch {
-        /* ignore any deck cleanup errors */
+        /* bỏ qua lỗi dọn dẹp nếu có */
       }
       overlayRef.current = null
     }
@@ -81,8 +81,8 @@ export function DeckOverlay({ children }: DeckOverlayProps) {
 }
 
 /**
- * Hook to register a set of deck.gl layers to the central DeckOverlay registry.
- * Automatically cleans up layers when unmounted.
+ * Hook để đăng ký một tập hợp layer deck.gl vào registry tập trung của DeckOverlay.
+ * Tự động dọn dẹp các layer khi component unmount.
  */
 export function useDeckLayers(id: string, layers: Layer[]) {
   const context = useContext(DeckOverlayContext)

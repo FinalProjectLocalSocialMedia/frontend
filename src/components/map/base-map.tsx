@@ -18,12 +18,12 @@ export type BaseMapProps = {
   onMapClick?: (event: google.maps.MapMouseEvent) => void
 }
 
-const DEFAULT_CENTER: GeoPoint = { latitude: 21.0285, longitude: 105.8542 } // Hanoi
+const DEFAULT_CENTER: GeoPoint = { latitude: 21.0285, longitude: 105.8542 } // Toạ độ mặc định (Hà Nội)
 const DEFAULT_ZOOM = 13
 const MIN_ZOOM = 9
 const MAX_ZOOM = 19
 
-/** Inner subscriber to capture Google Maps instance and bind idle listener */
+/** Bộ đồng bộ nội bộ để nắm giữ instance google.maps.Map và lắng nghe sự kiện idle */
 function MapSynchronizer({
   onMapReady,
   onIdleChange,
@@ -81,11 +81,11 @@ function MapSynchronizer({
 }
 
 /**
- * Base Google Map wrapper component.
- * - Forces light theme via useForceLight()
- * - Initializes with vector mapId (Cloud styling)
- * - Restricts camera React state updates strictly to the 'idle' event
- * - Integrates single DeckOverlay for deck.gl layers
+ * Component vỏ bọc Google Map cơ sở (BaseMap).
+ * - Ép buộc giao diện sáng thông qua useForceLight()
+ * - Khởi tạo với vector mapId (Cloud styling)
+ * - Chỉ cập nhật React state của camera duy nhất khi xảy ra sự kiện 'idle'
+ * - Tích hợp duy nhất một DeckOverlay cho các lớp deck.gl
  */
 export function BaseMap({
   center = DEFAULT_CENTER,

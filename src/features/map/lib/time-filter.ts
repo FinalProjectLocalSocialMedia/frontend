@@ -8,9 +8,9 @@ const PRESET_DURATIONS_MS = {
 } as const
 
 /**
- * Resolves a TimeFilterValue into an ISO start and end range.
+ * Phân giải giá trị TimeFilterValue thành khoảng thời gian chuẩn ISO (from, to).
  * - 'preset': [now - duration, now]
- * - 'date': [YYYY-MM-DDT00:00:00.000+07:00, YYYY-MM-DDT23:59:59.999+07:00] (Vietnam UTC+7)
+ * - 'date': [YYYY-MM-DDT00:00:00.000+07:00, YYYY-MM-DDT23:59:59.999+07:00] (Giờ Việt Nam UTC+7)
  * - 'all': {}
  */
 export function resolveTimeFilter(filter: TimeFilterValue, nowInput?: Date): TimeRange {
@@ -30,7 +30,7 @@ export function resolveTimeFilter(filter: TimeFilterValue, nowInput?: Date): Tim
   }
 
   if (filter.kind === 'date') {
-    // filter.date format is 'YYYY-MM-DD'
+    // Định dạng filter.date là 'YYYY-MM-DD'
     const dateStr = filter.date
     return {
       from: `${dateStr}T00:00:00.000+07:00`,
@@ -41,7 +41,7 @@ export function resolveTimeFilter(filter: TimeFilterValue, nowInput?: Date): Tim
   return {}
 }
 
-/** Check if an ISO date string falls within a TimeRange. */
+/** Kiểm tra một chuỗi ngày giờ ISO có nằm trong khoảng TimeRange hay không. */
 export function isWithinTimeRange(isoDate: string, range: TimeRange): boolean {
   const time = new Date(isoDate).getTime()
   if (isNaN(time)) return false
