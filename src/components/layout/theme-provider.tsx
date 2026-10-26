@@ -30,10 +30,38 @@ function readStoredTheme(): Theme {
   return 'system'
 }
 
+let forceLightRefCount = 0
+const forceLightListeners = new Set<() => void>()
+
+function notifyForceLightListeners() {
+  forceLightListeners.forEach((listener) => listener())
+}
+
+/** Hook to force light theme while the calling component is mounted (ref-counted). */
+export function useForceLight() {
+  useEffect(() => {
+    forceLightRefCount++
+    notifyForceLightListeners()
+    return () => {
+      forceLightRefCount = Math.max(0, forceLightRefCount - 1)
+      notifyForceLightListeners()
+    }
+  }, [])
+}
+
 /** Minimal theme provider: toggles the `dark` class on <html>, persists the choice, follows the OS. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readStoredTheme)
   const [systemDark, setSystemDark] = useState(prefersDark)
+  const [isForcedLight, setIsForcedLight] = useState(() => forceLightRefCount > 0)
+
+  useEffect(() => {
+    const update = () => setIsForcedLight(forceLightRefCount > 0)
+    forceLightListeners.add(update)
+    return () => {
+      forceLightListeners.delete(update)
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return
@@ -43,7 +71,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => media.removeEventListener('change', onChange)
   }, [])
 
-  const resolvedTheme = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme
+  const baseResolvedTheme = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme
+  const resolvedTheme = isForcedLight ? 'light' : baseResolvedTheme
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
