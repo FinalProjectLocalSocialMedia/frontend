@@ -32,7 +32,7 @@ import type {
 } from '../map.service'
 import { seedDatabase } from './seed'
 
-/** Simulate realistic network delay (150-300ms) with full AbortSignal cancellation */
+/** Giả lập độ trễ mạng thực tế (150-300ms) có hỗ trợ huỷ bằng AbortSignal */
 function delay(ms = 180, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
@@ -76,7 +76,7 @@ function toCardData(post: PostDetail): PostCardData {
   }
 }
 
-// In-memory comments store initialized from seed
+// Kho lưu trữ bình luận trong bộ nhớ khởi tạo từ seed
 const inMemoryComments: CommentItem[] = [...seedDatabase.comments]
 
 export const mockMapService: MapService = {
@@ -86,18 +86,18 @@ export const mockMapService: MapService = {
     const now = new Date()
     const cutoffMs = now.getTime() - getWindowMs(q.window)
 
-    // Filter places within query bounds
+    // Lọc các địa điểm nằm trong bounds của truy vấn
     const placesInBounds = seedDatabase.places.filter((p) => containsPoint(q.bounds, p.center))
     const placeIdSet = new Set(placesInBounds.map((p) => p.id))
     const placeMap = new Map(placesInBounds.map((p) => [p.id, p]))
 
-    // Find posts at these places within the stats window
+    // Tìm các bài viết tại các địa điểm này trong khoảng thời gian thống kê
     const eligiblePosts = seedDatabase.posts.filter((p) => {
       if (!placeIdSet.has(p.place.id)) return false
       return new Date(p.createdAt).getTime() >= cutoffMs
     })
 
-    // Aggregate counts by H3 cell mapped to target resolution
+    // Gom số lượng theo ô H3 ánh xạ về độ phân giải mục tiêu
     const cellCountMap = new Map<string, number>()
     eligiblePosts.forEach((post) => {
       const place = placeMap.get(post.place.id)
@@ -110,7 +110,7 @@ export const mockMapService: MapService = {
       cellCountMap.set(targetCell, (cellCountMap.get(targetCell) || 0) + 1)
     })
 
-    // Build density cells
+    // Xây dựng danh sách ô mật độ
     const cells: DensityCell[] = []
     let maxCount = 0
 
@@ -147,7 +147,7 @@ export const mockMapService: MapService = {
           post.place.id === place.id && new Date(post.createdAt).getTime() >= cutoffMs,
       )
 
-      // Trend score: post count weighted by recency
+      // Điểm xu hướng: số lượng bài viết có trọng số theo độ mới
       let trendScore = 0
       const topicCounter = new Map<string, number>()
 
@@ -219,7 +219,7 @@ export const mockMapService: MapService = {
           topic: topTopic,
           postCount: topCount,
           score: topCount * 10 + placePosts.length,
-          position: place.center, // Equal to place location (R3)
+          position: place.center, // Bằng toạ độ công khai của địa điểm (R3)
         })
       }
     })
@@ -243,7 +243,7 @@ export const mockMapService: MapService = {
     const last7d = postsAtPlace.filter((p) => now - new Date(p.createdAt).getTime() <= 7 * 24 * 3600 * 1000).length
     const last30d = postsAtPlace.filter((p) => now - new Date(p.createdAt).getTime() <= 30 * 24 * 3600 * 1000).length
 
-    // Trending topics over the last 7 days
+    // Các chủ đề thịnh hành trong 7 ngày qua
     const recent7dPosts = postsAtPlace.filter((p) => now - new Date(p.createdAt).getTime() <= 7 * 24 * 3600 * 1000)
     const topicMap = new Map<string, number>()
     recent7dPosts.forEach((p) => {
@@ -410,7 +410,7 @@ export const mockSearchService: SearchService = {
 
     const timeRange = resolveTimeFilter(q.time)
 
-    // Match places
+    // Khớp địa điểm
     let places = seedDatabase.places.filter(
       (p) => p.name.toLowerCase().includes(term) || p.locationType.toLowerCase().includes(term),
     )
@@ -419,10 +419,10 @@ export const mockSearchService: SearchService = {
       places = places.filter((p) => haversineMeters(q.scope!.center!, p.center) <= radiusM)
     }
 
-    // Match users
+    // Khớp người dùng
     const users = seedDatabase.profiles.filter((u) => u.displayName.toLowerCase().includes(term))
 
-    // Match posts
+    // Khớp bài viết
     let posts = seedDatabase.posts.filter((p) => {
       const matchText = p.content.toLowerCase().includes(term) || p.place.name.toLowerCase().includes(term)
       if (!matchText) return false

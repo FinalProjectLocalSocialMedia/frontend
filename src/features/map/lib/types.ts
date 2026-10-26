@@ -1,6 +1,6 @@
 import type { GeoPoint, LatLngBounds, MapViewState } from '@/components/map/map-types'
 
-// Re-export map primitives
+// Tái xuất các kiểu nguyên thuỷ của bản đồ
 export type { GeoPoint, LatLngBounds, MapViewState }
 
 // ===== Nguyên thuỷ =====
@@ -11,7 +11,7 @@ export type PageResponse<T> = {
   page: number
   pageSize: number
   total: number
-} // page starts at 1
+} // Trang bắt đầu từ 1
 
 // ===== Phạm vi khu vực người dùng quan tâm =====
 export type RadiusKm = 1 | 3 | 5 | 10

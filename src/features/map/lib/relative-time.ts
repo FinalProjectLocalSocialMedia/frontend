@@ -1,5 +1,5 @@
 /**
- * Formats an ISO datetime string into relative Vietnamese time:
+ * Định dạng chuỗi ngày giờ ISO thành thời gian tương đối bằng tiếng Việt:
  * - < 60s: 'vừa xong'
  * - < 60 phút: 'n phút trước'
  * - < 24 giờ: 'n giờ trước'
@@ -13,7 +13,7 @@ export function formatRelativeVi(isoString: string, nowInput?: Date): string {
   const now = nowInput ?? new Date()
   const diffMs = now.getTime() - target.getTime()
 
-  // Guard against slight negative clock skew
+  // Xử lý sai lệch thời gian hệ thống nhẹ (clock skew âm)
   if (diffMs < 60 * 1000) {
     return 'vừa xong'
   }
@@ -33,14 +33,14 @@ export function formatRelativeVi(isoString: string, nowInput?: Date): string {
     return `${diffDays} ngày trước`
   }
 
-  // Format as dd/MM/yyyy
+  // Định dạng theo kiểu dd/MM/yyyy
   const day = String(target.getDate()).padStart(2, '0')
   const month = String(target.getMonth() + 1).padStart(2, '0')
   const year = target.getFullYear()
   return `${day}/${month}/${year}`
 }
 
-/** Formats an ISO string to full datetime string: 'dd/MM/yyyy HH:mm' */
+/** Định dạng chuỗi ISO thành chuỗi ngày giờ đầy đủ: 'dd/MM/yyyy HH:mm' */
 export function formatFullDateTimeVi(isoString: string): string {
   const target = new Date(isoString)
   if (isNaN(target.getTime())) return ''

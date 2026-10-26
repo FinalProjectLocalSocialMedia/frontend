@@ -11,10 +11,10 @@ describe('Pure geometric functions', () => {
   })
 
   it('haversineMeters calculates expected distance across Hanoi landmarks', () => {
-    const hanoiCenter = { latitude: 21.0285, longitude: 105.8542 } // Hoan Kiem
-    const keangnam = { latitude: 21.0173, longitude: 105.7838 }   // Cau Giay / Nam Tu Liem
+    const hanoiCenter = { latitude: 21.0285, longitude: 105.8542 } // Hoàn Kiếm
+    const keangnam = { latitude: 21.0173, longitude: 105.7838 }   // Cầu Giấy / Nam Từ Liêm
     const dist = haversineMeters(hanoiCenter, keangnam)
-    // Roughly 7.4 km
+    // Khoảng 7.4 km
     expect(dist).toBeGreaterThan(7000)
     expect(dist).toBeLessThan(8000)
   })

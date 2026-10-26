@@ -3,7 +3,7 @@ import type { GeoPoint, LatLngBounds } from './map-types'
 const EARTH_RADIUS_METERS = 6371000
 const KM_PER_LAT_DEGREE = 111.32
 
-/** Calculate distance between two geo points in meters using the Haversine formula. */
+/** Tính khoảng cách giữa hai toạ độ địa lý theo mét sử dụng công thức Haversine. */
 export function haversineMeters(a: GeoPoint, b: GeoPoint): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180
   const dLat = toRad(b.latitude - a.latitude)
@@ -18,11 +18,11 @@ export function haversineMeters(a: GeoPoint, b: GeoPoint): number {
   return 2 * EARTH_RADIUS_METERS * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h))
 }
 
-/** Compute bounding box around center for a given radius in kilometers. */
+/** Tính bounding box bao quanh điểm tâm với bán kính cho trước theo km. */
 export function radiusToBounds(center: GeoPoint, radiusKm: number): LatLngBounds {
   const latDelta = radiusKm / KM_PER_LAT_DEGREE
   const cosLat = Math.cos((center.latitude * Math.PI) / 180)
-  // Guard against division by 0 near poles
+  // Phòng tránh chia cho 0 khi gần các cực
   const lngDelta = radiusKm / (KM_PER_LAT_DEGREE * (Math.abs(cosLat) > 0.0001 ? Math.abs(cosLat) : 0.0001))
 
   return {
@@ -33,7 +33,7 @@ export function radiusToBounds(center: GeoPoint, radiusKm: number): LatLngBounds
   }
 }
 
-/** Expand bounding box by ratio on each side (e.g. 0.25 = 25% padding). */
+/** Mở rộng bounding box theo tỷ lệ đệm cho mỗi cạnh (ví dụ 0.25 = đệm thêm 25%). */
 export function padBounds(bounds: LatLngBounds, ratio = 0.25): LatLngBounds {
   const latSpan = bounds.north - bounds.south
   const lngSpan = bounds.east - bounds.west
@@ -46,7 +46,7 @@ export function padBounds(bounds: LatLngBounds, ratio = 0.25): LatLngBounds {
   }
 }
 
-/** Check if a point is within bounds. */
+/** Kiểm tra xem một toạ độ có nằm bên trong bounding box hay không. */
 export function containsPoint(bounds: LatLngBounds, point: GeoPoint): boolean {
   return (
     point.latitude >= bounds.south &&
@@ -56,7 +56,7 @@ export function containsPoint(bounds: LatLngBounds, point: GeoPoint): boolean {
   )
 }
 
-/** Web Mercator projection: convert lat/lng to pixel coordinates at a given zoom level. */
+/** Phép chiếu Web Mercator: chuyển đổi toạ độ kinh/vĩ sang toạ độ điểm ảnh (pixel) ở một mức zoom. */
 export function latLngToPixel(point: GeoPoint, zoom: number): { x: number; y: number } {
   const scale = 256 * Math.pow(2, zoom)
   const x = (point.longitude + 180) / 360 * scale
@@ -68,7 +68,7 @@ export function latLngToPixel(point: GeoPoint, zoom: number): { x: number; y: nu
   return { x, y }
 }
 
-/** Convert bounding box to slippy tile keys at tile zoom level. */
+/** Chuyển đổi bounding box sang danh sách khoá tile (slippy tile keys: z/x/y) ở mức zoom. */
 export function boundsToTileKeys(bounds: LatLngBounds, zoom: number): string[] {
   const z = Math.max(0, Math.floor(zoom))
   const scale = Math.pow(2, z)

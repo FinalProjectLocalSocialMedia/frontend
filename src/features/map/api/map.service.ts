@@ -66,7 +66,7 @@ export interface UserService {
   ): Promise<PageResponse<PostCardData>>
 }
 
-// In Phase 0, default to mock implementation (USE_MOCK is true)
+// Trong các pha đầu, mặc định sử dụng triển khai mock (USE_MOCK = true)
 export const mapService: MapService = USE_MOCK ? mockMapService : mockMapService
 export const feedService: FeedService = USE_MOCK ? mockFeedService : mockFeedService
 export const searchService: SearchService = USE_MOCK ? mockSearchService : mockSearchService

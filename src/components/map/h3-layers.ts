@@ -2,13 +2,13 @@ import { H3HexagonLayer } from '@deck.gl/geo-layers'
 
 export type ColorRGBA = [number, number, number, number]
 
-/** 5-step density color ramp: light yellow → orange → vivid red (alpha 120-180 / 0.47-0.70) */
+/** Dải màu mật độ 5 mức: vàng nhạt → cam → đỏ đậm (độ trong suốt alpha 120-180 / 0.47-0.70) */
 export const DENSITY_COLOR_RAMP: readonly ColorRGBA[] = [
-  [254, 240, 138, 120], // level 1: pale yellow
-  [253, 186, 116, 135], // level 2: yellow-orange
-  [251, 146, 60, 150],  // level 3: orange
-  [239, 68, 68, 165],   // level 4: warm red
-  [185, 28, 28, 180],   // level 5: deep red
+  [254, 240, 138, 120], // Mức 1: Vàng nhạt
+  [253, 186, 116, 135], // Mức 2: Vàng cam
+  [251, 146, 60, 150],  // Mức 3: Cam
+  [239, 68, 68, 165],   // Mức 4: Đỏ tươi
+  [185, 28, 28, 180],   // Mức 5: Đỏ đậm
 ] as const
 
 export const DENSITY_RES_BANDS = [
@@ -19,7 +19,7 @@ export const DENSITY_RES_BANDS = [
 
 export const STORED_H3_RESOLUTION = 8
 
-/** Map zoom level to H3 resolution based on configured bands, capped at STORED_H3_RESOLUTION. */
+/** Chuyển mức zoom của bản đồ sang độ phân giải H3 dựa trên cấu hình dải, giới hạn ở STORED_H3_RESOLUTION. */
 export function zoomToResolution(zoom: number): number {
   const roundedZoom = Math.floor(zoom)
   let targetRes = 6
@@ -32,8 +32,8 @@ export function zoomToResolution(zoom: number): number {
 }
 
 /**
- * Maps count/maxCount using square root scale to a 5-step RGBA color.
- * If isDimmed is true (e.g. cell outside radius), alpha is scaled to ~35% (alpha * 0.35).
+ * Ánh xạ tỉ lệ count/maxCount theo thang căn bậc hai (sqrt) sang dải màu RGBA 5 mức.
+ * Nếu isDimmed là true (ví dụ: ô nằm ngoài bán kính quan tâm), alpha sẽ giảm còn ~35% (alpha * 0.35).
  */
 export function getDensityColor(
   count: number,
@@ -44,7 +44,7 @@ export function getDensityColor(
     return [0, 0, 0, 0]
   }
 
-  // Sqrt scale for better contrast across skewed distributions
+  // Thang căn bậc hai để tăng độ tương phản rõ rệt cho các phân phối lệch
   const ratio = Math.min(1, Math.max(0, Math.sqrt(count / maxCount)))
   const index = Math.min(4, Math.floor(ratio * 5))
   const baseColor = DENSITY_COLOR_RAMP[index]
@@ -72,7 +72,7 @@ export type BuildHexLayerOptions<T extends DensityCellItem = DensityCellItem> = 
   onClick?: (info: { object?: T; x: number; y: number }) => void
 }
 
-/** Build a deck.gl H3HexagonLayer for rendering hexagon cells. */
+/** Khởi tạo lớp H3HexagonLayer của deck.gl để hiển thị các ô lục giác. */
 export function buildHexLayer<T extends DensityCellItem = DensityCellItem>(
   options: BuildHexLayerOptions<T>,
 ) {

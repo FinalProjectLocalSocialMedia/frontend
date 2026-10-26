@@ -50,7 +50,7 @@ describe('mockMapService', () => {
 
     expect(places.length).toBeGreaterThan(0)
     expect(places.length).toBeLessThanOrEqual(10)
-    // Verify sorted descending by trendScore
+    // Đảm bảo được sắp xếp giảm dần theo trendScore
     for (let i = 0; i < places.length - 1; i++) {
       expect(places[i].trendScore).toBeGreaterThanOrEqual(places[i + 1].trendScore)
     }
@@ -97,7 +97,7 @@ describe('mockMapService', () => {
     res.items.forEach((post) => {
       expect(post.place.id).toBe(firstPlace.id)
       expect(post.place.name).toBeDefined()
-      // Enforce R3: posts MUST NOT contain coordinate fields
+      // Quy tắc cứng R3: bài viết TUYỆT ĐỐI KHÔNG chứa trường toạ độ
       expect((post as Record<string, unknown>).latitude).toBeUndefined()
       expect((post as Record<string, unknown>).longitude).toBeUndefined()
       expect((post as Record<string, unknown>).coordinate).toBeUndefined()
