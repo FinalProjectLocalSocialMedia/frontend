@@ -15,7 +15,7 @@ export const LOCATION_TYPE_LABELS: Record<string, string> = {
   transit: 'Bến xe / Ga tàu',
 }
 
-/** Format location type string to user-friendly Vietnamese label */
+/** Định dạng kiểu địa điểm thành nhãn tiếng Việt thân thiện */
 export function formatLocationType(type: string): string {
   const normalized = type.toLowerCase().trim()
   return LOCATION_TYPE_LABELS[normalized] || type
