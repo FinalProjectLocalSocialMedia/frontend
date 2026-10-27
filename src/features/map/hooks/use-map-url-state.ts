@@ -97,7 +97,7 @@ export function useMapUrlState() {
   const setPlaceId = useCallback(
     (id: string | null) => {
       setSearchParams(
-        (prev) => serializeMapUrlParams({ placeId: id || undefined }, prev),
+        (prev) => serializeMapUrlParams({ placeId: id }, prev),
         { replace: false },
       )
     },
@@ -107,7 +107,7 @@ export function useMapUrlState() {
   const setSearchQuery = useCallback(
     (q: string | null) => {
       setSearchParams(
-        (prev) => serializeMapUrlParams({ searchQuery: q || undefined }, prev),
+        (prev) => serializeMapUrlParams({ searchQuery: q }, prev),
         { replace: false },
       )
     },

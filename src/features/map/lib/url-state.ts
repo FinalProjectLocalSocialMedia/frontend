@@ -72,9 +72,15 @@ export function parseMapUrlParams(searchParams: URLSearchParams): Partial<MapUrl
   return result
 }
 
+export type MapUrlUpdates = Partial<Omit<MapUrlState, 'placeId' | 'searchQuery' | 'timeFilter'>> & {
+  placeId?: string | null
+  searchQuery?: string | null
+  timeFilter?: string | null
+}
+
 /** Tuần tự hoá trạng thái cập nhật vào URLSearchParams mà không ghi đè các tham số khác */
 export function serializeMapUrlParams(
-  updates: Partial<MapUrlState>,
+  updates: MapUrlUpdates,
   existingParams: URLSearchParams,
 ): URLSearchParams {
   const next = new URLSearchParams(existingParams)
@@ -101,7 +107,7 @@ export function serializeMapUrlParams(
     next.set('w', updates.window)
   }
 
-  if (updates.placeId !== undefined) {
+  if ('placeId' in updates) {
     if (updates.placeId) {
       next.set('place', updates.placeId)
     } else {
@@ -109,7 +115,7 @@ export function serializeMapUrlParams(
     }
   }
 
-  if (updates.searchQuery !== undefined) {
+  if ('searchQuery' in updates) {
     if (updates.searchQuery) {
       next.set('q', updates.searchQuery)
     } else {
@@ -117,7 +123,7 @@ export function serializeMapUrlParams(
     }
   }
 
-  if (updates.timeFilter !== undefined) {
+  if ('timeFilter' in updates) {
     if (updates.timeFilter) {
       next.set('t', updates.timeFilter)
     } else {
