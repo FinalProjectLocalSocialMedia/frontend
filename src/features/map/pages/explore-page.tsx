@@ -10,6 +10,11 @@ import { UserLocationDot } from '../components/user-location-dot'
 import { CenterPin } from '../components/center-pin'
 import { RadiusCircle } from '../components/radius-circle'
 import { MapSearchBar } from '../components/map-search-bar'
+import { DensityLayer } from '../components/density-layer'
+import { DensityLegend } from '../components/density-legend'
+import { PlaceMarkers } from '../components/place-markers'
+import { PlaceDetailModal } from '../components/place-detail-modal'
+import { PerformanceHUD, type PerformanceMetrics } from '../components/performance-hud'
 import { useMapUrlState } from '../hooks/use-map-url-state'
 import { useUserLocation } from '../hooks/use-user-location'
 import type { GeoPoint, RadiusKm } from '../lib/types'
@@ -22,14 +27,24 @@ export default function ExplorePage() {
     setRadius,
     setSource,
     setWindow,
+    setPlaceId,
     setSearchQuery,
   } = useMapUrlState()
 
   const [areaCenter, setAreaCenter] = useState<GeoPoint>(urlState.center)
   const [isPickingLocation, setIsPickingLocation] = useState(false)
   const [searchInputValue, setSearchInputValue] = useState(urlState.searchQuery || '')
-  const userInteractedRef = useRef(false)
   const [autoFitRadius, setAutoFitRadius] = useState(false)
+  const [currentViewport, setCurrentViewport] = useState<MapViewState | null>(null)
+  const [totalPostsInView, setTotalPostsInView] = useState<number>(0)
+
+  // Đo lường hiệu năng: map:ready và density-first-paint
+  const mountTimeRef = useRef(performance.now())
+  const hasRecordedMapReadyRef = useRef(false)
+  const userInteractedRef = useRef(false)
+  const [metrics, setMetrics] = useState<PerformanceMetrics>({
+    window: urlState.window,
+  })
 
   // Thu nhận toạ độ GPS
   const handleGpsAcquired = useCallback(
@@ -45,14 +60,49 @@ export default function ExplorePage() {
     userHasInteracted: userInteractedRef.current,
   })
 
-  // Xử lý sự kiện idle của bản đồ để đồng bộ tham số URL search params
+  // Xử lý sự kiện idle của bản đồ để đồng bộ tham số URL search params và cập nhật viewport
   const handleMapIdle = useCallback(
     (viewport: MapViewState) => {
       userInteractedRef.current = true
+      setCurrentViewport(viewport)
       onCameraIdle(viewport.center, viewport.zoom)
+
+      // Ghi nhận mốc map:ready lần đầu tiên
+      if (!hasRecordedMapReadyRef.current) {
+        hasRecordedMapReadyRef.current = true
+        performance.mark('map:ready')
+        const readyDuration = performance.now() - mountTimeRef.current
+        setMetrics((prev) => ({
+          ...prev,
+          mapReadyTimeMs: readyDuration,
+          resolution: viewport.zoom >= 13 ? 8 : viewport.zoom >= 11 ? 7 : 6,
+        }))
+      }
     },
     [onCameraIdle],
   )
+
+  // Callback nhận kết quả đo density-first-paint từ DensityLayer
+  const handleDensityFirstPaint = useCallback((durationMs: number, cellCount: number, resolution: number) => {
+    setMetrics((prev) => ({
+      ...prev,
+      densityFirstPaintMs: durationMs,
+      cellCount,
+      resolution,
+      window: urlState.window,
+    }))
+  }, [urlState.window])
+
+  // Callback nhận tổng số bài và ô mật độ khi nạp xong
+  const handleDensityLoaded = useCallback((cellCount: number, totalPosts: number, resolution: number) => {
+    setTotalPostsInView(totalPosts)
+    setMetrics((prev) => ({
+      ...prev,
+      cellCount,
+      resolution,
+      window: urlState.window,
+    }))
+  }, [urlState.window])
 
   // Xử lý click trên bản đồ khi đang ở chế độ Chọn vị trí
   const handleMapClick = useCallback(
@@ -103,6 +153,23 @@ export default function ExplorePage() {
           onMapClick={handleMapClick}
           className={`size-full ${isPickingLocation ? 'cursor-crosshair' : ''}`}
         >
+          {/* Lớp mật độ H3 (Pha 2) */}
+          <DensityLayer
+            viewport={currentViewport}
+            statsWindow={urlState.window}
+            areaCenter={areaCenter}
+            radiusKm={urlState.radiusKm}
+            onFirstPaint={handleDensityFirstPaint}
+            onDensityLoaded={handleDensityLoaded}
+          />
+
+          {/* Marker địa điểm (Pha 3, zoom >= 13) */}
+          <PlaceMarkers
+            viewport={currentViewport}
+            statsWindow={urlState.window}
+            onSelectPlace={(placeId) => setPlaceId(placeId)}
+          />
+
           {/* Chấm tròn biểu thị toạ độ GPS của người dùng */}
           <UserLocationDot position={gpsPosition} />
 
@@ -117,6 +184,13 @@ export default function ExplorePage() {
           />
         </BaseMap>
       </GoogleMapsProvider>
+
+      {/* Modal chi tiết địa điểm (Pha 3) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
+      <PlaceDetailModal
+        placeId={urlState.placeId || null}
+        isOpen={Boolean(urlState.placeId)}
+        onClose={() => setPlaceId(null)}
+      />
 
       {/* Lớp giao diện nổi phía trên */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col justify-between gap-3 p-3 sm:flex-row sm:items-start sm:p-4">
@@ -151,6 +225,19 @@ export default function ExplorePage() {
             onChange={setWindow}
           />
         </div>
+      </div>
+
+      {/* Lớp giao diện nổi phía dưới */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex items-end justify-between px-3 sm:px-4">
+        {/* Góc dưới bên trái: Bảng chú giải thang màu mật độ H3 */}
+        <DensityLegend
+          window={urlState.window}
+          totalPosts={totalPostsInView}
+          className="max-w-[220px]"
+        />
+
+        {/* Góc dưới bên phải: Bảng theo dõi hiệu năng (Performance HUD) */}
+        <PerformanceHUD metrics={metrics} />
       </div>
 
       {/* Banner hướng dẫn khi đang ở chế độ chọn vị trí */}
