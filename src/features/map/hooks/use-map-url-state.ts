@@ -28,6 +28,7 @@ export function useMapUrlState() {
   const statsWindow: StatsWindow = parsed.window || '7d'
   const densityMode: DensityMode = parsed.densityMode || storedDensityMode || MAP_CONFIG.DENSITY_MODE_DEFAULT
   const placeId: string | undefined = parsed.placeId
+  const topic: string | undefined = parsed.topic
   const searchQuery: string | undefined = parsed.searchQuery
 
   // Dọn dẹp bộ đếm thời gian khi unmount
@@ -109,10 +110,46 @@ export function useMapUrlState() {
   )
 
   // Chuyển đổi modal / bảng tìm kiếm sử dụng push để nút Back của trình duyệt có thể đóng lại
+  // Quy tắc 6.4b: Chỉ mở một panel mỗi lúc (mở place thì đóng topic/search và ngược lại)
   const setPlaceId = useCallback(
     (id: string | null) => {
       setSearchParams(
-        (prev) => serializeMapUrlParams({ placeId: id }, prev),
+        (prev) => {
+          const updates: { placeId: string | null; topic?: string | null; searchQuery?: string | null } = {
+            placeId: id,
+          }
+          if (id) {
+            updates.topic = null
+            updates.searchQuery = null
+          }
+          return serializeMapUrlParams(updates, prev)
+        },
+        { replace: false },
+      )
+    },
+    [setSearchParams],
+  )
+
+  const setTopic = useCallback(
+    (nextTopic: string | null, nextPlaceId?: string | null) => {
+      setSearchParams(
+        (prev) => {
+          const updates: { topic: string | null; placeId?: string | null; searchQuery?: string | null } = {
+            topic: nextTopic,
+          }
+          if (nextTopic) {
+            updates.searchQuery = null
+            if (nextPlaceId !== undefined) {
+              updates.placeId = nextPlaceId
+            }
+          } else {
+            // Khi đóng topic modal, xoá luôn placeId nếu mở từ topic
+            if (nextPlaceId !== undefined) {
+              updates.placeId = nextPlaceId
+            }
+          }
+          return serializeMapUrlParams(updates, prev)
+        },
         { replace: false },
       )
     },
@@ -122,7 +159,16 @@ export function useMapUrlState() {
   const setSearchQuery = useCallback(
     (q: string | null) => {
       setSearchParams(
-        (prev) => serializeMapUrlParams({ searchQuery: q }, prev),
+        (prev) => {
+          const updates: { searchQuery: string | null; placeId?: string | null; topic?: string | null } = {
+            searchQuery: q,
+          }
+          if (q) {
+            updates.placeId = null
+            updates.topic = null
+          }
+          return serializeMapUrlParams(updates, prev)
+        },
         { replace: false },
       )
     },
@@ -137,6 +183,7 @@ export function useMapUrlState() {
     window: statsWindow,
     densityMode,
     placeId,
+    topic,
     searchQuery,
   }
 
@@ -148,6 +195,7 @@ export function useMapUrlState() {
     setWindow,
     setDensityMode,
     setPlaceId,
+    setTopic,
     setSearchQuery,
   }
 }

@@ -9,6 +9,7 @@ export type MapUrlState = {
   window: StatsWindow
   densityMode: DensityMode
   placeId?: string
+  topic?: string
   searchQuery?: string
   timeFilter?: string
 }
@@ -66,6 +67,11 @@ export function parseMapUrlParams(searchParams: URLSearchParams): Partial<MapUrl
     result.placeId = place
   }
 
+  const topic = searchParams.get('topic')
+  if (topic) {
+    result.topic = topic
+  }
+
   const q = searchParams.get('q')
   if (q) {
     result.searchQuery = q
@@ -79,8 +85,9 @@ export function parseMapUrlParams(searchParams: URLSearchParams): Partial<MapUrl
   return result
 }
 
-export type MapUrlUpdates = Partial<Omit<MapUrlState, 'placeId' | 'searchQuery' | 'timeFilter'>> & {
+export type MapUrlUpdates = Partial<Omit<MapUrlState, 'placeId' | 'topic' | 'searchQuery' | 'timeFilter'>> & {
   placeId?: string | null
+  topic?: string | null
   searchQuery?: string | null
   timeFilter?: string | null
 }
@@ -123,6 +130,14 @@ export function serializeMapUrlParams(
       next.set('place', updates.placeId)
     } else {
       next.delete('place')
+    }
+  }
+
+  if ('topic' in updates) {
+    if (updates.topic) {
+      next.set('topic', updates.topic)
+    } else {
+      next.delete('topic')
     }
   }
 

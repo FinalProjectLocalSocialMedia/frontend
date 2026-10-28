@@ -15,6 +15,8 @@ import { DensityLegend } from '../components/density-legend'
 import { DensityModeControl } from '../components/density-mode-control'
 import { PlaceMarkers } from '../components/place-markers'
 import { PlaceDetailModal } from '../components/place-detail-modal'
+import { TopicMarkers } from '../components/topic-markers'
+import { TopicPostsModal } from '../components/topic-posts-modal'
 import { PerformanceHUD, type PerformanceMetrics } from '../components/performance-hud'
 import { useMapUrlState } from '../hooks/use-map-url-state'
 import { useUserLocation } from '../hooks/use-user-location'
@@ -31,6 +33,7 @@ export default function ExplorePage() {
     setWindow,
     setDensityMode,
     setPlaceId,
+    setTopic,
     setSearchQuery,
   } = useMapUrlState()
 
@@ -175,6 +178,13 @@ export default function ExplorePage() {
             onSelectPlace={(placeId) => setPlaceId(placeId)}
           />
 
+          {/* Marker chủ đề xu hướng (Pha 4: zoom >= 15, tối đa 40 marker DOM dạng pill) */}
+          <TopicMarkers
+            viewport={currentViewport}
+            statsWindow={urlState.window}
+            onSelectTopic={(topic, placeId) => setTopic(topic, placeId)}
+          />
+
           {/* Chấm tròn biểu thị toạ độ GPS của người dùng */}
           <UserLocationDot position={gpsPosition} />
 
@@ -190,11 +200,21 @@ export default function ExplorePage() {
         </BaseMap>
       </GoogleMapsProvider>
 
-      {/* Modal chi tiết địa điểm (Pha 3) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
+      {/* Modal chi tiết địa điểm (Pha 3/3B) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
       <PlaceDetailModal
         placeId={urlState.placeId || null}
-        isOpen={Boolean(urlState.placeId)}
+        isOpen={Boolean(urlState.placeId && !urlState.topic)}
         onClose={() => setPlaceId(null)}
+      />
+
+      {/* Modal bài viết theo chủ đề (Pha 4) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
+      <TopicPostsModal
+        topic={urlState.topic || null}
+        placeId={urlState.placeId || null}
+        areaCenter={areaCenter}
+        radiusKm={urlState.radiusKm}
+        isOpen={Boolean(urlState.topic)}
+        onClose={() => setTopic(null, null)}
       />
 
       {/* Lớp giao diện nổi phía trên */}
@@ -243,7 +263,7 @@ export default function ExplorePage() {
         <div
           className={cn(
             'pointer-events-auto transition-transform duration-300 ease-in-out',
-            Boolean(urlState.placeId) && 'lg:translate-x-[calc(clamp(20rem,33%,26rem)+0.75rem)]',
+            Boolean(urlState.placeId || urlState.topic) && 'lg:translate-x-[calc(clamp(20rem,33%,26rem)+0.75rem)]',
           )}
         >
           {/* <DensityLegend
