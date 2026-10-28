@@ -20,6 +20,7 @@ import { useMapUrlState } from '../hooks/use-map-url-state'
 import { useUserLocation } from '../hooks/use-user-location'
 import type { GeoPoint, RadiusKm } from '../lib/types'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 export default function ExplorePage() {
   const {
@@ -238,12 +239,20 @@ export default function ExplorePage() {
       {/* Lớp giao diện nổi phía dưới */}
       <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex items-end justify-between px-3 sm:px-4">
         {/* Góc dưới bên trái: Bảng chú giải thang màu mật độ (Heatmap / H3) */}
-        <DensityLegend
-          window={urlState.window}
-          mode={urlState.densityMode}
-          totalPosts={totalPostsInView}
-          className="max-w-[220px]"
-        />
+        {/* Khi panel chi tiết mở, dịch chuyển sang bên phải mép panel trên màn hình desktop */}
+        <div
+          className={cn(
+            'pointer-events-auto transition-transform duration-300 ease-in-out',
+            Boolean(urlState.placeId) && 'lg:translate-x-[calc(clamp(20rem,33%,26rem)+0.75rem)]',
+          )}
+        >
+          {/* <DensityLegend
+            window={urlState.window}
+            mode={urlState.densityMode}
+            totalPosts={totalPostsInView}
+            className="max-w-[220px]"
+          /> */}
+        </div>
 
         {/* Góc dưới bên phải: Bảng theo dõi hiệu năng (Performance HUD) */}
         <PerformanceHUD metrics={metrics} />

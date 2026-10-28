@@ -8,6 +8,16 @@ import { PostCardCompact } from './post-card-compact'
 import { resolveTimeFilter } from '../lib/time-filter'
 import type { PostCardData } from '../lib/types'
 
+// Mock react-router-dom navigate để kiểm tra điều hướng
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  }
+})
+
 function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -24,7 +34,7 @@ function renderWithProviders(ui: React.ReactElement) {
   )
 }
 
-describe('Chi tiết địa điểm & Bộ lọc thời gian (Pha 3)', () => {
+describe('Chi tiết địa điểm & Bộ lọc thời gian (Pha 3 & Pha 3B)', () => {
   it('TimeFilter phát ra đúng giá trị preset và phân giải khoảng thời gian UTC+7', () => {
     const handleChange = vi.fn()
     const { rerender } = render(
@@ -104,5 +114,73 @@ describe('Chi tiết địa điểm & Bộ lọc thời gian (Pha 3)', () => {
     // Kiểm tra nút chuyển đổi sắp xếp Xu hướng / Mới nhất
     expect(screen.getByRole('button', { name: /xu hướng/i })).toBeDefined()
     expect(screen.getByRole('button', { name: /mới nhất/i })).toBeDefined()
+  })
+
+  it('Tên địa điểm là nút bấm điều hướng tới /search?locationId=...&locationName=...', async () => {
+    mockNavigate.mockClear()
+    const handleClose = vi.fn()
+
+    renderWithProviders(
+      <PlaceDetailModal placeId="plc-1" isOpen={true} onClose={handleClose} />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /xem tất cả bài viết ở đại học quốc gia hà nội/i })).toBeDefined()
+    })
+
+    const placeBtn = screen.getByRole('button', { name: /xem tất cả bài viết ở đại học quốc gia hà nội/i })
+    fireEvent.click(placeBtn)
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.stringContaining('/search?locationId=plc-1&locationName='),
+    )
+  })
+
+  it('Thay đổi placeId (click marker khác) cập nhật nội dung sang địa điểm mới', async () => {
+    const handleClose = vi.fn()
+
+    const { rerender } = renderWithProviders(
+      <PlaceDetailModal placeId="plc-1" isOpen={true} onClose={handleClose} />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Đại học Quốc gia Hà Nội')).toBeDefined()
+    })
+
+    // Giả lập người dùng click marker khác: đổi placeId sang plc-27 (Hồ Tây)
+    rerender(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter>
+          <PlaceDetailModal placeId="plc-27" isOpen={true} onClose={handleClose} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('Hồ Tây')).toBeDefined()
+      },
+      { timeout: 3000 },
+    )
+  })
+
+  it('Nút đóng (×) và phím Escape đóng panel đúng cách', async () => {
+    const handleClose = vi.fn()
+
+    renderWithProviders(
+      <PlaceDetailModal placeId="plc-1" isOpen={true} onClose={handleClose} />,
+    )
+
+    // Kiểm tra chỉ có duy nhất một nút đóng có aria-label="Đóng"
+    const closeButtons = screen.getAllByRole('button', { name: /đóng/i })
+    expect(closeButtons).toHaveLength(1)
+
+    // Bấm nút đóng
+    fireEvent.click(closeButtons[0])
+    expect(handleClose).toHaveBeenCalledTimes(1)
+
+    // Nhấn phím Escape
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(handleClose).toHaveBeenCalledTimes(2)
   })
 })
