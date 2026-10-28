@@ -2,6 +2,8 @@ import type {
   CommentItem,
   DensityQuery,
   DensityResponse,
+  HeatPointsQuery,
+  HeatPointsResponse,
   MapPlace,
   MapSearchQuery,
   PageResponse,
@@ -31,6 +33,7 @@ export type RequestOptions = {
 
 export interface MapService {
   getDensity(q: DensityQuery, o?: RequestOptions): Promise<DensityResponse>
+  getHeatPoints(q: HeatPointsQuery, o?: RequestOptions): Promise<HeatPointsResponse>
   getPlaceMarkers(q: PlaceMarkersQuery, o?: RequestOptions): Promise<MapPlace[]>
   getTopicMarkers(q: TopicMarkersQuery, o?: RequestOptions): Promise<TopicMarker[]>
   getPlaceSummary(placeId: Uuid, o?: RequestOptions): Promise<PlaceSummary>

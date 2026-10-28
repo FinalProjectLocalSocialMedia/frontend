@@ -12,6 +12,7 @@ import { RadiusCircle } from '../components/radius-circle'
 import { MapSearchBar } from '../components/map-search-bar'
 import { DensityLayer } from '../components/density-layer'
 import { DensityLegend } from '../components/density-legend'
+import { DensityModeControl } from '../components/density-mode-control'
 import { PlaceMarkers } from '../components/place-markers'
 import { PlaceDetailModal } from '../components/place-detail-modal'
 import { PerformanceHUD, type PerformanceMetrics } from '../components/performance-hud'
@@ -27,6 +28,7 @@ export default function ExplorePage() {
     setRadius,
     setSource,
     setWindow,
+    setDensityMode,
     setPlaceId,
     setSearchQuery,
   } = useMapUrlState()
@@ -153,17 +155,19 @@ export default function ExplorePage() {
           onMapClick={handleMapClick}
           className={`size-full ${isPickingLocation ? 'cursor-crosshair' : ''}`}
         >
-          {/* Lớp mật độ H3 (Pha 2) */}
+          {/* Lớp mật độ hoạt động (Pha 2 & Pha 2B: HEATMAP hoặc HEX) */}
           <DensityLayer
             viewport={currentViewport}
             statsWindow={urlState.window}
             areaCenter={areaCenter}
             radiusKm={urlState.radiusKm}
+            mode={urlState.densityMode}
+            onFallbackToHex={() => setDensityMode('HEX')}
             onFirstPaint={handleDensityFirstPaint}
             onDensityLoaded={handleDensityLoaded}
           />
 
-          {/* Marker địa điểm (Pha 3, zoom >= 13) */}
+          {/* Marker địa điểm (Pha 3: zoom 10-12 hiện chấm hotspot, zoom >= 13 hiện pill) */}
           <PlaceMarkers
             viewport={currentViewport}
             statsWindow={urlState.window}
@@ -209,8 +213,12 @@ export default function ExplorePage() {
           />
         </div>
 
-        {/* Góc trên bên phải: Nút chọn vị trí, Nút định vị GPS & Bộ chọn khoảng thời gian */}
+        {/* Góc trên bên phải: Chuyển chế độ mật độ, Nút chọn vị trí, Nút định vị GPS & Bộ chọn khoảng thời gian */}
         <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
+          <DensityModeControl
+            value={urlState.densityMode}
+            onChange={setDensityMode}
+          />
           <PickLocationButton
             isPicking={isPickingLocation}
             onToggle={() => setIsPickingLocation((prev) => !prev)}
@@ -229,9 +237,10 @@ export default function ExplorePage() {
 
       {/* Lớp giao diện nổi phía dưới */}
       <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex items-end justify-between px-3 sm:px-4">
-        {/* Góc dưới bên trái: Bảng chú giải thang màu mật độ H3 */}
+        {/* Góc dưới bên trái: Bảng chú giải thang màu mật độ (Heatmap / H3) */}
         <DensityLegend
           window={urlState.window}
+          mode={urlState.densityMode}
           totalPosts={totalPostsInView}
           className="max-w-[220px]"
         />

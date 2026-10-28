@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MAP_CONFIG } from '../lib/map-config'
-import type { CenterSource, GeoPoint, RadiusKm, StatsWindow } from '../lib/types'
+import type { CenterSource, DensityMode, GeoPoint, RadiusKm, StatsWindow } from '../lib/types'
 import {
   parseMapUrlParams,
+  readDensityModeFromStorage,
   readLastViewFromStorage,
   serializeMapUrlParams,
+  writeDensityModeToStorage,
   writeLastViewToStorage,
   type MapUrlState,
 } from '../lib/url-state'
@@ -14,15 +16,17 @@ export function useMapUrlState() {
   const [searchParams, setSearchParams] = useSearchParams()
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Xác định trạng thái ban đầu: ưu tiên URL params -> localStorage -> mặc định Hà Nội
+  // Xác định trạng thái ban đầu: ưu tiên URL params -> localStorage -> mặc định
   const parsed = parseMapUrlParams(searchParams)
   const stored = typeof window !== 'undefined' ? readLastViewFromStorage() : null
+  const storedDensityMode = typeof window !== 'undefined' ? readDensityModeFromStorage() : null
 
   const center: GeoPoint = parsed.center || stored?.center || MAP_CONFIG.DEFAULT_CENTER
   const zoom: number = parsed.zoom ?? stored?.zoom ?? 13
   const radiusKm: RadiusKm = parsed.radiusKm || stored?.radiusKm || MAP_CONFIG.DEFAULT_RADIUS_KM
   const source: CenterSource = parsed.source || stored?.source || 'DEFAULT'
   const statsWindow: StatsWindow = parsed.window || '7d'
+  const densityMode: DensityMode = parsed.densityMode || storedDensityMode || MAP_CONFIG.DENSITY_MODE_DEFAULT
   const placeId: string | undefined = parsed.placeId
   const searchQuery: string | undefined = parsed.searchQuery
 
@@ -93,6 +97,17 @@ export function useMapUrlState() {
     [setSearchParams],
   )
 
+  const setDensityMode = useCallback(
+    (mode: DensityMode) => {
+      setSearchParams(
+        (prev) => serializeMapUrlParams({ densityMode: mode }, prev),
+        { replace: true },
+      )
+      writeDensityModeToStorage(mode)
+    },
+    [setSearchParams],
+  )
+
   // Chuyển đổi modal / bảng tìm kiếm sử dụng push để nút Back của trình duyệt có thể đóng lại
   const setPlaceId = useCallback(
     (id: string | null) => {
@@ -120,6 +135,7 @@ export function useMapUrlState() {
     radiusKm,
     source,
     window: statsWindow,
+    densityMode,
     placeId,
     searchQuery,
   }
@@ -130,6 +146,7 @@ export function useMapUrlState() {
     setRadius,
     setSource,
     setWindow,
+    setDensityMode,
     setPlaceId,
     setSearchQuery,
   }

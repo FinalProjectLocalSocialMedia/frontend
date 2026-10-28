@@ -1,18 +1,25 @@
 import { DENSITY_COLOR_RAMP } from '@/components/map/h3-layers'
 import { STATS_WINDOW_LABELS } from '../lib/labels'
-import type { StatsWindow } from '../lib/types'
+import type { DensityMode, StatsWindow } from '../lib/types'
 
 export type DensityLegendProps = {
   window: StatsWindow
+  mode?: DensityMode
   totalPosts?: number
   className?: string
 }
 
 /**
- * Bảng chú giải thang màu mật độ H3 (DensityLegend) đặt ở góc trái dưới bản đồ.
- * Hiển thị thang màu 5 mức độ từ Ít đến Nhiều, đơn vị tính bài/ô và cửa sổ thời gian đang chọn.
+ * Bảng chú giải thang màu mật độ (DensityLegend) đặt ở góc trái dưới bản đồ.
+ * - Chế độ HEATMAP: hiển thị thanh dải gradient mượt mà và nhãn "Cường độ tương đối"
+ * - Chế độ HEX: hiển thị thang 5 khối màu ô lục giác H3 và đơn vị "bài / ô"
  */
-export function DensityLegend({ window, totalPosts, className = '' }: DensityLegendProps) {
+export function DensityLegend({
+  window,
+  mode = 'HEATMAP',
+  totalPosts,
+  className = '',
+}: DensityLegendProps) {
   const windowLabel = STATS_WINDOW_LABELS[window] || window
 
   return (
@@ -28,26 +35,45 @@ export function DensityLegend({ window, totalPosts, className = '' }: DensityLeg
         </span>
       </div>
 
-      {/* Thang dải 5 mức màu */}
-      <div className="flex items-center gap-1 my-1">
-        {DENSITY_COLOR_RAMP.map((color, idx) => (
+      {mode === 'HEATMAP' ? (
+        /* Thang dải gradient mượt mà cho chế độ Heatmap */
+        <div className="my-1.5">
           <div
-            key={idx}
-            className="h-2.5 flex-1 rounded-sm shadow-xs transition-transform hover:scale-110"
+            className="h-2.5 w-full rounded-sm shadow-2xs border border-black/10"
             style={{
-              backgroundColor: `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.85)`,
+              background:
+                'linear-gradient(to right, rgba(255,255,178,0.4) 0%, rgba(254,217,118,0.8) 25%, rgba(254,178,76,0.9) 50%, rgba(253,141,60,0.95) 75%, rgba(240,59,32,1) 90%, rgba(189,0,38,1) 100%)',
             }}
-            title={`Mức độ ${idx + 1}`}
+            title="Thang cường độ nhiệt tương đối"
           />
-        ))}
-      </div>
-
-      {/* Nhãn hai đầu thang đo */}
-      <div className="flex items-center justify-between text-[10px] font-medium text-muted-foreground">
-        <span>Ít</span>
-        <span className="text-[9px] text-muted-foreground/80">bài / ô</span>
-        <span>Nhiều</span>
-      </div>
+          <div className="flex items-center justify-between text-[10px] font-medium text-muted-foreground mt-1">
+            <span>Ít</span>
+            <span className="text-[9px] text-muted-foreground/80">Cường độ tương đối</span>
+            <span>Nhiều</span>
+          </div>
+        </div>
+      ) : (
+        /* Thang 5 khối màu cho chế độ ô lục giác HEX */
+        <div className="my-1.5">
+          <div className="flex items-center gap-1">
+            {DENSITY_COLOR_RAMP.map((color, idx) => (
+              <div
+                key={idx}
+                className="h-2.5 flex-1 rounded-sm shadow-xs transition-transform hover:scale-110"
+                style={{
+                  backgroundColor: `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.85)`,
+                }}
+                title={`Mức độ ${idx + 1}`}
+              />
+            ))}
+          </div>
+          <div className="flex items-center justify-between text-[10px] font-medium text-muted-foreground mt-1">
+            <span>Ít</span>
+            <span className="text-[9px] text-muted-foreground/80">bài / ô</span>
+            <span>Nhiều</span>
+          </div>
+        </div>
+      )}
 
       {/* Tổng số bài viết trong vùng nhìn nếu có */}
       {typeof totalPosts === 'number' && totalPosts > 0 && (

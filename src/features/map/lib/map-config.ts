@@ -23,5 +23,28 @@ export const MAP_CONFIG = {
   STALE_TIME_MS: 60_000,
   GC_TIME_MS: 300_000,
   VIEWPORT_PADDING: 0.25, // Đệm thêm 25% cho mỗi cạnh của viewport
+  // Chế độ hiển thị mật độ (Pha 2B)
+  DENSITY_MODE_DEFAULT: 'HEATMAP' as 'HEATMAP' | 'HEX',
+  HEATMAP: {
+    RADIUS_METERS: 450, // Bán kính ảnh hưởng ≈ cạnh ô H3 res 8; đổi sang pixel theo zoom (6.3b)
+    RADIUS_PX_MIN: 24,
+    RADIUS_PX_MAX: 80,
+    INTENSITY: 1.2,
+    THRESHOLD: 0.05, // THRESHOLD cao hơn → ẩn quầng mờ ở vùng ít bài
+    DEBOUNCE_MS: 250, // debounceTimeout của HeatmapLayer
+    MAX_POINTS: 3000,
+    WEIGHT_TRANSFORM: 'sqrt' as const, // Nén ngoại lệ để một điểm nóng không làm "cháy" cả bản đồ
+    // Thang sáng: alpha 0 ở mức thấp nhất để nền bản đồ lộ ra (RGBA)
+    COLOR_RANGE: [
+      [255, 255, 178, 0],
+      [254, 217, 118, 120],
+      [254, 178, 76, 160],
+      [253, 141, 60, 190],
+      [240, 59, 32, 210],
+      [189, 0, 38, 230],
+    ] as [number, number, number, number][],
+  },
+  HOTSPOT_DOT_MIN_ZOOM: 10, // Chấm hotspot (không tên) để vào modal từ zoom thấp (10-12)
+  HOTSPOT_DOT_LIMIT: 20,
   GPS_TIMEOUT_MS: 4000,
 } as const

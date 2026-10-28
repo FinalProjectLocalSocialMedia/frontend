@@ -7,6 +7,7 @@ import {
 import { MAP_CONFIG } from '../lib/map-config'
 import type {
   DensityQuery,
+  HeatPointsQuery,
   MapSearchQuery,
   PlaceMarkersQuery,
   PlacePostsQuery,
@@ -32,6 +33,17 @@ export const mapQueryKeys = {
       q.bounds.east,
       q.bounds.west,
       q.resolution,
+      q.window,
+    ] as const,
+  heatPoints: (q: HeatPointsQuery) =>
+    [
+      ...mapQueryKeys.all,
+      'heatPoints',
+      q.bounds.north,
+      q.bounds.south,
+      q.bounds.east,
+      q.bounds.west,
+      q.limit,
       q.window,
     ] as const,
   placeMarkers: (q: PlaceMarkersQuery) =>
@@ -102,6 +114,17 @@ export function useDensityQuery(query: DensityQuery, enabled = true) {
   return useQuery({
     queryKey: mapQueryKeys.density(query),
     queryFn: ({ signal }) => mapService.getDensity(query, { signal }),
+    enabled,
+    placeholderData: keepPreviousData,
+    staleTime: MAP_CONFIG.STALE_TIME_MS,
+    gcTime: MAP_CONFIG.GC_TIME_MS,
+  })
+}
+
+export function useHeatPointsQuery(query: HeatPointsQuery, enabled = true) {
+  return useQuery({
+    queryKey: mapQueryKeys.heatPoints(query),
+    queryFn: ({ signal }) => mapService.getHeatPoints(query, { signal }),
     enabled,
     placeholderData: keepPreviousData,
     staleTime: MAP_CONFIG.STALE_TIME_MS,

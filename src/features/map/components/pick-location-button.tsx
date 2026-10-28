@@ -14,14 +14,18 @@ export function PickLocationButton({ isPicking, onToggle }: PickLocationButtonPr
       onClick={onToggle}
       aria-label="Chọn vị trí làm tâm khu vực"
       aria-pressed={isPicking}
-      className={`h-9 gap-1.5 rounded-full border-border/80 px-3 shadow-md backdrop-blur-md transition-colors ${
+      className={`h-9 gap-1.5 rounded-full border px-3 shadow-md backdrop-blur-md transition-colors ${
         isPicking
-          ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-          : 'bg-background/95 hover:bg-muted'
+          ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90'
+          : 'border-border/80 bg-background/95 text-foreground hover:bg-muted hover:text-foreground'
       }`}
     >
       <MapPin className="size-4" />
-      <span className="hidden sm:inline text-xs font-semibold">
+      <span
+        className={`hidden sm:inline text-xs font-semibold ${
+          isPicking ? 'text-primary-foreground' : 'text-foreground'
+        }`}
+      >
         {isPicking ? 'Nhấp chọn trên bản đồ' : 'Chọn vị trí'}
       </span>
     </Button>

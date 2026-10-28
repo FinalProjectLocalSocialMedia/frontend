@@ -7,6 +7,9 @@ import type {
   DensityCell,
   DensityQuery,
   DensityResponse,
+  HeatPoint,
+  HeatPointsQuery,
+  HeatPointsResponse,
   MapPlace,
   MapSearchQuery,
   PageResponse,
@@ -130,6 +133,59 @@ export const mockMapService: MapService = {
       maxCount,
       totalPosts: eligiblePosts.length,
       generatedAt: new Date().toISOString(),
+    }
+  },
+
+  async getHeatPoints(q: HeatPointsQuery, o?: RequestOptions): Promise<HeatPointsResponse> {
+    await delay(180, o?.signal)
+
+    const now = new Date()
+    const cutoffMs = now.getTime() - getWindowMs(q.window)
+
+    // Lọc các địa điểm nằm trong bounds của khung nhìn
+    const placesInBounds = seedDatabase.places.filter((p) => containsPoint(q.bounds, p.center))
+    const placeIdSet = new Set(placesInBounds.map((p) => p.id))
+    const placeMap = new Map(placesInBounds.map((p) => [p.id, p]))
+
+    // Đếm số lượng bài viết tại mỗi địa điểm theo cửa sổ thời gian
+    const postCounts = new Map<string, number>()
+    let totalPosts = 0
+    for (const post of seedDatabase.posts) {
+      if (!placeIdSet.has(post.place.id)) continue
+      if (new Date(post.createdAt).getTime() >= cutoffMs) {
+        totalPosts++
+        postCounts.set(post.place.id, (postCounts.get(post.place.id) || 0) + 1)
+      }
+    }
+
+    const points: HeatPoint[] = []
+    let maxWeight = 0
+
+    // Sắp xếp các địa điểm theo số bài viết giảm dần
+    const sortedPlaceEntries = Array.from(postCounts.entries()).sort((a, b) => b[1] - a[1])
+
+    for (const [placeId, count] of sortedPlaceEntries) {
+      const place = placeMap.get(placeId)
+      if (!place) continue
+
+      points.push({
+        position: place.center,
+        weight: count,
+      })
+
+      if (count > maxWeight) {
+        maxWeight = count
+      }
+
+      if (points.length >= q.limit) break
+    }
+
+    return {
+      points,
+      maxWeight,
+      totalPosts,
+      window: q.window,
+      generatedAt: now.toISOString(),
     }
   },
 
