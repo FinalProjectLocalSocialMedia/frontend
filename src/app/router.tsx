@@ -60,6 +60,7 @@ export function AppRouter() {
         <Route element={<RequireAuth loginPath="/login" />}>
           <Route path="messages" element={<ChatPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="profile/:userId" element={<ProfilePage />} />
           <Route
             path="notifications"
             element={<ComingSoonPage title="Notifications" icon={Bell} />}
