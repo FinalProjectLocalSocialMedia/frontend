@@ -98,4 +98,15 @@ describe('localStorage lastView persistence', () => {
     window.localStorage.setItem('nearby_map_last_view', 'invalid-json')
     expect(readLastViewFromStorage()).toBeNull()
   })
+
+  it('writes and reads densityMode to/from storage and handles d query param', () => {
+    const paramsHeatmap = new URLSearchParams('d=heatmap')
+    expect(parseMapUrlParams(paramsHeatmap).densityMode).toBe('HEATMAP')
+
+    const paramsHex = new URLSearchParams('d=hex')
+    expect(parseMapUrlParams(paramsHex).densityMode).toBe('HEX')
+
+    const serialized = serializeMapUrlParams({ densityMode: 'HEATMAP' }, new URLSearchParams())
+    expect(serialized.get('d')).toBe('heatmap')
+  })
 })

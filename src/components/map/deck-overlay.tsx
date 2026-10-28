@@ -37,12 +37,13 @@ export function DeckOverlay({ children }: DeckOverlayProps) {
   useEffect(() => {
     if (!map) return
 
-    // Xác định kiểu render: 'VECTOR' cho phép hiển thị đan xen (interleaved) deck.gl
-    const renderingType = typeof map.getRenderingType === 'function' ? map.getRenderingType() : 'RASTER'
-    const interleaved = renderingType === 'VECTOR'
+    // Ép buộc chế độ overlaid (interleaved: false) để tương thích ổn định với HeatmapLayer của deck.gl
+    // Giới hạn useDevicePixels <= 1.5 theo mục 7.3b để tối ưu hoá hiệu năng render GPU
+    const devicePixels = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 1.5) : 1
 
     const overlay = new GoogleMapsOverlay({
-      interleaved,
+      interleaved: false,
+      useDevicePixels: devicePixels,
     })
 
     overlay.setMap(map)

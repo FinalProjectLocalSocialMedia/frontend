@@ -212,12 +212,38 @@ export type PublicProfile = {
   postCount: number
 }
 
+// ===== Chế độ hiển thị lớp mật độ (Pha 2B) =====
+export type DensityMode = 'HEATMAP' | 'HEX'
+
+// Điểm nhiệt: CHỈ gồm 2 trường. position = toạ độ CÔNG KHAI của địa điểm (hoặc tâm ô ở phương án B)
+export type HeatPoint = {
+  position: GeoPoint
+  weight: number
+}
+
+export type HeatPointsQuery = {
+  bounds: LatLngBounds
+  window: StatsWindow
+  limit: number
+}
+
+export type HeatPointsResponse = {
+  points: HeatPoint[]
+  maxWeight: number
+  totalPosts: number
+  window: StatsWindow
+  generatedAt: IsoDateTime
+}
+
 // ===== 5.4. Kiểm tra quyền riêng tư ở mức kiểu (R3) =====
 type HasKey<T, K extends string> = K extends keyof T ? true : false
 type Expect<T extends true> = T
+type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? true : false
+
 export type _NoGeoOnPost = Expect<
   HasKey<PostCardData, 'latitude' | 'longitude' | 'location' | 'coordinate'> extends false ? true : false
 >
 export type _NoGeoOnPostDetail = Expect<
   HasKey<PostDetail, 'latitude' | 'longitude' | 'location' | 'coordinate'> extends false ? true : false
 >
+export type _HeatPointShape = Expect<Equal<keyof HeatPoint, 'position' | 'weight'>>

@@ -1,4 +1,4 @@
-import type { CenterSource, GeoPoint, RadiusKm, StatsWindow } from './types'
+import type { CenterSource, DensityMode, GeoPoint, RadiusKm, StatsWindow } from './types'
 import { MAP_CONFIG } from './map-config'
 
 export type MapUrlState = {
@@ -7,12 +7,14 @@ export type MapUrlState = {
   radiusKm: RadiusKm
   source: CenterSource
   window: StatsWindow
+  densityMode: DensityMode
   placeId?: string
   searchQuery?: string
   timeFilter?: string
 }
 
 const STORAGE_LAST_VIEW_KEY = 'nearby_map_last_view'
+const STORAGE_DENSITY_MODE_KEY = 'nearby_map_density_mode'
 
 /** Phân tích các tham số search param từ URL thành kiểu MapUrlState */
 export function parseMapUrlParams(searchParams: URLSearchParams): Partial<MapUrlState> {
@@ -52,6 +54,11 @@ export function parseMapUrlParams(searchParams: URLSearchParams): Partial<MapUrl
   const wStr = searchParams.get('w')
   if (wStr === '1d' || wStr === '7d' || wStr === '30d') {
     result.window = wStr
+  }
+
+  const dStr = searchParams.get('d')?.toUpperCase()
+  if (dStr === 'HEX' || dStr === 'HEATMAP' || dStr === 'HEAT') {
+    result.densityMode = (dStr === 'HEAT' ? 'HEATMAP' : dStr) as DensityMode
   }
 
   const place = searchParams.get('place')
@@ -107,6 +114,10 @@ export function serializeMapUrlParams(
     next.set('w', updates.window)
   }
 
+  if (updates.densityMode !== undefined) {
+    next.set('d', updates.densityMode.toLowerCase())
+  }
+
   if ('placeId' in updates) {
     if (updates.placeId) {
       next.set('place', updates.placeId)
@@ -132,6 +143,28 @@ export function serializeMapUrlParams(
   }
 
   return next
+}
+
+/** Đọc chế độ hiển thị mật độ đã lưu từ localStorage có try/catch an toàn */
+export function readDensityModeFromStorage(): DensityMode | null {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_DENSITY_MODE_KEY)?.toUpperCase()
+    if (raw === 'HEX' || raw === 'HEATMAP') {
+      return raw as DensityMode
+    }
+  } catch {
+    /* localStorage không khả dụng */
+  }
+  return null
+}
+
+/** Lưu lựa chọn chế độ hiển thị mật độ vào localStorage có try/catch an toàn */
+export function writeDensityModeToStorage(mode: DensityMode): void {
+  try {
+    window.localStorage.setItem(STORAGE_DENSITY_MODE_KEY, mode)
+  } catch {
+    /* localStorage không khả dụng */
+  }
 }
 
 /** Đọc toạ độ tâm, zoom, bán kính đã xem gần nhất từ localStorage có try/catch an toàn */
