@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { currentLocation, trending } from '@/lib/mock-nearby'
 import { currentUserId, usePosts } from '@/lib/posts-context'
 
-const FEED_PAGE_SIZE = 20
+const FEED_PAGE_SIZE = 5
 
 export default function HomeFeed() {
   const { posts: localPosts, nextPost } = usePosts()

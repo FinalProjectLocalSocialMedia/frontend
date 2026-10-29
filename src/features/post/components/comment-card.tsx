@@ -3,13 +3,17 @@ import { Heart } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Comment as CommentData } from '@/features/post/types/comment'
 import { UserAvatar } from './user-avatar'
+import { PostMediaItem } from './post-media-item'
+import { PostMediaGrid } from './post-media-grid'
 
 function formatCommentTime(createdAt: string) {
   const date = new Date(createdAt)
   return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true })
 }
 
-export function Comment({ comment }: { comment: CommentData }) {
+export function CommentCard({ comment }: { comment: CommentData }) {
+
+
   return (
     <article className="flex gap-3 py-3">
       <UserAvatar user={comment.author} />
@@ -30,15 +34,13 @@ export function Comment({ comment }: { comment: CommentData }) {
           </p>
         )}
         {comment.media && (
-          <img
-            src={comment.media}
-            alt={`Media attached by ${comment.author.fullName}`}
-            className="mt-2 max-h-80 max-w-full rounded-xl border border-border object-cover"
-          />
+          <div className="-ml-11 mt-2 max-w-[400px]">
+            <PostMediaGrid media={comment.media} />
+          </div>
         )}
         <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
           <Heart aria-hidden="true" className="size-3.5" />
-          <span>{comment.likes?.length ?? 0}</span>
+          <span>{comment.likeCount ?? 0}</span>
         </div>
       </div>
     </article>

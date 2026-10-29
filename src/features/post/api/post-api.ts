@@ -3,7 +3,6 @@ import type { Post, PostCursorPage, PostUploadSignature } from '../types/post'
 import { GeoPoint } from '../types/geo-point'
 import { PostMedia } from '../types/post-media'
 
-const CURRENT_USER_ID = '02139b2f-fbed-4009-b16d-a96b47e21b3c'
 
 export type GetFeedParams = {
   cursor?: string
@@ -35,7 +34,7 @@ export async function createPost(request: CreatePostRequest): Promise<Post> {
   return response.data
 }
 
-export async function getFeed({ cursor, limit = 20 }: GetFeedParams): Promise<PostCursorPage> {
+export async function getFeed({ cursor, limit = 5 }: GetFeedParams): Promise<PostCursorPage> {
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
     throw new RangeError('Feed limit must be an integer between 1 and 50')
   }
@@ -50,7 +49,7 @@ export async function searchPosts({
   q,
   locationId,
   cursor,
-  limit = 20,
+  limit = 5,
   signal,
 }: SearchPostsParams): Promise<PostCursorPage> {
   const query = q.trim()
@@ -63,5 +62,10 @@ export async function searchPosts({
     params: { q: query, locationId, cursor, limit },
     signal,
   })
+  return response.data
+}
+
+export async function getPostById(postId: string): Promise<Post> {
+  const response = await postHttp.get<Post>(`/post/posts/${postId}`)
   return response.data
 }
