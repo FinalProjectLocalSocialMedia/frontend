@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatRelativeVi } from '../lib/relative-time'
 import { useMapSearchQuery } from '../api/map.queries'
-import type { GeoPoint, MapPlace, RadiusKm, TimeFilterValue } from '../lib/types'
+import type { GeoPoint, MapPlace, RadiusKm, SearchKind, TimeFilterValue } from '../lib/types'
 
 export type SearchResultsPanelProps = {
   isOpen: boolean
@@ -56,7 +56,7 @@ export function SearchResultsPanel({
       ? { placeId }
       : { center: areaCenter, radiusKm },
     time: timeFilter,
-    kinds: ['POST', 'USER', 'PLACE'] as const,
+    kinds: ['POST', 'USER', 'PLACE'] as SearchKind[],
     page,
     pageSize,
   }
