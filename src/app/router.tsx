@@ -4,7 +4,6 @@ import { Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Spinner } from '@/components/ui/spinner'
 import ComingSoonPage from '@/pages/coming-soon'
-import ExplorePage from '@/pages/explore'
 import NotFoundPage from '@/pages/not-found'
 import { ProfilePage } from '@/components/profile-page'
 import HomeFeed from '@/features/post/pages/home-feed'
@@ -16,6 +15,7 @@ import AuthPage from '@/features/auth/pages/auth-page'
 import { RequireAuth } from '@/features/auth/components/guards'
 
 const AdminRoutes = lazy(() => import('@/routes/admin-routes'))
+const ExplorePage = lazy(() => import('@/features/map/pages/explore-page'))
 
 export function AppRouter() {
   return (
@@ -41,12 +41,26 @@ export function AppRouter() {
         <Route index element={<HomeFeed />} />
         <Route path="posts/:postId" element={<PostDetail />} />
         <Route path="search" element={<PostSearch />} />
-        <Route path="explore" element={<ExplorePage />} />
+        <Route
+          path="explore"
+          element={
+            <Suspense
+              fallback={
+                <div className="flex h-[calc(100dvh-var(--bottom-nav-h))] w-full items-center justify-center bg-[#e5e3df]">
+                  <Spinner className="size-6 text-primary" />
+                </div>
+              }
+            >
+              <ExplorePage />
+            </Suspense>
+          }
+        />
 
         {/* Các trang yêu cầu đăng nhập: Notifications, Messages (Chat), Profile */}
         <Route element={<RequireAuth loginPath="/login" />}>
           <Route path="messages" element={<ChatPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="profile/:userId" element={<ProfilePage />} />
           <Route
             path="notifications"
             element={<ComingSoonPage title="Notifications" icon={Bell} />}

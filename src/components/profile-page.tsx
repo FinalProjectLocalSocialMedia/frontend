@@ -12,8 +12,9 @@ import {
   UserRound,
   Users,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { SEED_AUTHORS } from '@/features/map/api/mock/seed'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -192,12 +193,32 @@ export function ProfilePage({
   isOwnProfile?: boolean
 }) {
   const navigate = useNavigate()
+  const { userId } = useParams()
   const { user, isAuthenticated } = useAuth()
   const { posts: allPosts, savedIds, likedIds, removePost } = usePosts()
 
+  // Xác định xem có phải trang cá nhân của chính mình không (dựa vào prop hoặc userId trên route)
+  const isActualOwn = isOwnProfile && (!userId || userId === user?.id || userId === 'me')
+
+  // Tìm tác giả tương ứng nếu xem profile của người dùng khác
+  const otherAuthor = userId ? SEED_AUTHORS.find((a) => a.id === userId) : null
+  const otherProfile: ProfileData = {
+    id: userId || 'other',
+    name: otherAuthor?.displayName || 'Người dùng',
+    username: otherAuthor
+      ? `@${otherAuthor.displayName.toLowerCase().replace(/\s+/g, '')}`
+      : `@user_${userId}`,
+    bio: 'Thành viên cộng đồng LBSN.',
+    initials: otherAuthor?.displayName ? getInitials(otherAuthor.displayName) : 'U',
+    color: 'bg-primary/10 text-primary',
+    location: 'Hà Nội, Việt Nam',
+    followers: 42,
+    following: 18,
+  }
+
   // Đồng bộ thông tin profile của user đăng nhập thực tế nếu có
-  const effectiveProfile: ProfileData =
-    isOwnProfile && user
+  const effectiveProfile: ProfileData = isActualOwn
+    ? user
       ? {
           id: user.id,
           name: ('fullName' in user && user.fullName) || 'Người dùng',
@@ -210,6 +231,9 @@ export function ProfilePage({
           followers: 120,
           following: 85,
         }
+      : profile
+    : userId
+      ? otherProfile
       : profile
 
   const [data, setData] = useState(effectiveProfile)
@@ -224,9 +248,9 @@ export function ProfilePage({
   const avatarInput = useRef<HTMLInputElement>(null)
 
   const postItems = allPosts?.items ?? []
-  const profileUserId = isOwnProfile ? currentUserId : profile.username.replace(/^@/, '')
+  const profileUserId = isActualOwn ? currentUserId : (userId || profile.username.replace(/^@/, ''))
   const ownPosts = postItems.filter((post: PostSearchItem) => post.author.id === profileUserId)
-  const tabs = isOwnProfile ? ['Posts', 'Liked', 'Saved'] : ['Posts']
+  const tabs = isActualOwn ? ['Posts', 'Liked', 'Saved'] : ['Posts']
   const postsByTab: Record<string, PostSearchItem[]> = {
     Posts: ownPosts,
     Liked: postItems.filter((post: PostSearchItem) => likedIds.includes(post.id)),

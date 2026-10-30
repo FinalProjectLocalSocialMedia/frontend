@@ -56,36 +56,6 @@ export const nearbyPosts: NearbyPost[] = [
   },
 ]
 
-export const hotspots = [
-  {
-    id: 'cau-giay',
-    name: 'Cầu Giấy',
-    activity: 'Very high activity',
-    posts: 342,
-    x: 48,
-    y: 45,
-    level: 'high',
-  },
-  {
-    id: 'xuan-thuy',
-    name: 'Xuân Thủy',
-    activity: 'High activity',
-    posts: 218,
-    x: 62,
-    y: 37,
-    level: 'medium',
-  },
-  {
-    id: 'dich-vong',
-    name: 'Dịch Vọng',
-    activity: 'Medium activity',
-    posts: 126,
-    x: 35,
-    y: 59,
-    level: 'low',
-  },
-]
-
 export const trending = [
   { tag: '#TrafficJam', posts: 200, location: 'Cầu Giấy, Hanoi', marker: { x: 53, y: 42 } },
   { tag: '#PTIT', posts: 186, location: 'Xuân Thủy, Hanoi', marker: { x: 67, y: 34 } },
@@ -93,24 +63,3 @@ export const trending = [
   { tag: '#Hanoi', posts: 2400, location: 'Hanoi', marker: { x: 76, y: 52 } },
 ]
 
-export const activitySpots = [
-  { x: 46, y: 43, size: 170, color: 'bg-orange-400/20' },
-  { x: 59, y: 35, size: 120, color: 'bg-amber-400/20' },
-  { x: 33, y: 60, size: 100, color: 'bg-sky-400/20' },
-  { x: 74, y: 53, size: 80, color: 'bg-emerald-400/20' },
-]
-
-export const radiusOptions = ['1 km', '5 km', '10 km', '25 km']
-export const defaultRadius = '5 km'
-export const radiusScale: Record<string, number> = {
-  '1 km': 62,
-  '5 km': 122,
-  '10 km': 188,
-  '25 km': 270,
-}
-export const radiusPostLimit: Record<string, number> = {
-  '1 km': 1,
-  '5 km': 3,
-  '10 km': 3,
-  '25 km': 3,
-}
