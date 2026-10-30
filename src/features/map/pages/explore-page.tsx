@@ -316,10 +316,10 @@ export default function ExplorePage() {
 
         {/* Góc trên bên phải: Chuyển chế độ mật độ, Nút chọn vị trí, Nút định vị GPS & Bộ chọn khoảng thời gian */}
         <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
-          <DensityModeControl
+          {/* <DensityModeControl
             value={urlState.densityMode}
             onChange={setDensityMode}
-          />
+          /> */}
           <PickLocationButton
             isPicking={isPickingLocation}
             onToggle={() => setIsPickingLocation((prev) => !prev)}
@@ -356,7 +356,7 @@ export default function ExplorePage() {
         </div>
 
         {/* Góc dưới bên phải: Bảng theo dõi hiệu năng (Performance HUD) */}
-        <PerformanceHUD metrics={metrics} />
+        {/* <PerformanceHUD metrics={metrics} /> */}
       </div>
 
       {/* Banner hướng dẫn khi đang ở chế độ chọn vị trí */}
