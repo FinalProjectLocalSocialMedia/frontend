@@ -157,15 +157,23 @@ export function useMapUrlState() {
   )
 
   const setSearchQuery = useCallback(
-    (q: string | null) => {
+    (q: string | null, scopePlaceId?: string | null) => {
       setSearchParams(
         (prev) => {
           const updates: { searchQuery: string | null; placeId?: string | null; topic?: string | null } = {
             searchQuery: q,
           }
           if (q) {
-            updates.placeId = null
             updates.topic = null
+            // Nếu có scopePlaceId (mở từ PlaceFocusCard), lưu ?q=...&place=... theo mục 6.6
+            if (scopePlaceId !== undefined) {
+              updates.placeId = scopePlaceId
+            }
+          } else {
+            // Khi xoá search query, nếu có placeId gắn kèm tìm kiếm thì xoá luôn
+            if (scopePlaceId !== undefined) {
+              updates.placeId = scopePlaceId
+            }
           }
           return serializeMapUrlParams(updates, prev)
         },
