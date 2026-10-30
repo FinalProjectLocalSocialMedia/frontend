@@ -1,7 +1,8 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { GoogleMapsProvider } from '@/components/map/google-maps-provider'
 import { BaseMap } from '@/components/map/base-map'
 import type { MapViewState } from '@/components/map/map-types'
+import { haversineMeters } from '@/components/map/geo'
 import { RadiusControl } from '../components/radius-control'
 import { WindowControl } from '../components/window-control'
 import { LocateButton } from '../components/locate-button'
@@ -17,10 +18,13 @@ import { PlaceMarkers } from '../components/place-markers'
 import { PlaceDetailModal } from '../components/place-detail-modal'
 import { TopicMarkers } from '../components/topic-markers'
 import { TopicPostsModal } from '../components/topic-posts-modal'
+import { PlaceFocusCard } from '../components/place-focus-card'
+import { SearchResultsPanel } from '../components/search-results-panel'
 import { PerformanceHUD, type PerformanceMetrics } from '../components/performance-hud'
 import { useMapUrlState } from '../hooks/use-map-url-state'
 import { useUserLocation } from '../hooks/use-user-location'
-import type { GeoPoint, RadiusKm } from '../lib/types'
+import { MAP_CONFIG } from '../lib/map-config'
+import type { GeoPoint, MapPlace, RadiusKm } from '../lib/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -43,6 +47,43 @@ export default function ExplorePage() {
   const [autoFitRadius, setAutoFitRadius] = useState(false)
   const [currentViewport, setCurrentViewport] = useState<MapViewState | null>(null)
   const [totalPostsInView, setTotalPostsInView] = useState<number>(0)
+  const [loadedPlaces, setLoadedPlaces] = useState<MapPlace[]>([])
+  const [dismissedFocusPlaceId, setDismissedFocusPlaceId] = useState<string | null>(null)
+
+  // Đồng bộ ô nhập liệu tìm kiếm khi search param thay đổi
+  useEffect(() => {
+    setSearchInputValue(urlState.searchQuery || '')
+  }, [urlState.searchQuery])
+
+  // Tính toán địa điểm tiêu điểm gần tâm bản đồ khi zoom >= 17 (mục 6.6)
+  // Tuyệt đối không gọi thêm API nào, chỉ dùng danh sách marker đã tải trong bộ nhớ
+  const nearestFocusPlace = useMemo(() => {
+    if (
+      !currentViewport ||
+      currentViewport.zoom < MAP_CONFIG.PLACE_FOCUS_MIN_ZOOM ||
+      loadedPlaces.length === 0
+    ) {
+      return null
+    }
+
+    let closest: MapPlace | null = null
+    let minDistance = Infinity
+
+    for (const place of loadedPlaces) {
+      const distance = haversineMeters(currentViewport.center, place.center)
+      if (distance <= MAP_CONFIG.PLACE_FOCUS_MAX_DISTANCE_M && distance < minDistance) {
+        minDistance = distance
+        closest = place
+      }
+    }
+
+    // Nếu người dùng đã chủ động bấm ẩn địa điểm này thì không hiển thị lại cho đến khi chuyển sang địa điểm khác
+    if (closest && closest.id === dismissedFocusPlaceId) {
+      return null
+    }
+
+    return closest
+  }, [currentViewport, loadedPlaces, dismissedFocusPlaceId])
 
   // Đo lường hiệu năng: map:ready và density-first-paint
   const mountTimeRef = useRef(performance.now())
@@ -176,6 +217,7 @@ export default function ExplorePage() {
             viewport={currentViewport}
             statsWindow={urlState.window}
             onSelectPlace={(placeId) => setPlaceId(placeId)}
+            onPlacesLoaded={setLoadedPlaces}
           />
 
           {/* Marker chủ đề xu hướng (Pha 4: zoom >= 15, tối đa 40 marker DOM dạng pill) */}
@@ -201,9 +243,10 @@ export default function ExplorePage() {
       </GoogleMapsProvider>
 
       {/* Modal chi tiết địa điểm (Pha 3/3B) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
+      {/* Quy tắc một panel mỗi lúc: Chỉ mở khi không mở topic và không mở tìm kiếm */}
       <PlaceDetailModal
         placeId={urlState.placeId || null}
-        isOpen={Boolean(urlState.placeId && !urlState.topic)}
+        isOpen={Boolean(urlState.placeId && !urlState.topic && !urlState.searchQuery)}
         onClose={() => setPlaceId(null)}
       />
 
@@ -213,8 +256,42 @@ export default function ExplorePage() {
         placeId={urlState.placeId || null}
         areaCenter={areaCenter}
         radiusKm={urlState.radiusKm}
-        isOpen={Boolean(urlState.topic)}
+        isOpen={Boolean(urlState.topic && !urlState.searchQuery)}
         onClose={() => setTopic(null, null)}
+      />
+
+      {/* Bảng kết quả tìm kiếm trên bản đồ (Pha 6) - MapSidePanel không overlay */}
+      <SearchResultsPanel
+        isOpen={Boolean(urlState.searchQuery)}
+        onClose={() => setSearchQuery(null, null)}
+        query={urlState.searchQuery || ''}
+        placeId={urlState.placeId || null}
+        placeName={
+          loadedPlaces.find((p) => p.id === urlState.placeId)?.name ||
+          (urlState.placeId ? urlState.searchQuery : null)
+        }
+        areaCenter={areaCenter}
+        radiusKm={urlState.radiusKm}
+        onSelectPlace={(place) => {
+          setAreaCenter(place.center)
+          setPlaceId(place.id)
+        }}
+      />
+
+      {/* Thẻ tiêu điểm địa điểm (Pha 6: zoom >= 17, tâm gần địa điểm <= 80m, không gọi API thêm) */}
+      <PlaceFocusCard
+        place={
+          !urlState.placeId && !urlState.topic && !urlState.searchQuery
+            ? nearestFocusPlace
+            : null
+        }
+        statsWindow={urlState.window}
+        onSelectPlace={(place) => setSearchQuery(place.name, place.id)}
+        onDismiss={() => {
+          if (nearestFocusPlace) {
+            setDismissedFocusPlaceId(nearestFocusPlace.id)
+          }
+        }}
       />
 
       {/* Lớp giao diện nổi phía trên */}
@@ -225,8 +302,11 @@ export default function ExplorePage() {
             value={searchInputValue}
             onChange={(val) => {
               setSearchInputValue(val)
-              setSearchQuery(val || null)
+              if (!val) setSearchQuery(null, null)
             }}
+            onSubmit={(term) => setSearchQuery(term, null)}
+            suggestions={loadedPlaces}
+            onSelectSuggestion={(place) => setSearchQuery(place.name, place.id)}
           />
           <RadiusControl
             value={urlState.radiusKm}
@@ -263,7 +343,8 @@ export default function ExplorePage() {
         <div
           className={cn(
             'pointer-events-auto transition-transform duration-300 ease-in-out',
-            Boolean(urlState.placeId || urlState.topic) && 'lg:translate-x-[calc(clamp(20rem,33%,26rem)+0.75rem)]',
+            Boolean(urlState.placeId || urlState.topic || urlState.searchQuery) &&
+              'lg:translate-x-[calc(clamp(20rem,33%,26rem)+0.75rem)]',
           )}
         >
           {/* <DensityLegend

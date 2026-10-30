@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { AdvancedMarker } from '@vis.gl/react-google-maps'
 import { MapPin } from 'lucide-react'
 import { padBounds } from '@/components/map/geo'
@@ -11,6 +11,7 @@ export type PlaceMarkersProps = {
   viewport: MapViewState | null
   statsWindow: StatsWindow
   onSelectPlace: (placeId: string) => void
+  onPlacesLoaded?: (places: MapPlace[]) => void
 }
 
 /**
@@ -19,7 +20,7 @@ export type PlaceMarkersProps = {
  * - Khi mức zoom >= 13 (Pha 3): hiển thị marker dạng PILL đầy đủ tên rút gọn và số lượng bài viết
  * - Nhấp chuột vào bất kỳ chấm hoặc marker nào để mở PlaceDetailModal (?place=<id>)
  */
-export function PlaceMarkers({ viewport, statsWindow, onSelectPlace }: PlaceMarkersProps) {
+export function PlaceMarkers({ viewport, statsWindow, onSelectPlace, onPlacesLoaded }: PlaceMarkersProps) {
   const currentZoom = viewport?.zoom ?? 0
   const isHotspotZoom = currentZoom >= MAP_CONFIG.HOTSPOT_DOT_MIN_ZOOM && currentZoom < MAP_CONFIG.PLACE_MARKER_MIN_ZOOM
   const isPillZoom = currentZoom >= MAP_CONFIG.PLACE_MARKER_MIN_ZOOM
@@ -48,6 +49,13 @@ export function PlaceMarkers({ viewport, statsWindow, onSelectPlace }: PlaceMark
     },
     Boolean(queryBounds),
   )
+
+  // Báo danh sách marker đã tải lên component cha (ExplorePage) để phục vụ PlaceFocusCard mà không cần gọi API thêm
+  useEffect(() => {
+    if (rawPlaces && onPlacesLoaded) {
+      onPlacesLoaded(rawPlaces)
+    }
+  }, [rawPlaces, onPlacesLoaded])
 
   // Lọc chồng lấn các marker theo mức zoom hiện tại
   const visiblePlaces = useMemo(() => {
