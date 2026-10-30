@@ -57,7 +57,7 @@ export default function ExplorePage() {
 
   // Tính toán địa điểm tiêu điểm gần tâm bản đồ khi zoom >= 17 (mục 6.6)
   // Tuyệt đối không gọi thêm API nào, chỉ dùng danh sách marker đã tải trong bộ nhớ
-  const nearestFocusPlace = useMemo(() => {
+  const nearestFocusPlace = useMemo<MapPlace | null>(() => {
     if (
       !currentViewport ||
       currentViewport.zoom < MAP_CONFIG.PLACE_FOCUS_MIN_ZOOM ||

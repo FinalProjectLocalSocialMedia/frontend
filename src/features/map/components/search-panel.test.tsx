@@ -43,7 +43,7 @@ describe('PHA 6: PlaceFocusCard, MapSearchBar & SearchResultsPanel (Mục 6.6 & 
     center: { latitude: 21.0372, longitude: 105.7828 },
     postCount: 128,
     trendScore: 95,
-    topTopics: ['totnghiep', 'hoctap'],
+    topTopic: 'totnghiep',
     h3Index: '88309a4733fffff',
   }
 

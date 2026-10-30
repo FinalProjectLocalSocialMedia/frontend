@@ -77,7 +77,7 @@ export function mockSearchPosts({
     const queryLower = q.toLowerCase()
     matching = matching.filter(
       (p) =>
-        p.excerpt.toLowerCase().includes(queryLower) ||
+        p.content.toLowerCase().includes(queryLower) ||
         p.author.displayName.toLowerCase().includes(queryLower) ||
         p.place.name.toLowerCase().includes(queryLower),
     )
@@ -91,22 +91,26 @@ export function mockSearchPosts({
   return {
     items: sliced.map((item) => ({
       id: item.id,
-      content: item.excerpt,
+      content: item.content,
       author: {
         id: item.author.id,
         fullName: item.author.displayName,
         avatarUrl: item.author.avatarUrl,
       },
-      media: item.firstImageUrl
-        ? [
+      media: item.imageUrls?.length > 0
+        ? item.imageUrls.map((url, idx) => (
             {
-              id: `${item.id}-img`,
-              url: item.firstImageUrl,
+              id: `${item.id}-img-${idx}`,
+              publicId: `${item.id}-pub-${idx}`,
+              assetId: `${item.id}-asset-${idx}`,
+              format: 'jpg',
+              size: 102400,
+              url,
               type: 'IMAGE',
               width: 600,
               height: 400,
-            },
-          ]
+            }
+          ))
         : [],
       location: {
         name: item.place.name,
