@@ -22,7 +22,7 @@ export default function PostDetail() {
   const commentQuery = useInfiniteQuery({
     queryKey: ['post-comments', postId],
     initialPageParam: undefined as string | undefined,
-    queryFn: ({ pageParam }) =>{
+    queryFn: ({ pageParam }) => {
       return getCommentsByPostId({ postId: postId as string, limit: 5, cursor: pageParam })
     },
     getNextPageParam: (lastPage) => lastPage?.page?.nextCursor || undefined,
@@ -72,8 +72,11 @@ export default function PostDetail() {
           }}
           currentUserId={currentUserId}
         />
-        <CommentSection commentCount={commentCount} commentQuery={commentQuery} />
-
+        <CommentSection
+          commentCount={commentCount}
+          commentQuery={commentQuery}
+          postId={selectedPost.id}
+        />
       </section>
 
       <aside className="hidden flex-col gap-5 lg:flex lg:pt-[76px]">

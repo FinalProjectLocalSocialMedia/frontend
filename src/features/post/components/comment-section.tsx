@@ -5,10 +5,19 @@ import { Spinner } from '@/components/ui/spinner'
 import { useInfiniteScroll } from '../hooks/use-infinite-scroll'
 import type { CommentCursorPage } from '../types/comment'
 import { CommentCard } from './comment-card'
+import { CommentComposer } from './comment-composer'
 
 type CommentQuery = UseInfiniteQueryResult<InfiniteData<CommentCursorPage>, Error>
 
-export function CommentSection({commentCount,commentQuery,}: {commentCount: number, commentQuery: CommentQuery}) {
+export function CommentSection({
+  commentCount,
+  commentQuery,
+  postId,
+}: {
+  commentCount: number
+  commentQuery: CommentQuery
+  postId: string
+}) {
   const sentinelRef = useInfiniteScroll({
     enabled: !!commentQuery.hasNextPage && !commentQuery.isFetchingNextPage,
     onLoadMore: () => void commentQuery.fetchNextPage(),
@@ -25,6 +34,10 @@ export function CommentSection({commentCount,commentQuery,}: {commentCount: numb
         <h2 id="post-comments-heading" className="font-semibold">
           Comments ({commentCount})
         </h2>
+      </div>
+
+      <div className="mb-4">
+        <CommentComposer postId={postId} />
       </div>
 
       {commentCount === 0 ? (
@@ -53,7 +66,7 @@ export function CommentSection({commentCount,commentQuery,}: {commentCount: numb
       ) : (
         <div className="divide-y divide-border">
           {comments.map((comment) => (
-            <CommentCard key={comment.id} comment={comment} />
+            <CommentCard key={comment.id} comment={comment} postId={postId} />
           ))}
         </div>
       )}

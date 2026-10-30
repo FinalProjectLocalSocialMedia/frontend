@@ -14,7 +14,7 @@ export interface Comment {
   updatedAt: string
   parentComment: Comment | null
   likeCount?: number
-  comments?: number
+  commentCount?: number
 }
 
 export interface CommentCursorPage {

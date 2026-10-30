@@ -1,18 +1,20 @@
+import { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
-import { Heart } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Heart, MessageCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import type { Comment as CommentData } from '@/features/post/types/comment'
 import { UserAvatar } from './user-avatar'
-import { PostMediaItem } from './post-media-item'
 import { PostMediaGrid } from './post-media-grid'
+import { CommentReplies } from './comment-replies'
+import { CommentComposer } from './comment-composer'
 
 function formatCommentTime(createdAt: string) {
   const date = new Date(createdAt)
   return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true })
 }
 
-export function CommentCard({ comment }: { comment: CommentData }) {
-
+export function CommentCard({ comment, postId }: { comment: CommentData; postId: string }) {
+  const [replying, setReplying] = useState(false)
 
   return (
     <article className="flex gap-3 py-3">
@@ -41,7 +43,30 @@ export function CommentCard({ comment }: { comment: CommentData }) {
         <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
           <Heart aria-hidden="true" className="size-3.5" />
           <span>{comment.likeCount ?? 0}</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            aria-expanded={replying}
+            aria-pressed={replying}
+            onClick={() => setReplying((value) => !value)}
+          >
+            <MessageCircle aria-hidden="true" />
+            Reply
+          </Button>
         </div>
+
+        {replying && (
+          <div className="mt-3">
+            <CommentComposer
+              postId={postId}
+              parentCommentId={comment.id}
+              onCreated={() => setReplying(false)}
+            />
+          </div>
+        )}
+
+        {(comment.commentCount ?? 0) > 0 && <CommentReplies comment={comment} postId={postId} />}
       </div>
     </article>
   )
