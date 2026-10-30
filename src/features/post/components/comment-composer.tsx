@@ -9,7 +9,7 @@ import { createComment } from '../api/comment-api'
 import { uploadPostMedia } from '../api/post-upload-api'
 import type { createCommentParams } from '../api/comment-api'
 import type { CommentCursorPage } from '../types/comment'
-import type { Post } from '../types/post'
+import type { PostSearchItem } from '../types/post'
 import { PostMediaUploader } from './post-media-uploader'
 
 function incrementParentCommentCount(
@@ -47,8 +47,8 @@ export function CommentComposer({
   const mutation = useMutation({
     mutationFn: (request: createCommentParams) => createComment(request),
     onSuccess: async () => {
-      queryClient.setQueryData<Post>(['post-detail', postId], (post) =>
-        post ? { ...post, commentCount: post.commentCount + 1 } : post,
+      queryClient.setQueryData<PostSearchItem>(['post-detail', postId], (post) =>
+        post ? { ...post, commentCount: post.commentCount ? post.commentCount + 1 : 1 } : post,
       )
       if (parentCommentId) {
         queryClient.setQueriesData<InfiniteData<CommentCursorPage>>(
