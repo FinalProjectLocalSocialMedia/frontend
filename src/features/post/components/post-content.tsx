@@ -16,7 +16,7 @@ export function PostContent({ content }: PostContentProps) {
           return (
             <Link
               key={`${index}-${part}`}
-              to={`?q=${encodeURIComponent(tag)}`}
+              to={`/search?q=${encodeURIComponent(tag)}`}
               className="font-semibold text-primary hover:underline"
               onClick={(e) => {
                 e.stopPropagation()
