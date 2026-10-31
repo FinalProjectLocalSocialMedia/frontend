@@ -26,8 +26,8 @@ export function AppLayout() {
       <div className="mx-auto flex min-h-dvh max-w-[1440px] bg-background text-foreground">
         <Sidebar onCreate={openCreate} />
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* The chat page has its own header, so skip the global one there. */}
-          {pathname !== '/messages' && <MobileHeader />}
+          {/* The chat and explore pages have their own headers/full-height layout, so skip the global one. */}
+          {pathname !== '/messages' && pathname !== '/explore' && <MobileHeader />}
           <main className="min-w-0 flex-1 pb-[var(--bottom-nav-h)]">
             <Outlet />
           </main>

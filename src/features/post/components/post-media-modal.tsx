@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Carousel,
@@ -22,9 +22,9 @@ export function PostMediaModal({ media, initialIndex, onClose }: PostMediaModalP
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [activeIndex, setActiveIndex] = useState(initialIndex)
 
-  const handleCarouselApi = useCallback((api: CarouselApi) => {
+  const handleCarouselApi = (api: CarouselApi) => {
     setCarouselApi(api)
-  }, [])
+  }
 
   useEffect(() => {
     if (!carouselApi) return

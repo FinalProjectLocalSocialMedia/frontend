@@ -17,6 +17,10 @@ type PostSearchResultsProps = {
   isFetchNextPageError: boolean
   onRetry: () => void
   onFetchNextPage: () => void
+  /** Cờ cho biết có điều kiện lọc ngữ cảnh (ví dụ locationId hoặc topic) ngay cả khi query rỗng */
+  hasFilter?: boolean
+  /** Tuỳ biến thông điệp rỗng khi không có bài viết */
+  emptyMessage?: string
 }
 
 export function PostSearchResults({
@@ -31,8 +35,11 @@ export function PostSearchResults({
   isFetchNextPageError,
   onRetry,
   onFetchNextPage,
+  hasFilter = false,
+  emptyMessage,
 }: PostSearchResultsProps) {
-  if (!query.trim()) {
+  // Nếu không có từ khoá và cũng không có bộ lọc ngữ cảnh địa điểm/chủ đề nào
+  if (!query.trim() && !hasFilter) {
     return (
       <p className="rounded-2xl border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">
         Enter a search term to find posts.
@@ -63,14 +70,16 @@ export function PostSearchResults({
     return (
       <div className="rounded-2xl border border-border bg-card px-5 py-12 text-center">
         <Search aria-hidden="true" className="mx-auto size-5 text-muted-foreground" />
-        <p className="mt-3 text-sm font-medium">No posts found</p>
-        <p className="mt-1 text-sm text-muted-foreground">Try another search term.</p>
+        <p className="mt-3 text-sm font-medium">{emptyMessage || 'No posts found'}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {emptyMessage ? 'Chưa có bài viết ở địa điểm/chủ đề này.' : 'Try another search term.'}
+        </p>
       </div>
     )
   }
 
   return (
-    <section aria-label={`Search results for ${query}`} className="flex flex-col gap-4">
+    <section aria-label={query ? `Search results for ${query}` : 'Search results'} className="flex flex-col gap-4">
       {posts.map((post) => (
         <PostCard key={post.id} post={post} currentUserId={currentUserId} />
       ))}
@@ -98,12 +107,6 @@ export function PostSearchResults({
             'Load more'
           )}
         </Button>
-      )}
-
-      {isFetchingNextPage && (
-        <p role="status" className="sr-only">
-          Loading more search results
-        </p>
       )}
     </section>
   )

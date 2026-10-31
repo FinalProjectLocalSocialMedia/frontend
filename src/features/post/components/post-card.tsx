@@ -26,9 +26,13 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       onClick={() => navigate(`/posts/${post.id}`)}
     >
       <div className="flex items-start gap-3">
-        <PostHeader post={post} />
+        <div className="min-w-0 flex-1">
+          <PostHeader post={post} />
+        </div>
 
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onClick={(e) => e.stopPropagation()}
+          className="shrink-0"
+        >
           <PostActions
             post={post}
             saved={saved}
