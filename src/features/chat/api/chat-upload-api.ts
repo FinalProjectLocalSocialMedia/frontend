@@ -51,6 +51,7 @@ export async function uploadChatMedia(file: File): Promise<MediaItem> {
   formData.append('api_key', apiKey)
   formData.append('timestamp', String(signature.timestamp))
   formData.append('folder', signature.folder)
+  formData.append('transformation', 'q_auto')
   formData.append('signature', signature.signature)
 
   const response = await fetch(
