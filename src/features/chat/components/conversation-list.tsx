@@ -98,6 +98,7 @@ export function ConversationList({
             avatarUrl: u.avatarUrl,
             isReal: true,
           }))
+
         setSearchedUsers(mapped)
       } catch {
         setSearchedUsers([])
@@ -142,14 +143,14 @@ export function ConversationList({
                 </span>
               )}
             </div>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">Messages</h1>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight">Tin nhắn</h1>
           </div>
           <Button
             variant="outline"
             size="icon-lg"
-            aria-label="Create group chat"
+            aria-label="Tạo nhóm chat"
             onClick={onCreateGroup}
-            title="Create group chat"
+            title="Tạo nhóm chat"
           >
             <UserPlus />
           </Button>
@@ -159,7 +160,7 @@ export function ConversationList({
           <Input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Search conversations"
+            placeholder="Tìm kiếm cuộc trò chuyện..."
             className="h-10 rounded-xl pl-9 pr-9"
           />
           {query && (
@@ -199,7 +200,7 @@ export function ConversationList({
                   {conversation.muted && <BellOff className="size-3.5 text-muted-foreground" />}
                 </span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  {last ? (last.text ?? last.attachmentLabel) : 'No messages yet'}
+                  {last ? (last.text ?? last.attachmentLabel) : 'Chưa có tin nhắn nào'}
                 </span>
               </span>
               {conversation.unread ? <Badge>{conversation.unread}</Badge> : null}
@@ -264,7 +265,7 @@ export function ConversationList({
           onClick={onReset}
           className="m-3 self-start text-muted-foreground hover:text-foreground"
         >
-          Reset demo data
+          Đặt lại dữ liệu mẫu
         </Button>
       )}
     </aside>

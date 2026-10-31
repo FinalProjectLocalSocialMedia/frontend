@@ -19,7 +19,7 @@ export function PostMediaGrid({ media }: PostMediaGridProps) {
     <>
       <div
         role="group"
-        aria-label="Post media"
+        aria-label="Phương tiện bài viết"
         className={cn(
           'mt-4 ml-11 grid gap-2 overflow-hidden rounded-xl',
           visibleMedia.length === 1 ? 'grid-cols-1' : 'grid-cols-2',
@@ -29,14 +29,14 @@ export function PostMediaGrid({ media }: PostMediaGridProps) {
           <button
             key={`${item.assetId}-${index}`}
             type="button"
-            aria-label={`Open media ${index + 1}`}
+            aria-label={`Mở phương tiện ${index + 1}`}
             className="relative block w-full overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => setActiveMediaIndex(index)}
           >
             <PostMediaItem media={item} controls={false} />
             {index === 3 && remainingMediaCount > 0 && (
               <span
-                aria-label={`${remainingMediaCount} more media items`}
+                aria-label={`Còn ${remainingMediaCount} phương tiện khác`}
                 className="absolute inset-0 flex items-center justify-center bg-foreground/70 text-2xl font-semibold text-background"
               >
                 +{remainingMediaCount}

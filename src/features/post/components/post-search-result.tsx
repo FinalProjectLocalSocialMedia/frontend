@@ -42,7 +42,7 @@ export function PostSearchResults({
   if (!query.trim() && !hasFilter) {
     return (
       <p className="rounded-2xl border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">
-        Enter a search term to find posts.
+        Nhập từ khóa để tìm kiếm bài viết.
       </p>
     )
   }
@@ -60,7 +60,7 @@ export function PostSearchResults({
       <div role="alert" className="rounded-2xl border border-destructive/30 bg-card p-5">
         <p className="text-sm text-destructive">{errorMessage}</p>
         <Button variant="outline" size="sm" className="mt-3" onClick={onRetry}>
-          Try again
+          Thử lại
         </Button>
       </div>
     )
@@ -70,23 +70,23 @@ export function PostSearchResults({
     return (
       <div className="rounded-2xl border border-border bg-card px-5 py-12 text-center">
         <Search aria-hidden="true" className="mx-auto size-5 text-muted-foreground" />
-        <p className="mt-3 text-sm font-medium">{emptyMessage || 'No posts found'}</p>
+        <p className="mt-3 text-sm font-medium">{emptyMessage || 'Không tìm thấy bài viết'}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          {emptyMessage ? 'Chưa có bài viết ở địa điểm/chủ đề này.' : 'Try another search term.'}
+          {emptyMessage ? 'Chưa có bài viết ở địa điểm/chủ đề này.' : 'Hãy thử tìm kiếm bằng từ khóa khác.'}
         </p>
       </div>
     )
   }
 
   return (
-    <section aria-label={query ? `Search results for ${query}` : 'Search results'} className="flex flex-col gap-4">
+    <section aria-label={query ? `Kết quả tìm kiếm cho "${query}"` : 'Kết quả tìm kiếm'} className="flex flex-col gap-4">
       {posts.map((post) => (
         <PostCard key={post.id} post={post} currentUserId={currentUserId} />
       ))}
 
       {isFetchNextPageError && (
         <p role="alert" className="text-center text-sm text-destructive">
-          Failed to load more posts. Please try again.
+          Không thể tải thêm bài viết. Vui lòng thử lại.
         </p>
       )}
 
@@ -99,12 +99,12 @@ export function PostSearchResults({
         >
           {isFetchingNextPage ? (
             <>
-              <Spinner /> Loading more
+              <Spinner /> Đang tải thêm...
             </>
           ) : isFetchNextPageError ? (
-            'Retry loading more'
+            'Thử tải lại'
           ) : (
-            'Load more'
+            'Xem thêm'
           )}
         </Button>
       )}

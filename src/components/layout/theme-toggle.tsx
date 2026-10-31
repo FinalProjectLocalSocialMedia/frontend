@@ -23,7 +23,7 @@ export function ThemeToggle({ className, iconClassName, label, side = 'bottom' }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="ghost" aria-label="Change theme" className={className} />}
+        render={<Button variant="ghost" aria-label="Đổi giao diện" className={className} />}
       >
         <Sun className={`${iconClassName ?? ''} dark:hidden`} />
         <Moon className={`${iconClassName ?? ''} hidden dark:block`} />
@@ -35,13 +35,13 @@ export function ThemeToggle({ className, iconClassName, label, side = 'bottom' }
           onValueChange={(v) => setTheme(v as Theme)}
         >
           <DropdownMenuRadioItem value="light" closeOnClick>
-            <Sun /> Light
+            <Sun /> Sáng
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="dark" closeOnClick>
-            <Moon /> Dark
+            <Moon /> Tối
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="system" closeOnClick>
-            <Monitor /> System
+            <Monitor /> Hệ thống
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>

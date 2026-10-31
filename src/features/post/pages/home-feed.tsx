@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { currentLocation, trending } from '@/lib/mock-nearby'
 import { currentUserId, usePosts } from '@/lib/posts-context'
 
-const FEED_PAGE_SIZE = 5
+const FEED_PAGE_SIZE = 20
 
 export default function HomeFeed() {
   const { posts: localPosts, nextPost } = usePosts()
@@ -26,7 +26,7 @@ export default function HomeFeed() {
     },
     getNextPageParam: (lastPage) => lastPage?.page?.nextCursor || undefined,
   })
-  console.log('feed', feed.data)
+
   const sentinelRef = useInfiniteScroll({
     enabled: !!feed.hasNextPage && !feed.isFetchingNextPage,
     onLoadMore: () => void feed.fetchNextPage(),
@@ -44,9 +44,9 @@ export default function HomeFeed() {
       <section>
         <header className="mb-7">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Your local pulse
+            Nhịp sống quanh bạn
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Home feed</h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Bảng tin</h1>
         </header>
 
         <button
@@ -55,7 +55,7 @@ export default function HomeFeed() {
           className="w-full rounded-2xl border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.02] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
           <p className="text-sm font-medium text-muted-foreground">
-            What&apos;s happening around you?
+            Có gì đang diễn ra quanh bạn?
           </p>
           <div className="mt-2 flex items-center gap-2 text-lg font-semibold">
             <MapPin className="size-5 text-primary" /> {currentLocation.name}
@@ -78,7 +78,7 @@ export default function HomeFeed() {
           {feed.isPending && (
             <div role="status" className="flex justify-center py-12">
               <Spinner />
-              <span className="sr-only">Loading feed</span>
+              <span className="sr-only">Đang tải bảng tin</span>
             </div>
           )}
 
@@ -91,20 +91,20 @@ export default function HomeFeed() {
                 className="mt-3"
                 onClick={() => void feed.refetch()}
               >
-                Try again
+                Thử lại
               </Button>
             </div>
           )}
 
           {!feed.isPending && !feed.isError && posts.length === 0 && (
             <p className="rounded-2xl border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">
-              No posts nearby yet.
+              Chưa có bài viết nào quanh đây.
             </p>
           )}
 
           {feed.isFetchNextPageError && (
             <p role="alert" className="text-center text-sm text-destructive">
-              Failed to load more posts. Please try again.
+              Không thể tải thêm bài viết. Vui lòng thử lại.
             </p>
           )}
 
@@ -117,12 +117,12 @@ export default function HomeFeed() {
             >
               {feed.isFetchingNextPage ? (
                 <>
-                  <Spinner /> Loading more
+                  <Spinner /> Đang tải thêm...
                 </>
               ) : feed.isFetchNextPageError ? (
-                'Retry loading more'
+                'Thử tải lại'
               ) : (
-                'Load more'
+                'Xem thêm'
               )}
             </Button>
           )}
@@ -133,12 +133,12 @@ export default function HomeFeed() {
       <aside className="hidden flex-col gap-5 lg:flex lg:pt-[76px]">
         <PostSearchForm />
         <section className="rounded-2xl border border-border bg-card p-5">
-          <h2 className="mb-5 font-semibold">Trending near you</h2>
+          <h2 className="mb-5 font-semibold">Xu hướng gần bạn</h2>
           {trending.map((item) => (
             <Link key={item.tag} to="/explore" className="mb-4 block text-left">
               <p className="text-sm font-semibold">{item.tag}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {item.posts.toLocaleString()} posts · {item.location}
+                {item.posts.toLocaleString()} bài viết · {item.location}
               </p>
             </Link>
           ))}

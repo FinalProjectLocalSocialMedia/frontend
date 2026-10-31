@@ -46,12 +46,12 @@ export default function PostDetail() {
     return (
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
         <Button render={<Link to="/" />} nativeButton={false} variant="ghost" className="mb-5">
-          <ArrowLeft data-icon="inline-start" /> Back to feed
+          <ArrowLeft data-icon="inline-start" /> Quay lại bảng tin
         </Button>
         <div className="max-w-2xl rounded-2xl border border-border bg-card px-6 py-12 text-center">
-          <h1 className="text-lg font-semibold">Post not found</h1>
+          <h1 className="text-lg font-semibold">Không tìm thấy bài viết</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            This post may have been deleted or is no longer available.
+            Bài viết này có thể đã bị xóa hoặc không còn khả dụng.
           </p>
         </div>
       </section>
@@ -62,7 +62,7 @@ export default function PostDetail() {
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-8">
       <section className="min-w-0">
         <Button render={<Link to="/" />} nativeButton={false} variant="ghost" className="mb-5">
-          <ArrowLeft data-icon="inline-start" /> Back to feed
+          <ArrowLeft data-icon="inline-start" /> Quay lại bảng tin
         </Button>
         <PostCard
           post={{
@@ -82,12 +82,12 @@ export default function PostDetail() {
       <aside className="hidden flex-col gap-5 lg:flex lg:pt-[76px]">
         <PostSearchForm />
         <section className="rounded-2xl border border-border bg-card p-5">
-          <h2 className="mb-5 font-semibold">Trending near you</h2>
+          <h2 className="mb-5 font-semibold">Xu hướng gần bạn</h2>
           {trending.map((item) => (
             <Link key={item.tag} to="/explore" className="mb-4 block text-left">
               <p className="text-sm font-semibold">{item.tag}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {item.posts.toLocaleString()} posts · {item.location}
+                {item.posts.toLocaleString()} bài viết · {item.location}
               </p>
             </Link>
           ))}

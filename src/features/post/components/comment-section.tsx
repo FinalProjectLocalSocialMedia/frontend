@@ -32,7 +32,7 @@ export function CommentSection({
       <div className="mb-2 flex items-center gap-2">
         <MessageCircle aria-hidden="true" className="size-4 text-primary" />
         <h2 id="post-comments-heading" className="font-semibold">
-          Comments ({commentCount})
+          Bình luận ({commentCount})
         </h2>
       </div>
 
@@ -42,27 +42,27 @@ export function CommentSection({
 
       {commentCount === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          No comments yet. Be the first to join the conversation.
+          Chưa có bình luận nào. Hãy là người đầu tiên tham gia thảo luận!
         </p>
       ) : commentQuery.isPending ? (
         <div role="status" className="flex justify-center py-8">
           <Spinner />
-          <span className="sr-only">Loading comments</span>
+          <span className="sr-only">Đang tải bình luận...</span>
         </div>
       ) : commentQuery.isError && !commentQuery.data ? (
         <div role="alert" className="py-5 text-center">
-          <p className="text-sm text-destructive">Failed to load comments.</p>
+          <p className="text-sm text-destructive">Không thể tải bình luận.</p>
           <Button
             variant="outline"
             size="sm"
             className="mt-3"
             onClick={() => void commentQuery.refetch()}
           >
-            Try again
+            Thử lại
           </Button>
         </div>
       ) : comments.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">No comments available.</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">Chưa có bình luận nào.</p>
       ) : (
         <div className="divide-y divide-border">
           {comments.map((comment) => (
@@ -73,7 +73,7 @@ export function CommentSection({
 
       {commentQuery.isFetchNextPageError && (
         <p role="alert" className="mt-3 text-center text-sm text-destructive">
-          Failed to load more comments. Please try again.
+          Không thể tải thêm bình luận. Vui lòng thử lại.
         </p>
       )}
 
@@ -87,12 +87,12 @@ export function CommentSection({
         >
           {commentQuery.isFetchingNextPage ? (
             <>
-              <Spinner /> Loading more
+              <Spinner /> Đang tải thêm...
             </>
           ) : commentQuery.isFetchNextPageError ? (
-            'Retry loading more'
+            'Thử tải lại'
           ) : (
-            'Load more comments'
+            'Xem thêm bình luận'
           )}
         </Button>
       )}

@@ -11,11 +11,11 @@ export type NavItem = {
 }
 
 export const navItems: NavItem[] = [
-  { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/explore', label: 'Explore', icon: Search },
-  { to: '/notifications', label: 'Notifications', icon: Bell, count: 3 },
-  { to: '/messages', label: 'Messages', icon: MessageCircle },
-  { to: '/profile', label: 'Profile', icon: UserRound },
+  { to: '/', label: 'Trang chủ', icon: Home, end: true },
+  { to: '/explore', label: 'Khám phá', icon: Search },
+  // { to: '/notifications', label: 'Thông báo', icon: Bell, count: 3 },
+  { to: '/messages', label: 'Tin nhắn', icon: MessageCircle },
+  { to: '/profile', label: 'Trang cá nhân', icon: UserRound },
 ]
 
 /** Destinations shown in the mobile bottom nav (the Create button sits between the two pairs). */

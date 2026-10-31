@@ -14,7 +14,7 @@ type PostMediaUploaderProps = {
 }
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'An unexpected error occurred'
+  return error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định'
 }
 
 export function PostMediaUploader({
@@ -52,7 +52,7 @@ export function PostMediaUploader({
 
     if (inputRef.current) inputRef.current.value = ''
     if (uploadErrors.length) {
-      setError(`Could not upload ${uploadErrors.join('; ')}`)
+      setError(`Không thể tải lên ${uploadErrors.join('; ')}`)
     }
   }
 
@@ -68,7 +68,7 @@ export function PostMediaUploader({
         accept="image/*,video/*"
         multiple
         className="sr-only"
-        aria-label="Choose photos or videos"
+        aria-label="Chọn ảnh hoặc video"
         disabled={disabled || uploadMutation.isPending}
         onChange={(event) => void handleFilesSelected(event.target.files)}
       />
@@ -81,7 +81,7 @@ export function PostMediaUploader({
           onClick={() => inputRef.current?.click()}
         >
           {uploadMutation.isPending ? <LoaderCircle className="animate-spin" /> : <ImagePlus />}
-          {uploadMutation.isPending ? 'Uploading media…' : 'Add photos or videos'}
+          {uploadMutation.isPending ? 'Đang tải lên…' : 'Thêm ảnh hoặc video'}
         </Button>
       </div>
       {error && (
@@ -90,7 +90,7 @@ export function PostMediaUploader({
         </p>
       )}
       {media.length > 0 && (
-        <ul aria-label="Attached media" className="flex flex-wrap gap-2">
+        <ul aria-label="Phương tiện đính kèm" className="flex flex-wrap gap-2">
           {media.map((item) => (
             <li
               key={item.assetId}
@@ -101,7 +101,7 @@ export function PostMediaUploader({
                 type="button"
                 variant="secondary"
                 size="icon-xs"
-                aria-label={`Remove ${item.publicId}`}
+                aria-label={`Xóa ${item.publicId}`}
                 className="absolute top-1 right-1"
                 disabled={disabled || uploadMutation.isPending}
                 onClick={() => removeMedia(item.assetId)}

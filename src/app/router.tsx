@@ -63,7 +63,7 @@ export function AppRouter() {
           <Route path="profile/:userId" element={<ProfilePage />} />
           <Route
             path="notifications"
-            element={<ComingSoonPage title="Notifications" icon={Bell} />}
+            element={<ComingSoonPage title="Thông báo" icon={Bell} />}
           />
         </Route>
 

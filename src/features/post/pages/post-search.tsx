@@ -123,8 +123,8 @@ export default function PostSearch() {
           </div>
         ) : (
           <>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Discover</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">Search posts</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Khám phá</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">Tìm kiếm bài viết</h1>
             <div className="mt-4">
               <PostSearchForm />
             </div>

@@ -63,7 +63,7 @@ export function CommentComposer({
       setContent('')
       setMedia([])
       onCreated?.()
-      toast.success(isReply ? 'Reply posted' : 'Comment posted')
+      toast.success(isReply ? 'Đã gửi câu trả lời' : 'Đã đăng bình luận')
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['post-detail', postId] }),
@@ -72,8 +72,8 @@ export function CommentComposer({
       ])
     },
     onError: (error) => {
-      toast.error(isReply ? 'Could not post reply' : 'Could not post comment', {
-        description: error instanceof Error ? error.message : 'An unexpected error occurred.',
+      toast.error(isReply ? 'Không thể gửi câu trả lời' : 'Không thể đăng bình luận', {
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
       })
     },
   })
@@ -94,10 +94,10 @@ export function CommentComposer({
   return (
     <form onSubmit={submitComment} className="space-y-3">
       <Textarea
-        aria-label={isReply ? 'Write a reply' : 'Write a comment'}
+        aria-label={isReply ? 'Viết câu trả lời' : 'Viết bình luận'}
         value={content}
         onChange={(event) => setContent(event.target.value)}
-        placeholder={isReply ? 'Write a reply…' : 'Write a comment…'}
+        placeholder={isReply ? 'Viết câu trả lời…' : 'Viết bình luận…'}
         disabled={mutation.isPending}
         className="min-h-20"
       />
@@ -116,7 +116,7 @@ export function CommentComposer({
             disabled={mutation.isPending}
             onClick={onCreated}
           >
-            Cancel
+            Hủy
           </Button>
         )}
         <Button
@@ -125,7 +125,7 @@ export function CommentComposer({
           disabled={(!content.trim() && media.length === 0) || mutation.isPending}
         >
           <Send aria-hidden="true" />
-          {mutation.isPending ? 'Sending…' : isReply ? 'Reply' : 'Comment'}
+          {mutation.isPending ? 'Đang gửi…' : isReply ? 'Trả lời' : 'Bình luận'}
         </Button>
       </div>
     </form>

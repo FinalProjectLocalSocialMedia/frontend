@@ -47,13 +47,13 @@ export function PostMediaModal({ media, initialIndex, onClose }: PostMediaModalP
         showCloseButton={false}
         className="w-[min(96vw,64rem)] max-w-none gap-3 border-0 bg-transparent p-0 text-background shadow-none ring-0 sm:max-w-none"
       >
-        <DialogTitle className="sr-only">Post media viewer</DialogTitle>
+        <DialogTitle className="sr-only">Xem phương tiện bài viết</DialogTitle>
         <DialogClose
           render={
             <Button
               variant="secondary"
               size="icon-lg"
-              aria-label="Close media viewer"
+              aria-label="Đóng trình xem phương tiện"
               className="absolute right-1 top-2 z-20"
             />
           }
@@ -77,11 +77,11 @@ export function PostMediaModal({ media, initialIndex, onClose }: PostMediaModalP
           {media.length > 1 && (
             <>
               <CarouselPrevious
-                aria-label="Previous media"
+                aria-label="Phương tiện trước"
                 className="left-[-4rem] z-10 h-12 w-12 bg-background text-foreground hover:bg-muted"
               />
               <CarouselNext
-                aria-label="Next media"
+                aria-label="Phương tiện tiếp theo"
                 className="right-[-4rem] z-10 h-12 w-12 bg-background text-foreground hover:bg-muted"
               />
             </>

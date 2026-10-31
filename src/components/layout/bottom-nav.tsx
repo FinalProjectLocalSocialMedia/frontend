@@ -35,7 +35,7 @@ export function BottomNav({ onCreate }: { onCreate: () => void }) {
         ))}
         <div className="flex items-center justify-center">
           <Button
-            aria-label="Create Post"
+            aria-label="Tạo bài viết"
             size="icon-lg"
             onClick={onCreate}
             className="size-11 rounded-full shadow-md"

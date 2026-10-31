@@ -82,16 +82,16 @@ function DetailsBody({
 
       <div className="flex flex-col gap-1">
         <Action onClick={onMute} icon={conversation.muted ? <Volume2 /> : <BellOff />}>
-          {conversation.muted ? 'Unmute notifications' : 'Mute notifications'}
+          {conversation.muted ? 'Bật thông báo' : 'Tắt thông báo'}
         </Action>
         <Action onClick={onBlock} icon={<Ban />}>
-          {conversation.blocked ? 'Unblock chat' : 'Block chat'}
+          {conversation.blocked ? 'Bỏ chặn cuộc trò chuyện' : 'Chặn cuộc trò chuyện'}
         </Action>
         <Action onClick={onReport} icon={<Flag />}>
-          Report conversation
+          Báo cáo cuộc trò chuyện
         </Action>
         <Action onClick={onDelete} icon={<Trash2 />} destructive>
-          Delete conversation
+          Xóa cuộc trò chuyện
         </Action>
       </div>
     </>
@@ -104,7 +104,7 @@ export function DetailsPanel({ asSheet, open, onOpenChange, ...body }: Props) {
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="right" className="data-[side=right]:w-full">
           <SheetHeader>
-            <SheetTitle>Conversation details</SheetTitle>
+            <SheetTitle>Chi tiết cuộc trò chuyện</SheetTitle>
             <SheetDescription>{body.conversation.name}</SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
@@ -119,11 +119,11 @@ export function DetailsPanel({ asSheet, open, onOpenChange, ...body }: Props) {
   return (
     <aside className="w-[280px] shrink-0 overflow-y-auto border-l border-border bg-card p-5">
       <div className="mb-6 flex items-center justify-between">
-        <h3 className="font-semibold">Conversation details</h3>
+        <h3 className="font-semibold">Chi tiết cuộc trò chuyện</h3>
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Close details"
+          aria-label="Đóng chi tiết"
           onClick={() => onOpenChange(false)}
         >
           <X />

@@ -7,9 +7,7 @@ import type { Comment as CommentData } from '@/features/post/types/comment'
 import { getCommentReplyByCommentId } from '../api/comment-api'
 import { CommentCard } from './comment-card'
 
-export function CommentReplies({comment,postId,}: {
-  comment: CommentData
-  postId: string }) {
+export function CommentReplies({ comment, postId }: { comment: CommentData; postId: string }) {
   const [expanded, setExpanded] = useState(false)
 
   const repliesQuery = useInfiniteQuery({
@@ -22,13 +20,11 @@ export function CommentReplies({comment,postId,}: {
         cursor: pageParam,
         limit: 5,
       }),
-    getNextPageParam: (lastPage) =>
-      lastPage.page.nextCursor || undefined,
+    getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
     enabled: expanded,
   })
 
-  const replies =
-    repliesQuery.data?.pages.flatMap((page) => page.items) ?? []
+  const replies = repliesQuery.data?.pages.flatMap((page) => page.items) ?? []
 
   return (
     <div className="mt-1">
@@ -38,14 +34,8 @@ export function CommentReplies({comment,postId,}: {
         aria-expanded={expanded}
         onClick={() => setExpanded((value) => !value)}
       >
-        {expanded ? (
-          <ChevronUp aria-hidden="true" />
-        ) : (
-          <ChevronDown aria-hidden="true" />
-        )}
-
-        {expanded ? 'Hide' : 'View'} {comment.commentCount}{' '}
-        {comment.commentCount === 1 ? 'reply' : 'replies'}
+        {expanded ? <ChevronUp aria-hidden="true" /> : <ChevronDown aria-hidden="true" />}
+        {expanded ? 'Ẩn' : 'Xem'} {comment.commentCount} câu trả lời
       </Button>
 
       {expanded && (
@@ -56,13 +46,11 @@ export function CommentReplies({comment,postId,}: {
               className="flex items-center gap-2 py-3 text-sm text-muted-foreground"
             >
               <Spinner />
-              <span>Loading replies</span>
+              <span>Đang tải câu trả lời...</span>
             </div>
           ) : repliesQuery.isError && !repliesQuery.data ? (
             <div role="alert" className="py-3">
-              <p className="text-sm text-destructive">
-                Failed to load replies.
-              </p>
+              <p className="text-sm text-destructive">Không thể tải câu trả lời.</p>
 
               <Button
                 variant="outline"
@@ -70,28 +58,22 @@ export function CommentReplies({comment,postId,}: {
                 className="mt-2"
                 onClick={() => void repliesQuery.refetch()}
               >
-                Try again
+                Thử lại
               </Button>
             </div>
           ) : replies.length === 0 ? (
-            <p className="py-3 text-sm text-muted-foreground">
-              No replies available.
-            </p>
+            <p className="py-3 text-sm text-muted-foreground">Chưa có câu trả lời nào.</p>
           ) : (
             <div className="divide-y divide-border">
               {replies.map((reply) => (
-                <CommentCard
-                  key={reply.id}
-                  comment={reply}
-                  postId={postId}
-                />
+                <CommentCard key={reply.id} comment={reply} postId={postId} />
               ))}
             </div>
           )}
 
           {repliesQuery.isFetchNextPageError && (
             <p role="alert" className="py-2 text-sm text-destructive">
-              Failed to load more replies. Please try again.
+              Không thể tải thêm câu trả lời. Vui lòng thử lại.
             </p>
           )}
 
@@ -105,12 +87,12 @@ export function CommentReplies({comment,postId,}: {
             >
               {repliesQuery.isFetchingNextPage ? (
                 <>
-                  <Spinner /> Loading more
+                  <Spinner /> Đang tải thêm...
                 </>
               ) : repliesQuery.isFetchNextPageError ? (
-                'Retry loading more'
+                'Thử tải lại'
               ) : (
-                'Load more replies'
+                'Xem thêm câu trả lời'
               )}
             </Button>
           )}
