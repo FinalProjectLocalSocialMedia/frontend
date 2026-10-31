@@ -26,8 +26,8 @@ export function PostSearchForm() {
       <Search aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
       <Input
         type="search"
-        aria-label="Search posts"
-        placeholder="Search posts..."
+        aria-label="Tìm kiếm bài viết"
+        placeholder="Tìm kiếm bài viết..."
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         className="h-7 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"

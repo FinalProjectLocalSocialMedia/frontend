@@ -9,9 +9,9 @@ export default function ComingSoonPage({ title, icon: Icon }: { title: string; i
         <Icon className="size-6" />
       </span>
       <h1 className="mt-5 text-2xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-2 text-sm text-muted-foreground">This section is coming soon.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Tính năng này sắp ra mắt.</p>
       <Button render={<Link to="/" />} nativeButton={false} className="mt-6">
-        Back to home
+        Về trang chủ
       </Button>
     </div>
   )

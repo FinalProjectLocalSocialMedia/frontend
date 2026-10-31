@@ -27,7 +27,7 @@ export function MobileHeader() {
         <ThemeToggle iconClassName="size-5" className="size-9 text-muted-foreground" />
         <Link
           to="/notifications"
-          aria-label={`Notifications${notifications?.count ? `, ${notifications.count} new` : ''}`}
+          aria-label={`Thông báo${notifications?.count ? `, ${notifications.count} mới` : ''}`}
           className="relative rounded-lg p-2 text-muted-foreground hover:bg-muted"
         >
           <Bell className="size-5" />
@@ -50,7 +50,7 @@ export function MobileHeader() {
             className="ml-1 inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
           >
             <LogIn className="size-3.5" />
-            <span>Vào</span>
+            <span>Đăng nhập</span>
           </Link>
         )}
       </div>

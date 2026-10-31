@@ -48,7 +48,7 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
       >
         <Link
           to="/"
-          aria-label="nearby. home"
+          aria-label="Trang chủ Nearby"
           className="mb-10 flex h-11 items-center gap-3 rounded-xl px-1.5 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
@@ -81,7 +81,7 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
                   <Badge
                     variant="secondary"
                     className={cn(revealOnExpand, 'ml-auto')}
-                    aria-label={`${count} new`}
+                    aria-label={`${count} mới`}
                   >
                     {count}
                   </Badge>
@@ -97,12 +97,12 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
         </nav>
 
         <Button
-          aria-label="Create Post"
+          aria-label="Tạo bài viết"
           onClick={onCreate}
           className="mt-6 h-11 w-full justify-start gap-3 rounded-xl px-3.5"
         >
           <Plus className="size-5 shrink-0" />
-          <span className={revealOnExpand}>Create Post</span>
+          <span className={revealOnExpand}>Tạo bài viết</span>
         </Button>
 
         {/* User profile / Login button */}
@@ -161,7 +161,7 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
           side="right"
           className="mt-2 h-11 w-full justify-start gap-3 rounded-xl px-3.5 text-muted-foreground"
           iconClassName="size-5"
-          label={<span className={revealOnExpand}>Theme</span>}
+          label={<span className={revealOnExpand}>Giao diện</span>}
         />
 
         <div
@@ -171,10 +171,10 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
           )}
         >
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
-            <Sparkles className="size-4 shrink-0 text-primary" /> Your neighborhood
+            <Sparkles className="size-4 shrink-0 text-primary" /> Khu vực quanh bạn
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
-            Stay in the loop with what people nearby are talking about.
+            Cập nhật những gì mọi người xung quanh đang thảo luận.
           </p>
         </div>
       </aside>

@@ -105,7 +105,7 @@ describe('TopicPostsModal & Marker chủ đề xu hướng (Pha 4 - R4 / 6.5)', 
   })
 
   it('PostCardCompact hiển thị đúng thời gian tương đối ("2 giờ trước", "1 ngày trước") và không có toạ độ (R3)', () => {
-    const fixedNow = new Date('2026-10-28T12:00:00Z').getTime()
+    const fixedNow = Date.now()
     const twoHoursAgo = new Date(fixedNow - 2 * 3600 * 1000).toISOString()
     const oneDayAgo = new Date(fixedNow - 24 * 3600 * 1000).toISOString()
 

@@ -57,11 +57,11 @@ export const ADMIN_NAV: AdminNavGroup[] = [
         permission: 'content.analytics',
       },
       { to: 'users', label: 'Người dùng', icon: Users, permission: 'users.read' },
-      { to: 'content', label: 'Nội dung', icon: FileText, permission: 'content.analytics' },
-      { to: 'locations', label: 'Địa điểm', icon: MapPin, permission: 'locations.manage' },
-      { to: 'heatmap', label: 'Bản đồ nhiệt', icon: Flame, permission: 'heatmap.view' },
-      { to: 'settings', label: 'Cấu hình', icon: Settings, permission: 'settings.manage' },
-      { to: 'audit-log', label: 'Nhật ký audit', icon: ScrollText, permission: 'audit.read' },
+      { to: 'content', label: 'Nội dung', icon: FileText, permission: 'content.analytics' }
+      // { to: 'locations', label: 'Địa điểm', icon: MapPin, permission: 'locations.manage' },
+      // { to: 'heatmap', label: 'Bản đồ nhiệt', icon: Flame, permission: 'heatmap.view' },
+      // { to: 'settings', label: 'Cấu hình', icon: Settings, permission: 'settings.manage' },
+      // { to: 'audit-log', label: 'Nhật ký audit', icon: ScrollText, permission: 'audit.read' },
     ],
   },
 ]

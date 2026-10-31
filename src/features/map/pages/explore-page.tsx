@@ -221,11 +221,11 @@ export default function ExplorePage() {
           />
 
           {/* Marker chủ đề xu hướng (Pha 4: zoom >= 15, tối đa 40 marker DOM dạng pill) */}
-          <TopicMarkers
+          {/* <TopicMarkers
             viewport={currentViewport}
             statsWindow={urlState.window}
             onSelectTopic={(topic, placeId) => setTopic(topic, placeId)}
-          />
+          /> */}
 
           {/* Chấm tròn biểu thị toạ độ GPS của người dùng */}
           <UserLocationDot position={gpsPosition} />

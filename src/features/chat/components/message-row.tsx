@@ -156,14 +156,14 @@ export function MessageRow({
             <Button
               variant="ghost"
               size="icon-xs"
-              aria-label="Copy message"
+              aria-label="Sao chép tin nhắn"
               onClick={() => navigator.clipboard?.writeText(message.text ?? '')}
             >
               <Copy />
             </Button>
           )}
           <Button variant="ghost" size="xs" onClick={onReply}>
-            Reply
+            Trả lời
           </Button>
         </div>
       </div>

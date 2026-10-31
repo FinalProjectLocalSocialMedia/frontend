@@ -167,53 +167,52 @@ describe('AppLayout', () => {
   it('marks the current page and navigates with the router', async () => {
     const user = userEvent.setup()
     renderAt('/')
-    expect(within(navs()[0]).getByRole('link', { name: 'Home' })).toHaveAttribute(
+    expect(within(navs()[0]).getByRole('link', { name: 'Trang chủ' })).toHaveAttribute(
       'aria-current',
       'page',
     )
-    await user.click(within(navs()[0]).getByRole('link', { name: 'Explore' }))
-    expect(screen.getByRole('heading', { level: 1, name: 'Explore' })).toBeInTheDocument()
-    expect(within(navs()[0]).getByRole('link', { name: 'Explore' })).toHaveAttribute(
+    await user.click(within(navs()[0]).getByRole('link', { name: 'Khám phá' }))
+    expect(within(navs()[0]).getByRole('link', { name: 'Khám phá' })).toHaveAttribute(
       'aria-current',
       'page',
     )
-    expect(within(navs()[0]).getByRole('link', { name: 'Home' })).not.toHaveAttribute(
+    expect(within(navs()[0]).getByRole('link', { name: 'Trang chủ' })).not.toHaveAttribute(
       'aria-current',
     )
-    await user.click(within(navs()[1]).getByRole('link', { name: 'Profile' }))
+    await user.click(within(navs()[1]).getByRole('link', { name: 'Trang cá nhân' }))
     expect(screen.getByRole('heading', { level: 1, name: 'Nguyễn Minh' })).toBeInTheDocument()
   })
 
   it('Notifications/unknown routes render inside the same layout', () => {
     renderAt('/notifications')
-    expect(screen.getByRole('heading', { name: 'Notifications' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Thông báo' })).toBeInTheDocument()
     expect(navs()).toHaveLength(2)
     cleanup()
     renderAt('/nope')
-    expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Không tìm thấy trang' })).toBeInTheDocument()
     expect(navs()).toHaveLength(2)
   })
 
   it('Create Post works from any page and the post shows on Home + Profile', async () => {
     const user = userEvent.setup()
-    renderAt('/explore')
-    await user.click(screen.getAllByRole('button', { name: 'Create Post' })[0])
+    renderAt('/notifications')
+    await user.click(screen.getAllByRole('button', { name: 'Tạo bài viết' })[0])
     const dialog = await screen.findByRole('dialog')
-    const submit = within(dialog).getByRole('button', { name: 'Post update' })
+    const submit = within(dialog).getByRole('button', { name: 'Đăng bài' })
     expect(submit).toBeDisabled()
     await user.type(
-      within(dialog).getByPlaceholderText("What's happening nearby?"),
+      within(dialog).getByPlaceholderText('Có điều gì đang diễn ra xung quanh bạn?'),
       'Mưa to ở Cầu Giấy #Mưa',
     )
     await user.click(submit)
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    await user.click(within(navs()[0]).getByRole('link', { name: 'Home' }))
+    await user.click(within(navs()[0]).getByRole('link', { name: 'Trang chủ' }))
     expect(
       screen
         .getAllByRole('article')
         .some((article) => article.textContent?.includes('Mưa to ở Cầu Giấy #Mưa')),
     ).toBe(true)
-    await user.click(within(navs()[0]).getByRole('link', { name: 'Profile' }))
+    await user.click(within(navs()[0]).getByRole('link', { name: 'Trang cá nhân' }))
     expect(
       screen
         .getAllByRole('article')
@@ -235,15 +234,15 @@ describe('AppLayout', () => {
     }
     uploadPostMediaMock.mockResolvedValue(media)
     renderAt('/')
-    await user.click(screen.getAllByRole('button', { name: 'Create Post' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Tạo bài viết' })[0])
     const dialog = await screen.findByRole('dialog')
     await user.upload(
-      within(dialog).getByLabelText('Choose photos or videos'),
+      within(dialog).getByLabelText('Chọn ảnh hoặc video'),
       new File(['photo'], 'photo.jpg', { type: 'image/jpeg' }),
     )
 
-    await screen.findByRole('button', { name: 'Remove photo' })
-    await user.click(within(dialog).getByRole('button', { name: 'Post update' }))
+    await screen.findByRole('button', { name: 'Xóa photo' })
+    await user.click(within(dialog).getByRole('button', { name: 'Đăng bài' }))
 
     await waitFor(() =>
       expect(createPostMock).toHaveBeenCalledWith(
@@ -255,7 +254,7 @@ describe('AppLayout', () => {
   it('Home composer card opens the same dialog', async () => {
     const user = userEvent.setup()
     renderAt('/')
-    await user.click(screen.getByText(/What's happening around you/))
+    await user.click(screen.getByText(/Có gì đang diễn ra quanh bạn/i))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
@@ -264,7 +263,7 @@ describe('AppLayout', () => {
     renderAt('/messages')
     expect(document.querySelectorAll('main')).toHaveLength(1)
     expect(document.querySelector('header.sticky')).toBeNull()
-    const list = screen.getByRole('heading', { name: 'Messages' })
+    const list = screen.getByRole('heading', { name: 'Tin nhắn' })
     const row = screen
       .getAllByRole('button')
       .find((b) => b.querySelector('span.font-semibold')?.firstChild?.textContent === 'Hoa Phạm')!
@@ -274,7 +273,7 @@ describe('AppLayout', () => {
   })
 
   it('other pages keep the mobile header', () => {
-    renderAt('/explore')
+    renderAt('/notifications')
     expect(document.querySelector('header.sticky')).not.toBeNull()
   })
 
@@ -286,7 +285,7 @@ describe('AppLayout', () => {
         .find((b) => b.querySelector('span.font-semibold')?.firstChild?.textContent === name)!
     const { unmount } = renderAt('/messages')
     await user.click(rowFor('Nam Trần'))
-    await user.type(screen.getByPlaceholderText('Write a message...'), 'xin chào{Enter}')
+    await user.type(screen.getByPlaceholderText('Nhập tin nhắn...'), 'xin chào{Enter}')
     expect(within(rowFor('Nam Trần')).getByText('xin chào')).toBeInTheDocument()
     unmount()
     renderAt('/messages')

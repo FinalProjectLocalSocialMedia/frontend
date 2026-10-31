@@ -16,9 +16,9 @@ export function PostEngagement({ post, liked, toggleLiked }: PostEngagementProps
   async function copyText(text: string) {
     try {
       await navigator.clipboard.writeText(text)
-      toast.success('Copied to clipboard')
+      toast.success('Đã sao chép vào bộ nhớ tạm')
     } catch {
-      toast.error('Could not copy. Please copy it manually.')
+      toast.error('Không thể sao chép. Vui lòng sao chép thủ công.')
     }
   }
 
@@ -40,7 +40,7 @@ export function PostEngagement({ post, liked, toggleLiked }: PostEngagementProps
         variant="ghost"
         size="sm"
         aria-pressed={liked}
-        aria-label={liked ? 'Unlike' : 'Like'}
+        aria-label={liked ? 'Bỏ thích' : 'Thích'}
         onClick={() => toggleLiked(post.id)}
         className={cn('-ml-2.5', liked && 'text-rose-500 hover:text-rose-500')}
       >
@@ -53,13 +53,13 @@ export function PostEngagement({ post, liked, toggleLiked }: PostEngagementProps
         nativeButton={false}
         variant="ghost"
         size="sm"
-        aria-label="Comments"
+        aria-label="Bình luận"
       >
         <MessageCircle /> {post.commentCount}
       </Button>
 
       <Button variant="ghost" size="sm" onClick={() => void share()}>
-        <Share2 /> Share
+        <Share2 /> Chia sẻ
       </Button>
     </div>
   )

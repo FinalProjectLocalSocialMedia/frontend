@@ -1,4 +1,4 @@
-export const currentLocation = { name: 'Cầu Giấy, Hanoi', latitude: 21.0362, longitude: 105.7906 }
+export const currentLocation = { name: 'Hà Đông, Hà Nội', latitude: 21.0362, longitude: 105.7906 }
 
 export type NearbyPost = {
   id: string

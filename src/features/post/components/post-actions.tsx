@@ -23,9 +23,9 @@ export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: Pos
   async function copyText(text: string) {
     try {
       await navigator.clipboard.writeText(text)
-      toast.success('Copied to clipboard')
+      toast.success('Đã sao chép vào bộ nhớ tạm')
     } catch {
-      toast.error('Could not copy. Please copy it manually.')
+      toast.error('Không thể sao chép. Vui lòng sao chép thủ công.')
     }
   }
 
@@ -36,7 +36,7 @@ export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: Pos
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="More options"
+            aria-label="Tùy chọn khác"
             className="-mr-2 -mt-1 text-muted-foreground"
           />
         }
@@ -48,15 +48,15 @@ export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: Pos
         <DropdownMenuItem
           onClick={() => {
             toggleSaved(post.id)
-            toast(saved ? 'Removed from saved posts' : 'Saved to your posts')
+            toast(saved ? 'Đã bỏ lưu bài viết' : 'Đã lưu bài viết')
           }}
         >
           {saved ? <BookmarkCheck /> : <Bookmark />}
-          {saved ? 'Unsave post' : 'Save post'}
+          {saved ? 'Bỏ lưu bài viết' : 'Lưu bài viết'}
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={() => void copyText(post.content)}>
-          <Copy /> Copy text
+          <Copy /> Sao chép nội dung
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -66,21 +66,21 @@ export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: Pos
             variant="destructive"
             onClick={() => {
               removePost(post.id)
-              toast.success('Post deleted')
+              toast.success('Đã xóa bài viết')
             }}
           >
-            <Trash2 /> Delete post
+            <Trash2 /> Xóa bài viết
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem
             variant="destructive"
             onClick={() =>
-              toast.success('Report submitted', {
-                description: 'Thanks for helping keep nearby. safe.',
+              toast.success('Đã gửi báo cáo', {
+                description: 'Cảm ơn bạn đã góp phần giữ an toàn cho Nearby.',
               })
             }
           >
-            <Flag /> Report post
+            <Flag /> Báo cáo bài viết
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

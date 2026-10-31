@@ -25,20 +25,20 @@ export function ReportDialog({ onClose }: { onClose: () => void }) {
             <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Check />
             </div>
-            <DialogTitle>Report submitted</DialogTitle>
-            <DialogDescription>Thanks for helping keep nearby. safe.</DialogDescription>
+            <DialogTitle>Đã gửi báo cáo</DialogTitle>
+            <DialogDescription>Cảm ơn bạn đã góp phần giữ an toàn cho Nearby.</DialogDescription>
             <Button onClick={onClose} className="mt-2">
-              Done
+              Hoàn tất
             </Button>
           </div>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Report conversation</DialogTitle>
-              <DialogDescription>Choose a reason.</DialogDescription>
+              <DialogTitle>Báo cáo cuộc trò chuyện</DialogTitle>
+              <DialogDescription>Chọn lý do báo cáo.</DialogDescription>
             </DialogHeader>
             <fieldset className="flex flex-col gap-1">
-              <legend className="sr-only">Reason</legend>
+              <legend className="sr-only">Lý do</legend>
               {reportReasons.map((item) => (
                 <label
                   key={item}
@@ -58,14 +58,14 @@ export function ReportDialog({ onClose }: { onClose: () => void }) {
             <Textarea
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              placeholder="Additional details (optional)"
+              placeholder="Thông tin bổ sung (không bắt buộc)"
             />
             <DialogFooter>
               <Button variant="outline" onClick={onClose}>
-                Cancel
+                Hủy
               </Button>
               <Button disabled={!reason} onClick={() => setSent(true)}>
-                Send report
+                Gửi báo cáo
               </Button>
             </DialogFooter>
           </>

@@ -129,7 +129,7 @@ export function ChatWindow({
             variant="ghost"
             size="icon-lg"
             onClick={onBack}
-            aria-label="Back to conversations"
+            aria-label="Quay lại danh sách hội thoại"
             className="lg:hidden"
           >
             <ArrowLeft />
@@ -148,11 +148,11 @@ export function ChatWindow({
             </h2>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               {conversation.kind === 'group' ? (
-                `${conversation.memberIds.length} members`
+                `${conversation.memberIds.length} thành viên`
               ) : other?.online ? (
                 <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
                   <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Online
+                  Đang hoạt động
                 </span>
               ) : (
                 (other?.lastSeen ?? 'Trực tuyến gần đây')
@@ -162,7 +162,7 @@ export function ChatWindow({
           <Button
             variant="ghost"
             size="icon-lg"
-            aria-label="Search messages"
+            aria-label="Tìm kiếm tin nhắn"
             aria-pressed={searchOpen}
             onClick={toggleSearch}
             className={searchOpen ? 'bg-muted text-primary' : 'text-muted-foreground'}
@@ -172,7 +172,7 @@ export function ChatWindow({
           <Button
             variant="ghost"
             size="icon-lg"
-            aria-label="Conversation details"
+            aria-label="Chi tiết cuộc trò chuyện"
             aria-pressed={detailsOpen}
             onClick={onToggleDetails}
             className={detailsOpen ? 'bg-muted text-primary' : 'text-muted-foreground'}
@@ -185,7 +185,7 @@ export function ChatWindow({
             autoFocus
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search messages"
+            placeholder="Tìm kiếm tin nhắn..."
             className="mt-3"
           />
         )}
@@ -220,7 +220,7 @@ export function ChatWindow({
 
           {visible.length === 0 && !isOtherTyping && (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              {term ? 'No messages match your search.' : 'Say hi to start the conversation.'}
+              {term ? 'Không tìm thấy tin nhắn phù hợp.' : 'Gửi lời chào để bắt đầu cuộc trò chuyện.'}
             </p>
           )}
           <div ref={bottomRef} />
@@ -230,13 +230,13 @@ export function ChatWindow({
       {reply && (
         <div className="flex items-center justify-between border-t border-border bg-muted/40 px-4 py-2 text-xs">
           <span className="truncate">
-            Replying to {userById(reply.senderId)?.name || conversation.name}:{' '}
+            Đang trả lời {userById(reply.senderId)?.name || conversation.name}:{' '}
             {reply.text ?? reply.attachmentLabel}
           </span>
           <Button
             variant="ghost"
             size="icon-xs"
-            aria-label="Cancel reply"
+            aria-label="Hủy trả lời"
             onClick={() => setReply(null)}
             className="ml-2"
           >
@@ -272,7 +272,7 @@ export function ChatWindow({
           {isUploading && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Loader2 className="size-3.5 animate-spin text-primary" />
-              <span>Đang tải lên Cloudinary...</span>
+              <span>Đang tải tệp lên...</span>
             </div>
           )}
         </div>
@@ -289,7 +289,7 @@ export function ChatWindow({
           <Button
             variant="ghost"
             size="icon-lg"
-            aria-label="Attach file"
+            aria-label="Đính kèm tệp"
             className="text-muted-foreground"
             disabled={conversation.blocked || isUploading}
             onClick={() => fileInputRef.current?.click()}
@@ -310,7 +310,7 @@ export function ChatWindow({
                 send()
               }
             }}
-            placeholder={conversation.blocked ? 'Chat blocked' : 'Write a message...'}
+            placeholder={conversation.blocked ? 'Cuộc trò chuyện đã bị chặn' : 'Nhập tin nhắn...'}
             disabled={conversation.blocked}
             rows={1}
             className="min-h-10 flex-1 rounded-xl text-sm resize-none"
@@ -318,14 +318,14 @@ export function ChatWindow({
           <Button
             variant="ghost"
             size="icon-lg"
-            aria-label="Add emoji"
+            aria-label="Thêm biểu tượng cảm xúc"
             className="text-muted-foreground"
           >
             <Smile />
           </Button>
           <Button
             size="icon-lg"
-            aria-label="Send message"
+            aria-label="Gửi tin nhắn"
             onClick={send}
             disabled={!text.trim() || conversation.blocked}
             className="rounded-xl shadow-xs"
@@ -337,4 +337,3 @@ export function ChatWindow({
     </section>
   )
 }
-

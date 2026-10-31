@@ -34,11 +34,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { nearbyPosts, type NearbyPost } from '@/lib/mock-nearby'
 import { currentUserId, usePosts } from '@/lib/posts-context'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import type { PostSearchItem } from '@/features/post/types/post'
+import { vi } from 'date-fns/locale'
 
 export type ProfileData = {
   id: string
@@ -56,10 +56,10 @@ const ownerProfile: ProfileData = {
   id: 'me',
   name: 'Nguyễn Minh',
   username: '@minhnguyen',
-  bio: 'Sharing the local pulse around Cầu Giấy. Coffee, traffic, and good neighborhood energy.',
+  bio: 'Chia sẻ nhịp sống xung quanh Cầu Giấy. Cà phê, phố xá và năng lượng tích cực của khu dân cư.',
   initials: 'NM',
   color: 'bg-amber-100 text-amber-700',
-  location: 'Cầu Giấy, Hanoi',
+  location: 'Cầu Giấy, Hà Nội',
   followers: 248,
   following: 186,
 }
@@ -132,7 +132,7 @@ function getInitials(name: string) {
 
 function formatPostTime(createdAt: string) {
   const date = new Date(createdAt)
-  return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true })
+  return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true, locale: vi })
 }
 
 /** `onDelete` is only passed for posts the current user is allowed to delete. */
@@ -157,7 +157,7 @@ function ProfilePost({ post, onDelete }: { post: PostSearchItem; onDelete?: () =
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Delete post"
+                aria-label="Xóa bài viết"
                 onClick={onDelete}
                 className="-mr-2 -mt-1 text-muted-foreground"
               >
@@ -169,7 +169,7 @@ function ProfilePost({ post, onDelete }: { post: PostSearchItem; onDelete?: () =
           {topic && <p className="mt-2 text-xs font-semibold text-primary">{topic}</p>}
           <div className="mt-4 flex gap-5 text-xs text-muted-foreground">
             <span>♡ {post.likeCount}</span>
-            <span>Comments {post.commentCount}</span>
+            <span>{post.commentCount} bình luận</span>
           </div>
         </div>
       </div>
@@ -180,9 +180,9 @@ function ProfilePost({ post, onDelete }: { post: PostSearchItem; onDelete?: () =
 type Confirm = { kind: 'block' } | { kind: 'report' } | { kind: 'delete'; postId: string } | null
 
 const emptyStates: Record<string, { title: string; hint: string }> = {
-  Posts: { title: 'No public posts yet', hint: 'Posts you share will appear here.' },
-  Liked: { title: 'No liked posts yet', hint: 'Tap the heart on a post to like it.' },
-  Saved: { title: 'No saved posts yet', hint: 'Use the “...” menu on a post to save it.' },
+  Posts: { title: 'Chưa có bài viết nào', hint: 'Bài viết được chia sẻ sẽ xuất hiện tại đây.' },
+  Liked: { title: 'Chưa có bài viết đã thích', hint: 'Nhấn vào biểu tượng trái tim trên bài viết để thích.' },
+  Saved: { title: 'Chưa có bài viết đã lưu', hint: 'Dùng menu tùy chọn trên bài viết để lưu lại.' },
 }
 
 export function ProfilePage({
@@ -194,7 +194,7 @@ export function ProfilePage({
 }) {
   const navigate = useNavigate()
   const { userId } = useParams()
-  const { user, isAuthenticated } = useAuth()
+  const { user } = useAuth()
   const { posts: allPosts, savedIds, likedIds, removePost } = usePosts()
 
   // Xác định xem có phải trang cá nhân của chính mình không (dựa vào prop hoặc userId trên route)
@@ -227,9 +227,9 @@ export function ProfilePage({
           initials:
             'fullName' in user && user.fullName ? user.fullName.slice(0, 2).toUpperCase() : 'ME',
           color: 'bg-primary/10 text-primary',
-          location: 'Hà Nội, Việt Nam',
-          followers: 120,
-          following: 85,
+          location: '',
+          followers: 4,
+          following: 3,
         }
       : profile
     : userId
@@ -274,7 +274,7 @@ export function ProfilePage({
       bio: draft.bio.trim(),
     })
     setEditOpen(false)
-    toast.success('Profile updated')
+    toast.success('Đã cập nhật hồ sơ')
   }
 
   function closeConfirm() {
@@ -286,39 +286,39 @@ export function ProfilePage({
     if (!confirm) return
     if (confirm.kind === 'delete') {
       removePost(confirm.postId)
-      toast.success('Post deleted')
+      toast.success('Đã xóa bài viết')
     } else if (confirm.kind === 'block') {
-      toast.success('User blocked')
+      toast.success('Đã chặn người dùng')
     } else {
-      toast.success('Report submitted', { description: 'Thanks for helping keep nearby. safe.' })
+      toast.success('Đã gửi báo cáo', { description: 'Cảm ơn bạn đã góp phần giữ an toàn cho Nearby.' })
     }
     closeConfirm()
   }
 
   const confirmCopy = {
     report: {
-      title: 'Report profile',
-      text: 'Tell us what is wrong with this profile. Our team will review your report.',
-      action: 'Submit report',
+      title: 'Báo cáo hồ sơ',
+      text: 'Hãy cho chúng tôi biết vấn đề với hồ sơ này. Đội ngũ của chúng tôi sẽ xem xét báo cáo.',
+      action: 'Gửi báo cáo',
     },
     block: {
-      title: 'Block this user?',
-      text: 'This user will not be able to view or interact with you.',
-      action: 'Block',
+      title: 'Chặn người dùng này?',
+      text: 'Người dùng này sẽ không thể xem hoặc tương tác với bạn.',
+      action: 'Chặn',
     },
     delete: {
-      title: 'Delete this post?',
-      text: 'This action cannot be undone.',
-      action: 'Delete',
+      title: 'Xóa bài viết này?',
+      text: 'Hành động này không thể hoàn tác.',
+      action: 'Xóa',
     },
   }
 
   return (
-    <Tabs value={tab} onValueChange={(value) => setTab(String(value))} className="gap-0">
-      <section className="border-b border-border bg-card px-5 py-8 sm:px-10">
+    <Tabs value={tab} onValueChange={(value) => setTab(String(value))} className="w-full flex flex-col gap-0">
+      <section className="w-full border-b border-border bg-card px-5 py-8 sm:px-10">
         <div className="mx-auto max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Your identity nearby
+            Hồ sơ cá nhân Nearby
           </p>
           <div className="mt-5 flex gap-4">
             <Avatar className="size-20">
@@ -333,13 +333,13 @@ export function ProfilePage({
               <p className="mt-2 text-xs font-medium text-primary">{data.location}</p>
               <div className="mt-4 flex flex-wrap gap-5 text-sm">
                 <button onClick={() => setPeopleOpen('followers')}>
-                  <strong>{data.followers}</strong> followers
+                  <strong>{data.followers}</strong> người theo dõi
                 </button>
                 <button onClick={() => setPeopleOpen('following')}>
-                  <strong>{data.following}</strong> following
+                  <strong>{data.following}</strong> đang theo dõi
                 </button>
                 <span>
-                  <strong>{ownPosts.length}</strong> posts
+                  <strong>{ownPosts.length}</strong> bài viết
                 </span>
               </div>
             </div>
@@ -347,7 +347,7 @@ export function ProfilePage({
           <div className="mt-5 flex flex-wrap gap-2">
             {isOwnProfile ? (
               <Button onClick={openEdit}>
-                <Edit3 data-icon="inline-start" /> Edit profile
+                <Edit3 data-icon="inline-start" /> Chỉnh sửa hồ sơ
               </Button>
             ) : (
               <>
@@ -360,28 +360,28 @@ export function ProfilePage({
                   ) : (
                     <UserPlus data-icon="inline-start" />
                   )}{' '}
-                  {following ? 'Following' : 'Follow'}
+                  {following ? 'Đang theo dõi' : 'Theo dõi'}
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/messages')}>
-                  Message
+                  Nhắn tin
                 </Button>
               </>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger
-                render={<Button variant="outline" size="icon" aria-label="More actions" />}
+                render={<Button variant="outline" size="icon" aria-label="Tùy chọn khác" />}
               >
                 <MoreHorizontal />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-44">
                 <DropdownMenuItem onClick={() => setConfirm({ kind: 'block' })}>
-                  <UserRound /> Block user
+                  <UserRound /> Chặn người dùng
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
                   onClick={() => setConfirm({ kind: 'report' })}
                 >
-                  <Flag /> Report profile
+                  <Flag /> Báo cáo hồ sơ
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -389,7 +389,7 @@ export function ProfilePage({
           <TabsList variant="line" className="mt-6 w-full border-t border-border pt-3">
             {tabs.map((item) => (
               <TabsTrigger key={item} value={item}>
-                {item}
+                {item === 'Posts' ? 'Bài viết' : item === 'Liked' ? 'Đã thích' : 'Đã lưu'}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -428,25 +428,25 @@ export function ProfilePage({
       </section>
 
       {editOpen && (
-        <Dialog title="Edit profile" onClose={() => setEditOpen(false)}>
+        <Dialog title="Chỉnh sửa hồ sơ" onClose={() => setEditOpen(false)}>
           <div className="flex items-center gap-3">
             <Avatar size="lg">
               <AvatarFallback className={draft.color}>{draft.initials}</AvatarFallback>
             </Avatar>
             <input ref={avatarInput} type="file" accept="image/*" className="hidden" />
             <Button variant="outline" onClick={() => avatarInput.current?.click()}>
-              <Camera data-icon="inline-start" /> Change avatar
+              <Camera data-icon="inline-start" /> Đổi ảnh đại diện
             </Button>
           </div>
           <label className="grid gap-1.5 text-sm font-medium">
-            Display name
+            Tên hiển thị
             <Input
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
           </label>
           <label className="grid gap-1.5 text-sm font-medium">
-            Bio
+            Tiểu sử
             <Textarea
               value={draft.bio}
               maxLength={160}
@@ -459,21 +459,21 @@ export function ProfilePage({
           </label>
           {(!draft.name.trim() || draft.bio.length > 160) && (
             <p className="text-sm text-destructive">
-              Enter a display name and keep your bio under 160 characters.
+              Vui lòng nhập tên hiển thị và giới hạn tiểu sử dưới 160 ký tự.
             </p>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>
-              Cancel
+              Hủy
             </Button>
-            <Button onClick={saveProfile}>Save changes</Button>
+            <Button onClick={saveProfile}>Lưu thay đổi</Button>
           </DialogFooter>
         </Dialog>
       )}
 
       {peopleOpen && (
         <Dialog
-          title={peopleOpen === 'followers' ? 'Followers' : 'Following'}
+          title={peopleOpen === 'followers' ? 'Người theo dõi' : 'Đang theo dõi'}
           onClose={() => {
             setPeopleOpen(null)
             setPeopleSearch('')
@@ -485,7 +485,7 @@ export function ProfilePage({
               autoFocus
               value={peopleSearch}
               onChange={(e) => setPeopleSearch(e.target.value)}
-              placeholder="Search people"
+              placeholder="Tìm kiếm người dùng..."
               className="pl-9"
             />
           </div>
@@ -507,7 +507,7 @@ export function ProfilePage({
                 </button>
               ))
             ) : (
-              <p className="px-2 py-8 text-center text-sm text-muted-foreground">No users found.</p>
+              <p className="px-2 py-8 text-center text-sm text-muted-foreground">Không tìm thấy người dùng nào.</p>
             )}
           </div>
         </Dialog>
@@ -523,13 +523,13 @@ export function ProfilePage({
             <Textarea
               value={reportDetails}
               onChange={(e) => setReportDetails(e.target.value)}
-              placeholder="Add details (optional)"
+              placeholder="Thêm thông tin chi tiết (không bắt buộc)"
               className="min-h-24"
             />
           )}
           <DialogFooter>
             <Button variant="outline" onClick={closeConfirm}>
-              Cancel
+              Hủy
             </Button>
             <Button variant="destructive" onClick={executeConfirm}>
               {confirmCopy[confirm.kind].action}

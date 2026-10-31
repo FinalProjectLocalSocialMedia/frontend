@@ -7,10 +7,11 @@ import { UserAvatar } from './user-avatar'
 import { PostMediaGrid } from './post-media-grid'
 import { CommentReplies } from './comment-replies'
 import { CommentComposer } from './comment-composer'
+import { vi } from 'date-fns/locale'
 
 function formatCommentTime(createdAt: string) {
   const date = new Date(createdAt)
-  return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true })
+  return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true , locale: vi})
 }
 
 export function CommentCard({ comment, postId }: { comment: CommentData; postId: string }) {
@@ -52,7 +53,7 @@ export function CommentCard({ comment, postId }: { comment: CommentData; postId:
             onClick={() => setReplying((value) => !value)}
           >
             <MessageCircle aria-hidden="true" />
-            Reply
+            Trả lời
           </Button>
         </div>
 

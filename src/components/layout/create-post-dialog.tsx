@@ -49,13 +49,13 @@ export function CreatePostDialog({
       setText('')
       setMedia([])
       onOpenChange(false)
-      toast.success('Post shared', {
-        description: 'Your update is now visible to people nearby.',
-        action: { label: 'View', onClick: () => navigate('/') },
+      toast.success('Đã đăng bài viết', {
+        description: 'Bài viết của bạn hiện đã hiển thị với những người xung quanh.',
+        action: { label: 'Xem', onClick: () => navigate('/') },
       })
     },
     onError: (error) => {
-      toast.error('Could not share post', { description: error.message })
+      toast.error('Không thể đăng bài viết', { description: error.message })
     },
   })
 
@@ -77,7 +77,7 @@ export function CreatePostDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Share an update</DialogTitle>
+          <DialogTitle>Chia sẻ bài viết</DialogTitle>
           <DialogDescription className="flex items-center gap-1.5">
             <MapPin className="size-3.5 text-primary" /> {currentLocation.name}
           </DialogDescription>
@@ -90,7 +90,7 @@ export function CreatePostDialog({
           onKeyDown={(e) => {
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit()
           }}
-          placeholder="What's happening nearby?"
+          placeholder="Có điều gì đang diễn ra xung quanh bạn?"
           className="min-h-28"
         />
         <PostMediaUploader
@@ -101,13 +101,13 @@ export function CreatePostDialog({
         />
         <DialogFooter className="items-center sm:justify-between">
           <span className="text-xs text-muted-foreground">
-            {text.length}/{MAX_LENGTH}
+            {/* {text.length}/{MAX_LENGTH} */}
           </span>
           <Button
             onClick={submit}
             disabled={(!text.trim() && media.length === 0) || createPostMutation.isPending}
           >
-            {createPostMutation.isPending ? 'Posting…' : 'Post update'}
+            {createPostMutation.isPending ? 'Đang đăng…' : 'Đăng bài'}
           </Button>
         </DialogFooter>
       </DialogContent>
