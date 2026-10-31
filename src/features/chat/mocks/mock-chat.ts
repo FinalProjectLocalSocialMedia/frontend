@@ -188,9 +188,11 @@ export function loadChatState(): ChatState {
     if (!raw) return defaultChatState()
     const parsed = JSON.parse(raw)
     if (Array.isArray(parsed?.conversations) && Array.isArray(parsed?.messages)) {
-      const mockConvs = parsed.conversations.filter((c: any) => c?.id && !isUuid(c.id))
-      const mockMsgs = parsed.messages.filter(
-        (m: any) => m?.conversationId && !isUuid(m.conversationId),
+      const mockConvs = (parsed.conversations as Conversation[]).filter(
+        (c) => c?.id && !isUuid(c.id),
+      )
+      const mockMsgs = (parsed.messages as ChatMessage[]).filter(
+        (m) => m?.conversationId && !isUuid(m.conversationId),
       )
       return {
         conversations: mockConvs.length > 0 ? mockConvs : initialConversations,

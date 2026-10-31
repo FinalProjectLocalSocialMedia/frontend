@@ -2,31 +2,30 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   ArrowLeft,
   BellOff,
-  Check,
-  CheckCheck,
-  Copy,
-  ImagePlus,
+  FileText,
+  Loader2,
   MoreHorizontal,
   Paperclip,
   Search,
   Send,
   Smile,
-  Video,
   X,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
 import { userById } from '../mocks/mock-chat'
-import type { ChatMessage, Conversation } from '../types/chat'
+import { uploadChatMedia } from '../api/chat-upload-api'
+import type { ChatMessage, Conversation, MediaItem } from '../types/chat'
 import { ChatAvatar, GroupAvatars } from './chat-avatar'
+import { MessageRow } from './message-row'
 
 type Props = {
   conversation: Conversation
   messages: ChatMessage[]
   detailsOpen: boolean
-  onSend: (text: string, replyTo?: string) => void
+  onSend: (text: string, replyTo?: string, media?: MediaItem[]) => void
   onBack: () => void
   onToggleDetails: () => void
   onTyping?: (isTyping: boolean) => void
@@ -49,8 +48,11 @@ export function ChatWindow({
   const [searchOpen, setSearchOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [reply, setReply] = useState<ChatMessage | null>(null)
+  const [attachedMedia, setAttachedMedia] = useState<MediaItem[]>([])
+  const [isUploading, setIsUploading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const otherId = conversation.memberIds.find((id) => id !== 'me' && id !== currentUserId) ?? 'me'
   const isTestEnv = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test'
@@ -82,15 +84,35 @@ export function ChatWindow({
     [onTyping],
   )
 
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    try {
+      const item = await uploadChatMedia(file)
+      setAttachedMedia((prev) => [...prev, item])
+      toast.success(`Đã tải lên tệp: ${file.name}`)
+    } catch (err: unknown) {
+      console.error('Lỗi tải tệp lên Cloudinary:', err)
+      const msg = err instanceof Error ? err.message : 'Không thể tải tệp lên'
+      toast.error(msg)
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
   function send() {
     const value = text.trim()
-    if (!value || conversation.blocked) return
+    if ((!value && attachedMedia.length === 0) || conversation.blocked) return
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
     onTyping?.(false)
 
-    onSend(value, reply?.id)
+    onSend(value, reply?.id, attachedMedia.length ? attachedMedia : undefined)
     setText('')
+    setAttachedMedia([])
     setReply(null)
   }
 
@@ -223,15 +245,56 @@ export function ChatWindow({
         </div>
       )}
 
+      {(attachedMedia.length > 0 || isUploading) && (
+        <div className="border-t border-border bg-muted/40 px-4 py-2 flex flex-wrap gap-2 items-center">
+          {attachedMedia.map((m, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs shadow-2xs"
+            >
+              {m.type === 'IMAGE' ? (
+                <img src={m.url} alt="" className="size-5 rounded object-cover" />
+              ) : (
+                <FileText className="size-4 text-muted-foreground" />
+              )}
+              <span className="max-w-36 truncate font-medium">{m.name || 'Tập tin'}</span>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Xóa tệp đính kèm"
+                onClick={() => setAttachedMedia((prev) => prev.filter((_, i) => i !== idx))}
+                className="size-4 p-0 ml-1 hover:bg-muted"
+              >
+                <X className="size-3" />
+              </Button>
+            </div>
+          ))}
+          {isUploading && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="size-3.5 animate-spin text-primary" />
+              <span>Đang tải lên Cloudinary...</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="border-t border-border bg-card p-3">
         <div className="mx-auto flex max-w-3xl items-end gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
           <Button
             variant="ghost"
             size="icon-lg"
             aria-label="Attach file"
             className="text-muted-foreground"
+            disabled={conversation.blocked || isUploading}
+            onClick={() => fileInputRef.current?.click()}
           >
-            <Paperclip />
+            {isUploading ? <Loader2 className="size-5 animate-spin" /> : <Paperclip className="size-5" />}
           </Button>
           <Textarea
             value={text}
@@ -275,97 +338,3 @@ export function ChatWindow({
   )
 }
 
-function MessageRow({
-  message,
-  quoted,
-  onReply,
-  currentUserId,
-  partnerName,
-}: {
-  message: ChatMessage & { status?: string }
-  quoted?: ChatMessage
-  onReply: () => void
-  currentUserId?: string
-  partnerName?: string
-}) {
-  const mine = message.senderId === 'me' || (currentUserId && message.senderId === currentUserId)
-
-  const senderName = mine ? 'Tôi' : userById(message.senderId)?.name || partnerName || 'Người dùng'
-
-  return (
-    <div className={cn('group flex gap-2', mine && 'justify-end')}>
-      {!mine && <ChatAvatar id={message.senderId} name={senderName} small />}
-      <div className={cn('flex max-w-[78%] flex-col', mine && 'items-end')}>
-        {!mine && (
-          <span className="mb-1 px-1 text-[11px] font-medium text-muted-foreground">
-            {senderName}
-          </span>
-        )}
-        <div
-          className={cn(
-            'rounded-2xl px-4 py-2.5 text-sm leading-6 shadow-2xs transition-all',
-            mine ? 'rounded-br-xs bg-primary text-primary-foreground' : 'rounded-bl-xs bg-muted',
-          )}
-        >
-          {quoted && (
-            <p className="mb-1.5 truncate border-l-2 border-current/40 pl-2 text-xs opacity-75">
-              {userById(quoted.senderId)?.name ?? 'Tin nhắn'}:{' '}
-              {quoted.text ?? quoted.attachmentLabel}
-            </p>
-          )}
-          {message.kind === 'image' || message.kind === 'video' ? (
-            <>
-              {message.kind === 'image' ? (
-                <ImagePlus className="mb-2 size-5" />
-              ) : (
-                <Video className="mb-2 size-5" />
-              )}
-              {message.attachmentLabel}
-            </>
-          ) : (
-            message.text
-          )}
-          {message.reactions?.length ? (
-            <span className="ml-2">{message.reactions.join(' ')}</span>
-          ) : null}
-        </div>
-
-        <div className="flex items-center gap-2 px-1 pt-1 text-[11px] text-muted-foreground focus-within:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-          <span>
-            {new Date(message.createdAt).toLocaleTimeString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </span>
-
-          {mine && (
-            <span
-              title={message.status === 'SEEN' ? 'Đã xem' : 'Đã gửi'}
-              className="inline-flex items-center"
-            >
-              {message.status === 'SEEN' ? (
-                <CheckCheck className="size-3 text-sky-500" />
-              ) : (
-                <Check className="size-3 text-muted-foreground" />
-              )}
-            </span>
-          )}
-
-          {message.text && (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              aria-label="Copy message"
-              onClick={() => navigator.clipboard?.writeText(message.text ?? '')}
-            >
-              <Copy />
-            </Button>
-          )}
-          <Button variant="ghost" size="xs" onClick={onReply}>
-            Reply
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}

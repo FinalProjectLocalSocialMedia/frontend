@@ -1,11 +1,21 @@
-import { BellOff, Search, UserPlus, Radio } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { BellOff, Search, UserPlus, Radio, X, User } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { messagesFor } from '../mocks/mock-chat'
+import { chatApi } from '../api/chat-api'
 import type { ChatMessage, Conversation } from '../types/chat'
 import { ChatAvatar, GroupAvatars } from './chat-avatar'
+
+export type FoundUser = {
+  id: string
+  fullName: string
+  username?: string
+  avatarUrl?: string
+  isReal?: boolean
+}
 
 type Props = {
   conversations: Conversation[]
@@ -17,6 +27,17 @@ type Props = {
   onCreateGroup: () => void
   onReset: () => void
   isRealtimeConnected?: boolean
+  onSelectUser?: (user: FoundUser) => void
+  currentUserId?: string
+}
+
+function removeVietnameseTones(str: string): string {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase()
 }
 
 export function ConversationList({
@@ -29,11 +50,68 @@ export function ConversationList({
   onCreateGroup,
   onReset,
   isRealtimeConnected,
+  onSelectUser,
+  currentUserId,
 }: Props) {
+  const [searchedUsers, setSearchedUsers] = useState<FoundUser[]>([])
+  const [searchingUsers, setSearchingUsers] = useState(false)
+
+  const trimmedQuery = query.trim()
+  const normQuery = removeVietnameseTones(trimmedQuery)
+
+  // 1. Tìm kiếm hội thoại hiện có (hỗ trợ cả tiếng Việt có dấu, không dấu, và nội dung tin nhắn)
   const rows = conversations
-    .filter((c) => c.name.toLowerCase().includes(query.toLowerCase()))
     .map((c) => ({ conversation: c, last: messagesFor(c.id, messages).at(-1) }))
+    .filter(({ conversation: c, last }) => {
+      if (!trimmedQuery) return true
+      const normName = removeVietnameseTones(c.name)
+      const lastText = last?.text || last?.attachmentLabel || ''
+      const normLastText = removeVietnameseTones(lastText)
+
+      return (
+        c.name.toLowerCase().includes(trimmedQuery.toLowerCase()) ||
+        normName.includes(normQuery) ||
+        lastText.toLowerCase().includes(trimmedQuery.toLowerCase()) ||
+        normLastText.includes(normQuery)
+      )
+    })
     .sort((a, b) => lastTime(b.last) - lastTime(a.last))
+
+  // 2. Tìm kiếm người dùng hệ thống từ backend nếu đang gõ tìm kiếm
+  useEffect(() => {
+    if (!trimmedQuery || trimmedQuery.length < 2 || !onSelectUser) {
+      setSearchedUsers([])
+      setSearchingUsers(false)
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchingUsers(true)
+      try {
+        const users = await chatApi.searchUsers(trimmedQuery)
+        const mapped: FoundUser[] = users
+          .filter((u) => !currentUserId || u.id !== currentUserId)
+          .map((u) => ({
+            id: u.id,
+            fullName: u.fullName,
+            username: u.email,
+            avatarUrl: u.avatarUrl,
+            isReal: true,
+          }))
+        setSearchedUsers(mapped)
+      } catch {
+        setSearchedUsers([])
+      } finally {
+        setSearchingUsers(false)
+      }
+    }, 350)
+
+    return () => clearTimeout(timer)
+  }, [trimmedQuery, currentUserId, onSelectUser])
+
+  // Lọc những user hệ thống chưa có trong danh sách kết quả hội thoại phía trên
+  const existingMemberIds = new Set(rows.flatMap((r) => r.conversation.memberIds))
+  const newDiscoveredUsers = searchedUsers.filter((u) => !existingMemberIds.has(u.id))
 
   return (
     <aside className="flex min-h-0 w-full flex-1 flex-col border-r border-border/70 bg-card">
@@ -82,8 +160,18 @@ export function ConversationList({
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Search conversations"
-            className="h-10 rounded-xl pl-9"
+            className="h-10 rounded-xl pl-9 pr-9"
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => onQueryChange('')}
+              aria-label="Xóa nội dung tìm kiếm"
+              className="absolute top-2.5 right-3 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="size-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -118,10 +206,54 @@ export function ConversationList({
             </button>
           )
         })}
-        {rows.length === 0 && (
+
+        {rows.length === 0 && !newDiscoveredUsers.length && !searchingUsers && (
           <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-            Chưa có cuộc trò chuyện nào.
+            {trimmedQuery ? 'Không tìm thấy cuộc trò chuyện nào.' : 'Chưa có cuộc trò chuyện nào.'}
           </p>
+        )}
+
+        {/* Danh sách người dùng hệ thống tìm thấy */}
+        {trimmedQuery.length >= 2 && onSelectUser && (
+          <div className="mt-3 border-t border-border/60 pt-3">
+            <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+              <span>Người dùng hệ thống</span>
+              {searchingUsers && <span className="lowercase font-normal">đang tìm...</span>}
+            </p>
+            {newDiscoveredUsers.length > 0 ? (
+              newDiscoveredUsers.map((u) => (
+                <button
+                  key={u.id}
+                  onClick={() => {
+                    onSelectUser(u)
+                    onQueryChange('')
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left outline-none transition-colors hover:bg-muted"
+                >
+                  <ChatAvatar id={u.id} name={u.fullName} avatarUrl={u.avatarUrl} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">{u.fullName}</span>
+                    {u.username && (
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {u.username}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-xs text-primary font-medium shrink-0 flex items-center gap-1">
+                    <User className="size-3" />
+                    Nhắn tin
+                  </span>
+                </button>
+              ))
+            ) : (
+              !searchingUsers &&
+              rows.length === 0 && (
+                <p className="px-3 py-2 text-xs text-muted-foreground">
+                  Không tìm thấy người dùng phù hợp.
+                </p>
+              )
+            )}
+          </div>
         )}
       </div>
 
