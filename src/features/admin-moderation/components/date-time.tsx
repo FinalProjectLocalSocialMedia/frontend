@@ -1,5 +1,6 @@
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { formatDateTimeVN, formatRelativeTime, parseServerDate } from '@/lib/date-time'
 
 type DateTimeProps = {
   value: string | Date | undefined | null
@@ -19,18 +20,17 @@ export function DateTime({
   className,
   placeholder = '—',
 }: DateTimeProps) {
-  if (!value) {
-    return <span className={className}>{placeholder}</span>
-  }
-
-  const date = typeof value === 'string' ? parseISO(value) : value
-  if (isNaN(date.getTime())) {
+  const date = parseServerDate(value)
+  if (!date) {
     return <span className={className}>{placeholder}</span>
   }
 
   const iso = date.toISOString()
-  const absoluteText = format(date, formatString, { locale: vi })
-  const relativeText = formatDistanceToNow(date, { addSuffix: true, locale: vi })
+  const absoluteText =
+    formatString === 'dd/MM/yyyy HH:mm'
+      ? formatDateTimeVN(date, placeholder)
+      : format(date, formatString, { locale: vi })
+  const relativeText = formatRelativeTime(date)
 
   let displayText = absoluteText
   if (mode === 'relative') {

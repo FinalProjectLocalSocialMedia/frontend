@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { formatDistanceToNow } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-time'
 import {
   Camera,
   Check,
@@ -38,7 +38,6 @@ import { currentUserId, usePosts } from '@/lib/posts-context'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import type { PostSearchItem } from '@/features/post/types/post'
-import { vi } from 'date-fns/locale'
 
 export type ProfileData = {
   id: string
@@ -131,8 +130,7 @@ function getInitials(name: string) {
 }
 
 function formatPostTime(createdAt: string) {
-  const date = new Date(createdAt)
-  return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true, locale: vi })
+  return formatRelativeTime(createdAt)
 }
 
 /** `onDelete` is only passed for posts the current user is allowed to delete. */
