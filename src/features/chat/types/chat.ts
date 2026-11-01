@@ -1,5 +1,5 @@
 export type ConversationType = 'DIRECT' | 'GROUP'
-export type MessageStatus = 'SENT' | 'DELIVERED' | 'SEEN'
+export type MessageStatus = 'SENDING' | 'SENT' | 'DELIVERED' | 'SEEN' | 'FAILED'
 
 export type ChatUser = {
   id: string

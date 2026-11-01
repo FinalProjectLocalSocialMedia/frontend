@@ -21,7 +21,7 @@ export async function uploadChatMedia(
     allowedTypes: CHAT_ALLOWED_MEDIA_TYPES,
     getSignature: requestChatUploadSignature,
     signature,
-    applyDeliveryOptimization: false,
+    applyDeliveryOptimization: true,
   })
 
   return {
@@ -42,7 +42,7 @@ export async function uploadChatMediaBatch(files: readonly File[]): Promise<Medi
   const uploadedList = await uploadFilesToCloudinary(files, {
     allowedTypes: CHAT_ALLOWED_MEDIA_TYPES,
     getSignature: requestChatUploadSignature,
-    applyDeliveryOptimization: false,
+    applyDeliveryOptimization: true,
   })
 
   return uploadedList.map((uploaded) => ({
