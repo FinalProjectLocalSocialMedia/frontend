@@ -19,9 +19,14 @@ vi.mock('@/features/post/api/post-api', () => ({
   searchPosts: vi.fn(),
 }))
 
-vi.mock('@/features/post/api/post-upload-api', () => ({
-  uploadPostMedia: vi.fn(),
-}))
+vi.mock('@/features/post/api/post-upload-api', () => {
+  const uploadPostMedia = vi.fn()
+  return {
+    uploadPostMedia,
+    uploadPostMediaBatch: (files: readonly File[]) =>
+      Promise.all(files.map((file) => uploadPostMedia(file))),
+  }
+})
 
 const createPostMock = vi.mocked(createPost)
 const getFeedMock = vi.mocked(getFeed)

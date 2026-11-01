@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useStagedMedia } from '@/hooks/use-staged-media'
 import { createComment } from '../api/comment-api'
-import { uploadPostMedia } from '../api/post-upload-api'
+import { uploadPostMediaBatch } from '../api/post-upload-api'
 import type { CommentCursorPage } from '../types/comment'
 import type { PostSearchItem } from '../types/post'
 import { PostMediaUploader } from './post-media-uploader'
@@ -50,8 +50,7 @@ export function CommentComposer({
   const isReply = Boolean(parentCommentId)
   const mutation = useMutation({
     mutationFn: async ({ text, files }: { text: string; files: File[] }) => {
-      const uploadedMedia =
-        files.length > 0 ? await Promise.all(files.map((file) => uploadPostMedia(file))) : []
+      const uploadedMedia = files.length > 0 ? await uploadPostMediaBatch(files) : []
 
       return createComment({
         postId,
