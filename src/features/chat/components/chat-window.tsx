@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
 import {
   ArrowLeft,
   BellOff,
   Film,
-  Loader2,
   Mic,
   MoreHorizontal,
   Paperclip,
@@ -17,9 +15,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useStagedMedia } from '@/hooks/use-staged-media'
+import { useStagedMedia, type StagedMediaBatch } from '@/hooks/use-staged-media'
 import { userById } from '../mocks/mock-chat'
-import { uploadChatMediaBatch } from '../api/chat-upload-api'
 import type { ChatMessage, Conversation, MediaItem } from '../types/chat'
 import { ChatAvatar, GroupAvatars } from './chat-avatar'
 import { MessageRow } from './message-row'
@@ -30,7 +27,12 @@ type Props = {
   conversation: Conversation
   messages: ChatMessage[]
   detailsOpen: boolean
-  onSend: (text: string, replyTo?: string, media?: MediaItem[]) => void
+  onSend: (
+    text: string,
+    replyTo?: string,
+    media?: MediaItem[],
+    stagedBatch?: StagedMediaBatch<'IMAGE' | 'VIDEO' | 'AUDIO'>,
+  ) => void
   onBack: () => void
   onToggleDetails: () => void
   onTyping?: (isTyping: boolean) => void
@@ -57,34 +59,9 @@ export function ChatWindow({
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { stagedFiles, addFiles, removeFile, clearFiles } = useStagedMedia({
+  const { stagedFiles, addFiles, removeFile, takeFiles } = useStagedMedia({
     allowedTypes: CHAT_MEDIA_TYPES,
     onError: (msg) => toast.error(msg),
-  })
-
-  const uploadMutation = useMutation({
-    mutationFn: async ({
-      files,
-      messageText,
-      replyToId,
-    }: {
-      files: File[]
-      messageText: string
-      replyToId?: string
-    }) => {
-      const uploadedMedia = await uploadChatMediaBatch(files)
-      return { uploadedMedia, messageText, replyToId }
-    },
-    onSuccess: ({ uploadedMedia, messageText, replyToId }) => {
-      onSend(messageText, replyToId, uploadedMedia.length > 0 ? uploadedMedia : undefined)
-      setText('')
-      clearFiles()
-      setReply(null)
-    },
-    onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Không thể tải tệp đính kèm lên'
-      toast.error(msg)
-    },
   })
 
   const otherId = conversation.memberIds.find((id) => id !== 'me' && id !== currentUserId) ?? 'me'
@@ -123,32 +100,24 @@ export function ChatWindow({
     }
   }
 
-  const canSend =
-    (Boolean(text.trim()) || stagedFiles.length > 0) &&
-    !conversation.blocked &&
-    !uploadMutation.isPending
+  const canSend = (Boolean(text.trim()) || stagedFiles.length > 0) && !conversation.blocked
 
   function send() {
     const value = text.trim()
-    if ((!value && stagedFiles.length === 0) || conversation.blocked || uploadMutation.isPending) {
+    if ((!value && stagedFiles.length === 0) || conversation.blocked) {
       return
     }
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
     onTyping?.(false)
 
-    if (stagedFiles.length === 0) {
-      onSend(value, reply?.id, undefined)
-      setText('')
-      setReply(null)
-      return
-    }
+    const stagedBatch = stagedFiles.length > 0 ? takeFiles() : undefined
+    const replyId = reply?.id
 
-    uploadMutation.mutate({
-      files: stagedFiles.map((item) => item.file),
-      messageText: value,
-      replyToId: reply?.id,
-    })
+    setText('')
+    setReply(null)
+
+    onSend(value, replyId, undefined, stagedBatch)
   }
 
   function toggleSearch() {
@@ -280,7 +249,7 @@ export function ChatWindow({
         </div>
       )}
 
-      {(stagedFiles.length > 0 || uploadMutation.isPending) && (
+      {stagedFiles.length > 0 && (
         <div className="border-t border-border bg-muted/40 px-4 py-2 flex flex-wrap gap-2 items-center">
           {stagedFiles.map((item) => (
             <div
@@ -317,7 +286,6 @@ export function ChatWindow({
                 variant="ghost"
                 size="icon-xs"
                 aria-label={`Xóa ${item.name}`}
-                disabled={uploadMutation.isPending}
                 onClick={() => removeFile(item.id)}
                 className="size-5 p-0 ml-0.5 hover:bg-muted"
               >
@@ -325,12 +293,6 @@ export function ChatWindow({
               </Button>
             </div>
           ))}
-          {uploadMutation.isPending && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin text-primary" />
-              <span>Đang tải tệp lên và gửi...</span>
-            </div>
-          )}
         </div>
       )}
 
@@ -350,14 +312,10 @@ export function ChatWindow({
             size="icon-lg"
             aria-label="Đính kèm ảnh, video hoặc ghi âm"
             className="text-muted-foreground"
-            disabled={conversation.blocked || uploadMutation.isPending}
+            disabled={conversation.blocked}
             onClick={() => fileInputRef.current?.click()}
           >
-            {uploadMutation.isPending ? (
-              <Loader2 className="size-5 animate-spin" />
-            ) : (
-              <Paperclip className="size-5" />
-            )}
+            <Paperclip className="size-5" />
           </Button>
           <Textarea
             value={text}
@@ -380,7 +338,7 @@ export function ChatWindow({
                   ? 'Thêm lời nhắn hoặc nhấn Gửi ngay...'
                   : 'Nhập tin nhắn...'
             }
-            disabled={conversation.blocked || uploadMutation.isPending}
+            disabled={conversation.blocked}
             rows={1}
             className="min-h-10 flex-1 rounded-xl text-sm resize-none"
           />
@@ -399,7 +357,7 @@ export function ChatWindow({
             disabled={!canSend}
             className="rounded-xl shadow-xs"
           >
-            {uploadMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send />}
+            <Send />
           </Button>
         </div>
       </div>

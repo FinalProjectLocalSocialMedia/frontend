@@ -1,13 +1,16 @@
 import {
+  AlertCircle,
   Check,
   CheckCheck,
   Copy,
   Download,
   FileText,
   ImagePlus,
+  Loader2,
   Video,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatTimeVN } from '@/lib/date-time'
 import { cn } from '@/lib/utils'
 import { userById } from '../mocks/mock-chat'
 import type { ChatMessage, MediaItem } from '../types/chat'
@@ -35,10 +38,10 @@ function getQuotedSummary(msg: ChatMessage): string {
 
 function isAudioMedia(item: MediaItem): boolean {
   if (item.type === 'AUDIO') return true
-  if (item.format && /^(mp3|wav|ogg|m4a|aac|flac|opus|weba)$/i.test(item.format)) {
+  if (item.format && /^(mp3|wav|ogg|m4a|aac|flac|opus|weba|3gp)$/i.test(item.format)) {
     return true
   }
-  return /\.(mp3|wav|ogg|m4a|aac|flac|opus|weba)(\?|$)/i.test(item.url)
+  return /\.(mp3|wav|ogg|m4a|aac|flac|opus|weba|3gp)(\?|$)/i.test(item.url)
 }
 
 export function MessageRow({
@@ -52,6 +55,8 @@ export function MessageRow({
     message.senderId === 'me' || (currentUserId && message.senderId === currentUserId),
   )
   const senderName = mine ? 'Tôi' : userById(message.senderId)?.name || partnerName || 'Người dùng'
+  const isSending = message.status === 'SENDING'
+  const isFailed = message.status === 'FAILED'
 
   return (
     <div className={cn('group flex gap-2', mine && 'justify-end')}>
@@ -66,6 +71,7 @@ export function MessageRow({
           className={cn(
             'rounded-2xl px-4 py-2.5 text-sm leading-6 shadow-2xs transition-all',
             mine ? 'rounded-br-xs bg-primary text-primary-foreground' : 'rounded-bl-xs bg-muted',
+            isSending && 'opacity-85',
           )}
         >
           {quoted && (
@@ -171,28 +177,44 @@ export function MessageRow({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2 px-1 pt-1 text-[11px] text-muted-foreground focus-within:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-          <span>
-            {new Date(message.createdAt).toLocaleTimeString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </span>
+        <div
+          className={cn(
+            'flex items-center gap-2 px-1 pt-1 text-[11px] text-muted-foreground transition-opacity',
+            isSending || isFailed
+              ? 'opacity-100'
+              : 'focus-within:opacity-100 lg:opacity-0 lg:group-hover:opacity-100',
+          )}
+        >
+          <span>{formatTimeVN(message.createdAt)}</span>
 
           {mine && (
-            <span
-              title={message.status === 'SEEN' ? 'Đã xem' : 'Đã gửi'}
-              className="inline-flex items-center"
-            >
-              {message.status === 'SEEN' ? (
-                <CheckCheck className="size-3 text-sky-500" />
+            <>
+              {isSending ? (
+                <span className="inline-flex items-center gap-1 font-medium text-muted-foreground">
+                  <Loader2 className="size-3 animate-spin" />
+                  Đang gửi...
+                </span>
+              ) : isFailed ? (
+                <span className="inline-flex items-center gap-1 font-medium text-destructive">
+                  <AlertCircle className="size-3" />
+                  Gửi thất bại
+                </span>
               ) : (
-                <Check className="size-3 text-muted-foreground" />
+                <span
+                  title={message.status === 'SEEN' ? 'Đã xem' : 'Đã gửi'}
+                  className="inline-flex items-center"
+                >
+                  {message.status === 'SEEN' ? (
+                    <CheckCheck className="size-3 text-sky-500" />
+                  ) : (
+                    <Check className="size-3 text-muted-foreground" />
+                  )}
+                </span>
               )}
-            </span>
+            </>
           )}
 
-          {message.text && (
+          {message.text && !isSending && (
             <Button
               variant="ghost"
               size="icon-xs"
@@ -202,9 +224,11 @@ export function MessageRow({
               <Copy />
             </Button>
           )}
-          <Button variant="ghost" size="xs" onClick={onReply}>
-            Trả lời
-          </Button>
+          {!isSending && (
+            <Button variant="ghost" size="xs" onClick={onReply}>
+              Trả lời
+            </Button>
+          )}
         </div>
       </div>
     </div>

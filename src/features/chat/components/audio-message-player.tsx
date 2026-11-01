@@ -28,6 +28,12 @@ export function AudioMessagePlayer({ url, duration, mine = false }: AudioMessage
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [resolvedDuration, setResolvedDuration] = useState<number | undefined>(duration)
+  const [useRawFallback, setUseRawFallback] = useState(false)
+
+  const activeUrl =
+    useRawFallback && url.includes('/video/upload/br_128k/')
+      ? url.replace('/video/upload/br_128k/', '/video/upload/')
+      : url
 
   const effectiveDuration =
     typeof resolvedDuration === 'number' && Number.isFinite(resolvedDuration) && resolvedDuration > 0
@@ -76,7 +82,7 @@ export function AudioMessagePlayer({ url, duration, mine = false }: AudioMessage
     >
       <audio
         ref={audioRef}
-        src={url}
+        src={activeUrl}
         preload="metadata"
         onLoadedMetadata={(event) => {
           const d = event.currentTarget.duration
@@ -92,6 +98,11 @@ export function AudioMessagePlayer({ url, duration, mine = false }: AudioMessage
         onEnded={() => {
           setIsPlaying(false)
           setCurrentTime(0)
+        }}
+        onError={() => {
+          if (!useRawFallback && url.includes('/video/upload/br_128k/')) {
+            setUseRawFallback(true)
+          }
         }}
       />
 
@@ -160,4 +171,3 @@ export function AudioMessagePlayer({ url, duration, mine = false }: AudioMessage
     </div>
   )
 }
-

@@ -14,6 +14,11 @@ export interface StagedMediaFile<T extends UploadMediaType = UploadMediaType> {
   size: number
 }
 
+export interface StagedMediaBatch<T extends UploadMediaType = UploadMediaType> {
+  items: StagedMediaFile<T>[]
+  releaseUrls: () => void
+}
+
 export interface UseStagedMediaOptions<T extends UploadMediaType = UploadMediaType> {
   allowedTypes: readonly T[]
   onError?: (message: string) => void
@@ -125,6 +130,25 @@ export function useStagedMedia<T extends UploadMediaType = UploadMediaType>({
     setError(null)
   }
 
+  /**
+   * Tách danh sách stagedFiles hiện tại ra để hiển thị Optimistic UI (vd: tin nhắn "Đang gửi...")
+   * mà chưa thu hồi blob URL cho tới khi gọi `releaseUrls()` sau khi upload hoàn tất.
+   */
+  function takeFiles(): StagedMediaBatch<T> {
+    const snapshot = [...stagedFiles]
+    setStagedFiles([])
+    setError(null)
+    return {
+      items: snapshot,
+      releaseUrls: () => {
+        for (const item of snapshot) {
+          revokePreviewUrl(item.previewUrl)
+          urlsRef.current.delete(item.previewUrl)
+        }
+      },
+    }
+  }
+
   return {
     stagedFiles,
     error,
@@ -132,6 +156,6 @@ export function useStagedMedia<T extends UploadMediaType = UploadMediaType>({
     addFiles,
     removeFile,
     clearFiles,
+    takeFiles,
   }
 }
-
