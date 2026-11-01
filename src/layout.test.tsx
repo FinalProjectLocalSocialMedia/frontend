@@ -155,7 +155,7 @@ describe('AppLayout', () => {
       within(sidebarNav)
         .getAllByRole('link')
         .map((a) => a.getAttribute('href')),
-    ).toEqual(['/', '/explore', '/notifications', '/messages', '/profile'])
+    ).toEqual(['/', '/explore', '/messages', '/profile'])
     const bottom = navs()[1]
     expect(
       within(bottom)
@@ -242,6 +242,7 @@ describe('AppLayout', () => {
     )
 
     await screen.findByRole('button', { name: 'Xóa photo' })
+    expect(uploadPostMediaMock).not.toHaveBeenCalled()
     await user.click(within(dialog).getByRole('button', { name: 'Đăng bài' }))
 
     await waitFor(() =>
@@ -249,6 +250,7 @@ describe('AppLayout', () => {
         expect.objectContaining({ content: '', media: [media] }),
       ),
     )
+    expect(uploadPostMediaMock).toHaveBeenCalledTimes(1)
   })
 
   it('Home composer card opens the same dialog', async () => {
