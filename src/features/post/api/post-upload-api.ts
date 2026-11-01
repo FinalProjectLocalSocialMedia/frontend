@@ -1,6 +1,5 @@
 import {
   uploadFileToCloudinary,
-  uploadFilesToCloudinary,
   type CloudinarySignature,
 } from '@/lib/cloudinary-upload'
 import type { PostMedia } from '../types/post-media'
@@ -37,21 +36,7 @@ export async function uploadPostMedia(
 }
 
 export async function uploadPostMediaBatch(files: readonly File[]): Promise<PostMedia[]> {
-  const uploadedList = await uploadFilesToCloudinary(files, {
-    allowedTypes: POST_ALLOWED_MEDIA_TYPES,
-    getSignature: requestPostUploadSignature,
-    applyDeliveryOptimization: true,
-  })
-
-  return uploadedList.map((uploaded) => ({
-    type: uploaded.type,
-    publicId: uploaded.publicId,
-    assetId: uploaded.assetId,
-    url: uploaded.url,
-    width: uploaded.width ?? 0,
-    height: uploaded.height ?? 0,
-    format: uploaded.format,
-    size: uploaded.size,
-    ...(typeof uploaded.duration === 'number' ? { duration: uploaded.duration } : {}),
-  }))
+  if (files.length === 0) return []
+  const signature = await requestPostUploadSignature()
+  return Promise.all(files.map((file) => uploadPostMedia(file, signature)))
 }

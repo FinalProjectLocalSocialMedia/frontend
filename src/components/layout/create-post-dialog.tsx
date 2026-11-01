@@ -15,7 +15,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useStagedMedia } from '@/hooks/use-staged-media'
 import { createPost } from '@/features/post/api/post-api'
-import { uploadPostMedia } from '@/features/post/api/post-upload-api'
+import { uploadPostMediaBatch } from '@/features/post/api/post-upload-api'
 import { PostMediaUploader } from '@/features/post/components/post-media-uploader'
 import type { PostMedia } from '@/features/post/types/post-media'
 import { currentLocation } from '@/lib/mock-nearby'
@@ -42,7 +42,7 @@ export function CreatePostDialog({
   const createPostMutation = useMutation({
     mutationFn: async ({ content, files }: { content: string; files: File[] }) => {
       const uploadedMedia: PostMedia[] =
-        files.length > 0 ? await Promise.all(files.map((file) => uploadPostMedia(file))) : []
+        files.length > 0 ? await uploadPostMediaBatch(files) : []
 
       return createPost({
         content,
@@ -55,7 +55,12 @@ export function CreatePostDialog({
     },
     onSuccess: (post) => {
       addPost({
-        items: [post],
+        items: [
+          {
+            ...post,
+            createdAt: post.createdAt || new Date().toISOString(),
+          },
+        ],
         page: {
           nextCursor: null,
           hasMore: false,
