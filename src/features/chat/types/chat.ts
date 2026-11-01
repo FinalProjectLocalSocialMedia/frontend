@@ -39,9 +39,15 @@ export type Conversation = {
 export interface MediaItem {
   id?: string
   url: string
-  type: string
-  name?: string
+  type: 'IMAGE' | 'VIDEO' | 'AUDIO' | string
+  format?: string
   size?: number
+  assetId?: string
+  publicId?: string
+  width?: number
+  height?: number
+  duration?: number
+  name?: string
 }
 
 export interface ChatMember {
