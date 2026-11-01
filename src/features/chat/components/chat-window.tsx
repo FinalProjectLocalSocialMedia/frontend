@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import {
   ArrowLeft,
   BellOff,
-  FileText,
+  Film,
   Loader2,
+  Mic,
   MoreHorizontal,
   Paperclip,
   Search,
@@ -15,11 +17,14 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { useStagedMedia } from '@/hooks/use-staged-media'
 import { userById } from '../mocks/mock-chat'
-import { uploadChatMedia } from '../api/chat-upload-api'
+import { uploadChatMediaBatch } from '../api/chat-upload-api'
 import type { ChatMessage, Conversation, MediaItem } from '../types/chat'
 import { ChatAvatar, GroupAvatars } from './chat-avatar'
 import { MessageRow } from './message-row'
+
+const CHAT_MEDIA_TYPES = ['IMAGE', 'VIDEO', 'AUDIO'] as const
 
 type Props = {
   conversation: Conversation
@@ -48,11 +53,39 @@ export function ChatWindow({
   const [searchOpen, setSearchOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [reply, setReply] = useState<ChatMessage | null>(null)
-  const [attachedMedia, setAttachedMedia] = useState<MediaItem[]>([])
-  const [isUploading, setIsUploading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { stagedFiles, addFiles, removeFile, clearFiles } = useStagedMedia({
+    allowedTypes: CHAT_MEDIA_TYPES,
+    onError: (msg) => toast.error(msg),
+  })
+
+  const uploadMutation = useMutation({
+    mutationFn: async ({
+      files,
+      messageText,
+      replyToId,
+    }: {
+      files: File[]
+      messageText: string
+      replyToId?: string
+    }) => {
+      const uploadedMedia = await uploadChatMediaBatch(files)
+      return { uploadedMedia, messageText, replyToId }
+    },
+    onSuccess: ({ uploadedMedia, messageText, replyToId }) => {
+      onSend(messageText, replyToId, uploadedMedia.length > 0 ? uploadedMedia : undefined)
+      setText('')
+      clearFiles()
+      setReply(null)
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Không thể tải tệp đính kèm lên'
+      toast.error(msg)
+    },
+  })
 
   const otherId = conversation.memberIds.find((id) => id !== 'me' && id !== currentUserId) ?? 'me'
   const isTestEnv = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test'
@@ -68,52 +101,54 @@ export function ChatWindow({
     bottomRef.current?.scrollIntoView({ block: 'end' })
   }, [messages.length, conversation.id, isOtherTyping])
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const val = e.target.value
-      setText(val)
+  function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const val = e.target.value
+    setText(val)
 
-      if (onTyping) {
-        onTyping(true)
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
-        typingTimeoutRef.current = setTimeout(() => {
-          onTyping(false)
-        }, 1500)
-      }
-    },
-    [onTyping],
-  )
-
-  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setIsUploading(true)
-    try {
-      const item = await uploadChatMedia(file)
-      setAttachedMedia((prev) => [...prev, item])
-      toast.success(`Đã tải lên tệp: ${file.name}`)
-    } catch (err: unknown) {
-      console.error('Lỗi tải tệp lên Cloudinary:', err)
-      const msg = err instanceof Error ? err.message : 'Không thể tải tệp lên'
-      toast.error(msg)
-    } finally {
-      setIsUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+    if (onTyping) {
+      onTyping(true)
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = setTimeout(() => {
+        onTyping(false)
+      }, 1500)
     }
   }
 
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files?.length) {
+      addFiles(e.target.files)
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const canSend =
+    (Boolean(text.trim()) || stagedFiles.length > 0) &&
+    !conversation.blocked &&
+    !uploadMutation.isPending
+
   function send() {
     const value = text.trim()
-    if ((!value && attachedMedia.length === 0) || conversation.blocked) return
+    if ((!value && stagedFiles.length === 0) || conversation.blocked || uploadMutation.isPending) {
+      return
+    }
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
     onTyping?.(false)
 
-    onSend(value, reply?.id, attachedMedia.length ? attachedMedia : undefined)
-    setText('')
-    setAttachedMedia([])
-    setReply(null)
+    if (stagedFiles.length === 0) {
+      onSend(value, reply?.id, undefined)
+      setText('')
+      setReply(null)
+      return
+    }
+
+    uploadMutation.mutate({
+      files: stagedFiles.map((item) => item.file),
+      messageText: value,
+      replyToId: reply?.id,
+    })
   }
 
   function toggleSearch() {
@@ -231,7 +266,7 @@ export function ChatWindow({
         <div className="flex items-center justify-between border-t border-border bg-muted/40 px-4 py-2 text-xs">
           <span className="truncate">
             Đang trả lời {userById(reply.senderId)?.name || conversation.name}:{' '}
-            {reply.text ?? reply.attachmentLabel}
+            {reply.text || reply.attachmentLabel || 'Tệp đính kèm'}
           </span>
           <Button
             variant="ghost"
@@ -245,34 +280,55 @@ export function ChatWindow({
         </div>
       )}
 
-      {(attachedMedia.length > 0 || isUploading) && (
+      {(stagedFiles.length > 0 || uploadMutation.isPending) && (
         <div className="border-t border-border bg-muted/40 px-4 py-2 flex flex-wrap gap-2 items-center">
-          {attachedMedia.map((m, idx) => (
+          {stagedFiles.map((item) => (
             <div
-              key={idx}
-              className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs shadow-2xs"
+              key={item.id}
+              className="flex items-center gap-2 rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs shadow-2xs"
             >
-              {m.type === 'IMAGE' ? (
-                <img src={m.url} alt="" className="size-5 rounded object-cover" />
+              {item.type === 'IMAGE' ? (
+                <img
+                  src={item.previewUrl}
+                  alt={item.name}
+                  className="size-7 rounded-md object-cover"
+                />
+              ) : item.type === 'VIDEO' ? (
+                <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <Film className="size-4" />
+                </span>
               ) : (
-                <FileText className="size-4 text-muted-foreground" />
+                <span className="flex size-7 items-center justify-center rounded-full bg-primary/15 text-primary">
+                  <Mic className="size-3.5" />
+                </span>
               )}
-              <span className="max-w-36 truncate font-medium">{m.name || 'Tập tin'}</span>
+              <div className="min-w-0 max-w-40">
+                <p className="truncate font-medium text-foreground">{item.name}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {item.type === 'AUDIO'
+                    ? 'Ghi âm'
+                    : item.type === 'VIDEO'
+                      ? 'Video'
+                      : 'Hình ảnh'}{' '}
+                  • {(item.size / 1024).toFixed(1)} KB
+                </p>
+              </div>
               <Button
                 variant="ghost"
                 size="icon-xs"
-                aria-label="Xóa tệp đính kèm"
-                onClick={() => setAttachedMedia((prev) => prev.filter((_, i) => i !== idx))}
-                className="size-4 p-0 ml-1 hover:bg-muted"
+                aria-label={`Xóa ${item.name}`}
+                disabled={uploadMutation.isPending}
+                onClick={() => removeFile(item.id)}
+                className="size-5 p-0 ml-0.5 hover:bg-muted"
               >
                 <X className="size-3" />
               </Button>
             </div>
           ))}
-          {isUploading && (
+          {uploadMutation.isPending && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Loader2 className="size-3.5 animate-spin text-primary" />
-              <span>Đang tải tệp lên...</span>
+              <span>Đang tải tệp lên và gửi...</span>
             </div>
           )}
         </div>
@@ -283,18 +339,25 @@ export function ChatWindow({
           <input
             ref={fileInputRef}
             type="file"
+            accept="image/*,video/*,audio/*"
+            multiple
+            aria-label="Chọn ảnh, video hoặc ghi âm"
             className="hidden"
             onChange={handleFileSelect}
           />
           <Button
             variant="ghost"
             size="icon-lg"
-            aria-label="Đính kèm tệp"
+            aria-label="Đính kèm ảnh, video hoặc ghi âm"
             className="text-muted-foreground"
-            disabled={conversation.blocked || isUploading}
+            disabled={conversation.blocked || uploadMutation.isPending}
             onClick={() => fileInputRef.current?.click()}
           >
-            {isUploading ? <Loader2 className="size-5 animate-spin" /> : <Paperclip className="size-5" />}
+            {uploadMutation.isPending ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <Paperclip className="size-5" />
+            )}
           </Button>
           <Textarea
             value={text}
@@ -310,8 +373,14 @@ export function ChatWindow({
                 send()
               }
             }}
-            placeholder={conversation.blocked ? 'Cuộc trò chuyện đã bị chặn' : 'Nhập tin nhắn...'}
-            disabled={conversation.blocked}
+            placeholder={
+              conversation.blocked
+                ? 'Cuộc trò chuyện đã bị chặn'
+                : stagedFiles.length > 0
+                  ? 'Thêm lời nhắn hoặc nhấn Gửi ngay...'
+                  : 'Nhập tin nhắn...'
+            }
+            disabled={conversation.blocked || uploadMutation.isPending}
             rows={1}
             className="min-h-10 flex-1 rounded-xl text-sm resize-none"
           />
@@ -327,10 +396,10 @@ export function ChatWindow({
             size="icon-lg"
             aria-label="Gửi tin nhắn"
             onClick={send}
-            disabled={!text.trim() || conversation.blocked}
+            disabled={!canSend}
             className="rounded-xl shadow-xs"
           >
-            <Send />
+            {uploadMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send />}
           </Button>
         </div>
       </div>

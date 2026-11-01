@@ -1,63 +1,34 @@
-import { useRef, useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useRef } from 'react'
 import { ImagePlus, LoaderCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import type { StagedMediaFile } from '@/hooks/use-staged-media'
 import { PostMediaItem } from '@/features/post/components/post-media-item'
-import type { PostMedia } from '@/features/post/types/post-media'
 
 type PostMediaUploaderProps = {
-  media: PostMedia[]
-  onMediaChange: (media: PostMedia[]) => void
-  uploadFile: (file: File) => Promise<PostMedia>
+  stagedFiles: StagedMediaFile<'IMAGE' | 'VIDEO'>[]
+  onFilesAdd: (files: FileList | null) => void
+  onFileRemove: (id: string) => void
+  error?: string | null
   disabled?: boolean
-}
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định'
+  isUploading?: boolean
 }
 
 export function PostMediaUploader({
-  media,
-  onMediaChange,
-  uploadFile,
+  stagedFiles,
+  onFilesAdd,
+  onFileRemove,
+  error = null,
   disabled = false,
+  isUploading = false,
 }: PostMediaUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [error, setError] = useState<string | null>(null)
-  const uploadMutation = useMutation({ mutationFn: uploadFile })
+  const isBusy = disabled || isUploading
 
-  async function handleFilesSelected(files: FileList | null) {
+  function handleFilesSelected(files: FileList | null) {
     if (!files?.length) return
-
-    setError(null)
-    const uploadedMedia = [...media]
-    const uploadErrors: string[] = []
-
-    for (const file of Array.from(files)) {
-      await new Promise<void>((resolve) => {
-        uploadMutation.mutate(file, {
-          onSuccess: (uploaded) => {
-            uploadedMedia.push(uploaded)
-            onMediaChange([...uploadedMedia])
-            resolve()
-          },
-          onError: (uploadError) => {
-            uploadErrors.push(`${file.name}: ${getErrorMessage(uploadError)}`)
-            resolve()
-          },
-        })
-      })
-    }
-
+    onFilesAdd(files)
     if (inputRef.current) inputRef.current.value = ''
-    if (uploadErrors.length) {
-      setError(`Không thể tải lên ${uploadErrors.join('; ')}`)
-    }
-  }
-
-  function removeMedia(assetId: string) {
-    onMediaChange(media.filter((item) => item.assetId !== assetId))
   }
 
   return (
@@ -69,19 +40,19 @@ export function PostMediaUploader({
         multiple
         className="sr-only"
         aria-label="Chọn ảnh hoặc video"
-        disabled={disabled || uploadMutation.isPending}
-        onChange={(event) => void handleFilesSelected(event.target.files)}
+        disabled={isBusy}
+        onChange={(event) => handleFilesSelected(event.target.files)}
       />
       <div className="flex items-center gap-2">
         <Button
           type="button"
           variant="outline"
           size="sm"
-          disabled={disabled || uploadMutation.isPending}
+          disabled={isBusy}
           onClick={() => inputRef.current?.click()}
         >
-          {uploadMutation.isPending ? <LoaderCircle className="animate-spin" /> : <ImagePlus />}
-          {uploadMutation.isPending ? 'Đang tải lên…' : 'Thêm ảnh hoặc video'}
+          {isUploading ? <LoaderCircle className="animate-spin" /> : <ImagePlus />}
+          {isUploading ? 'Đang tải lên…' : 'Thêm ảnh hoặc video'}
         </Button>
       </div>
       {error && (
@@ -89,22 +60,35 @@ export function PostMediaUploader({
           {error}
         </p>
       )}
-      {media.length > 0 && (
+      {stagedFiles.length > 0 && (
         <ul aria-label="Phương tiện đính kèm" className="flex flex-wrap gap-2">
-          {media.map((item) => (
+          {stagedFiles.map((item) => (
             <li
-              key={item.assetId}
+              key={item.id}
               className="relative size-20 overflow-hidden rounded-md border border-border"
             >
-              <PostMediaItem media={item} controls={false} className="size-full object-cover" />
+              <PostMediaItem
+                media={{
+                  type: item.type,
+                  publicId: item.label,
+                  assetId: item.id,
+                  url: item.previewUrl,
+                  width: 0,
+                  height: 0,
+                  format: '',
+                  size: item.size,
+                }}
+                controls={false}
+                className="size-full object-cover"
+              />
               <Button
                 type="button"
                 variant="secondary"
                 size="icon-xs"
-                aria-label={`Xóa ${item.publicId}`}
+                aria-label={`Xóa ${item.label}`}
                 className="absolute top-1 right-1"
-                disabled={disabled || uploadMutation.isPending}
-                onClick={() => removeMedia(item.assetId)}
+                disabled={isBusy}
+                onClick={() => onFileRemove(item.id)}
               >
                 <X />
               </Button>
