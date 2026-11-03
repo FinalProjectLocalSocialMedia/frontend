@@ -3,10 +3,10 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PostCard } from '@/features/post/components/post-card'
 import { PostSearchForm } from '@/features/post/components/post-search-form'
-import { currentUserId } from '@/lib/posts-context'
 import { trending } from '@/lib/mock-nearby'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { getPostById } from '../api/post-api'
+import { postKeys } from '../api/post-queries'
 import { Spinner } from '@/components/ui/spinner'
 import { getCommentsByPostId } from '../api/comment-api'
 import { CommentSection } from '../components/comment-section'
@@ -14,7 +14,7 @@ import { CommentSection } from '../components/comment-section'
 export default function PostDetail() {
   const { postId } = useParams()
   const postQuery = useQuery({
-    queryKey: ['post-detail', postId],
+    queryKey: postKeys.detail(postId ?? ''),
     queryFn: () => getPostById(postId as string),
     enabled: Boolean(postId),
   })
@@ -70,7 +70,6 @@ export default function PostDetail() {
             likeCount: selectedPost.likeCount ?? 0,
             commentCount: selectedPost.commentCount ?? 0,
           }}
-          currentUserId={currentUserId}
         />
         <CommentSection
           commentCount={commentCount}

@@ -1,17 +1,17 @@
 import type { ReactNode } from 'react'
 import { ThemeProvider } from '@/components/layout/theme-provider'
 import { AuthProvider } from '@/features/auth/context/auth-context'
-import { PostsProvider } from '@/features/post/context/posts-context'
+import { PostInteractionsProvider } from '@/features/post/context/post-interactions-context'
 import { Toaster } from '@/components/ui/sonner'
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <PostsProvider>
+        <PostInteractionsProvider>
           {children}
           <Toaster position="top-center" />
-        </PostsProvider>
+        </PostInteractionsProvider>
       </AuthProvider>
     </ThemeProvider>
   )

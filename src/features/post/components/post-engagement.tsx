@@ -9,10 +9,11 @@ import { PostSearchItem } from '../types/post'
 interface PostEngagementProps {
   post: PostSearchItem
   liked: boolean
-  toggleLiked: (id: PostSearchItem['id']) => void
+  isLikePending: boolean
+  toggleLiked: () => void
 }
 
-export function PostEngagement({ post, liked, toggleLiked }: PostEngagementProps) {
+export function PostEngagement({ post, liked, isLikePending, toggleLiked }: PostEngagementProps) {
   async function copyText(text: string) {
     try {
       await navigator.clipboard.writeText(text)
@@ -41,11 +42,12 @@ export function PostEngagement({ post, liked, toggleLiked }: PostEngagementProps
         size="sm"
         aria-pressed={liked}
         aria-label={liked ? 'Bỏ thích' : 'Thích'}
-        onClick={() => toggleLiked(post.id)}
+        disabled={isLikePending}
+        onClick={() => toggleLiked()}
         className={cn('-ml-2.5', liked && 'text-rose-500 hover:text-rose-500')}
       >
         <Heart className={cn(liked && 'fill-current')} />
-        {post.likeCount !== undefined && post.likeCount + Number(liked)}
+        {post.likeCount !== undefined && post.likeCount}
       </Button>
 
       <Button

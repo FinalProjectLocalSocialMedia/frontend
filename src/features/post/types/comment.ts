@@ -15,6 +15,7 @@ export interface Comment {
   parentComment: Comment | null
   likeCount?: number
   commentCount?: number
+  isLikedByMe?: boolean
 }
 
 export interface CommentCursorPage {

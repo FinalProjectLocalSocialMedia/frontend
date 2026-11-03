@@ -34,10 +34,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { currentUserId, usePosts } from '@/lib/posts-context'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import type { PostSearchItem } from '@/features/post/types/post'
+import { useFeedPosts } from '@/features/post/api/post-queries'
+import { usePostInteractions } from '@/features/post/context/post-interactions-context'
+import { Spinner } from '@/components/ui/spinner'
 
 export type ProfileData = {
   id: string
@@ -179,7 +181,10 @@ type Confirm = { kind: 'block' } | { kind: 'report' } | { kind: 'delete'; postId
 
 const emptyStates: Record<string, { title: string; hint: string }> = {
   Posts: { title: 'Chưa có bài viết nào', hint: 'Bài viết được chia sẻ sẽ xuất hiện tại đây.' },
-  Liked: { title: 'Chưa có bài viết đã thích', hint: 'Nhấn vào biểu tượng trái tim trên bài viết để thích.' },
+  Liked: {
+    title: 'Chưa có bài viết đã thích',
+    hint: 'Nhấn vào biểu tượng trái tim trên bài viết để thích.',
+  },
   Saved: { title: 'Chưa có bài viết đã lưu', hint: 'Dùng menu tùy chọn trên bài viết để lưu lại.' },
 }
 
@@ -193,7 +198,8 @@ export function ProfilePage({
   const navigate = useNavigate()
   const { userId } = useParams()
   const { user } = useAuth()
-  const { posts: allPosts, savedIds, likedIds, removePost } = usePosts()
+  const feed = useFeedPosts()
+  const { savedIds, likedIds, removedIds, removePost } = usePostInteractions()
 
   // Xác định xem có phải trang cá nhân của chính mình không (dựa vào prop hoặc userId trên route)
   const isActualOwn = isOwnProfile && (!userId || userId === user?.id || userId === 'me')
@@ -245,8 +251,11 @@ export function ProfilePage({
   const [draft, setDraft] = useState(data)
   const avatarInput = useRef<HTMLInputElement>(null)
 
-  const postItems = allPosts?.items ?? []
-  const profileUserId = isActualOwn ? currentUserId : (userId || profile.username.replace(/^@/, ''))
+  const postItems =
+    feed.data?.pages
+      .flatMap((page) => page.items)
+      .filter((post) => !removedIds.includes(post.id)) ?? []
+  const profileUserId = isActualOwn ? user?.id : userId || profile.username.replace(/^@/, '')
   const ownPosts = postItems.filter((post: PostSearchItem) => post.author.id === profileUserId)
   const tabs = isActualOwn ? ['Posts', 'Liked', 'Saved'] : ['Posts']
   const postsByTab: Record<string, PostSearchItem[]> = {
@@ -288,7 +297,9 @@ export function ProfilePage({
     } else if (confirm.kind === 'block') {
       toast.success('Đã chặn người dùng')
     } else {
-      toast.success('Đã gửi báo cáo', { description: 'Cảm ơn bạn đã góp phần giữ an toàn cho Nearby.' })
+      toast.success('Đã gửi báo cáo', {
+        description: 'Cảm ơn bạn đã góp phần giữ an toàn cho Nearby.',
+      })
     }
     closeConfirm()
   }
@@ -312,7 +323,11 @@ export function ProfilePage({
   }
 
   return (
-    <Tabs value={tab} onValueChange={(value) => setTab(String(value))} className="w-full flex flex-col gap-0">
+    <Tabs
+      value={tab}
+      onValueChange={(value) => setTab(String(value))}
+      className="w-full flex flex-col gap-0"
+    >
       <section className="w-full border-b border-border bg-card px-5 py-8 sm:px-10">
         <div className="mx-auto max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
@@ -400,7 +415,24 @@ export function ProfilePage({
           return (
             <TabsContent key={item} value={item}>
               <div className="overflow-hidden rounded-2xl border border-border bg-card">
-                {list.length ? (
+                {feed.isPending ? (
+                  <div role="status" className="flex justify-center px-6 py-16">
+                    <Spinner />
+                    <span className="sr-only">Đang tải bài viết</span>
+                  </div>
+                ) : feed.isError && !feed.data ? (
+                  <div role="alert" className="px-6 py-16 text-center">
+                    <p className="text-sm text-destructive">{feed.error.message}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => void feed.refetch()}
+                    >
+                      Thử lại
+                    </Button>
+                  </div>
+                ) : list.length ? (
                   list.map((post) => (
                     <ProfilePost
                       key={post.id}
@@ -505,7 +537,9 @@ export function ProfilePage({
                 </button>
               ))
             ) : (
-              <p className="px-2 py-8 text-center text-sm text-muted-foreground">Không tìm thấy người dùng nào.</p>
+              <p className="px-2 py-8 text-center text-sm text-muted-foreground">
+                Không tìm thấy người dùng nào.
+              </p>
             )}
           </div>
         </Dialog>

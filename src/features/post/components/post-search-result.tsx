@@ -2,7 +2,6 @@ import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { PostCard } from '@/features/post/components/post-card'
-import { currentUserId } from '@/lib/posts-context'
 import { PostSearchItem } from '../types/post'
 
 type PostSearchResultsProps = {
@@ -72,16 +71,21 @@ export function PostSearchResults({
         <Search aria-hidden="true" className="mx-auto size-5 text-muted-foreground" />
         <p className="mt-3 text-sm font-medium">{emptyMessage || 'Không tìm thấy bài viết'}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          {emptyMessage ? 'Chưa có bài viết ở địa điểm/chủ đề này.' : 'Hãy thử tìm kiếm bằng từ khóa khác.'}
+          {emptyMessage
+            ? 'Chưa có bài viết ở địa điểm/chủ đề này.'
+            : 'Hãy thử tìm kiếm bằng từ khóa khác.'}
         </p>
       </div>
     )
   }
 
   return (
-    <section aria-label={query ? `Kết quả tìm kiếm cho "${query}"` : 'Kết quả tìm kiếm'} className="flex flex-col gap-4">
+    <section
+      aria-label={query ? `Kết quả tìm kiếm cho "${query}"` : 'Kết quả tìm kiếm'}
+      className="flex flex-col gap-4"
+    >
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} currentUserId={currentUserId} />
+        <PostCard key={post.id} post={post} />
       ))}
 
       {isFetchNextPageError && (
