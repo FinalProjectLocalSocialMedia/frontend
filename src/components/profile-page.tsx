@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { formatDistanceToNow } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-time'
 import {
   Camera,
   Check,
@@ -131,8 +131,7 @@ function getInitials(name: string) {
 }
 
 function formatPostTime(createdAt: string) {
-  const date = new Date(createdAt)
-  return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true, locale: vi })
+  return formatRelativeTime(createdAt)
 }
 
 /** `onDelete` is only passed for posts the current user is allowed to delete. */

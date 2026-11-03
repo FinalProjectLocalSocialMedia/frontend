@@ -2,10 +2,12 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { MessageCircle, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { useIsDesktop } from '@/hooks/use-media-query'
+import type { StagedMediaBatch } from '@/hooks/use-staged-media'
 import { useAuth } from '@/features/auth/context/auth-context'
 import { cn } from '@/lib/utils'
 import { defaultChatState, loadChatState, resetChatState, saveChatState } from '../mocks/mock-chat'
 import { chatApi } from '../api/chat-api'
+import { uploadChatMediaBatch } from '../api/chat-upload-api'
 import { useChatSocket } from '../hooks/use-chat-socket'
 import type {
   ChatMember,
@@ -189,7 +191,8 @@ export function ChatPage() {
             (m) =>
               m.conversationId === activeId &&
               m.id.startsWith('local-') &&
-              !loaded.some((l) => l.text?.trim() === m.text?.trim()),
+              (m.status === 'SENDING' ||
+                !loaded.some((l) => (l.text ?? '').trim() === (m.text ?? '').trim())),
           )
 
           return {
@@ -250,7 +253,7 @@ export function ChatPage() {
                 (m) =>
                   m.id.startsWith('local-') &&
                   m.conversationId === chatMsg.conversationId &&
-                  m.text?.trim() === chatMsg.text?.trim(),
+                  (m.text ?? '').trim() === (chatMsg.text ?? '').trim(),
               )
             : -1
 
@@ -384,64 +387,135 @@ export function ChatPage() {
     }))
   }
 
-  // 4. Gửi tin nhắn
-  async function sendMessage(text: string, replyTo?: string, media?: MediaItem[]) {
+  // 4. Gửi tin nhắn (hỗ trợ Optimistic UI kiểu Messenger: hiện tin nhắn + "Đang gửi..." ngay lập tức)
+  async function sendMessage(
+    text: string,
+    replyTo?: string,
+    media?: MediaItem[],
+    stagedBatch?: StagedMediaBatch<'IMAGE' | 'VIDEO' | 'AUDIO'>,
+  ) {
     if (!active || active.blocked) return
     const trimmed = text.trim()
-    if (!trimmed && (!media || media.length === 0)) return
+    const hasStagedFiles = Boolean(stagedBatch && stagedBatch.items.length > 0)
+    if (!trimmed && (!media || media.length === 0) && !hasStagedFiles) return
 
-    const tempId = `local-${Date.now()}`
+    const convId = active.id
+    const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
     const myId = user?.id || 'me'
+
+    const optimisticMedia: MediaItem[] | undefined = hasStagedFiles
+      ? stagedBatch!.items.map((item) => ({
+          url: item.previewUrl,
+          type: item.type,
+          name: item.name,
+          size: item.size,
+        }))
+      : media
+
+    const isBackendChat = isUuid(convId) && isAuthenticated
+    const initialStatus = hasStagedFiles || isBackendChat ? 'SENDING' : 'SENT'
 
     const localMsg: ChatMessage = {
       id: tempId,
-      conversationId: active.id,
+      conversationId: convId,
       senderId: myId,
       text: trimmed,
-      media,
+      media: optimisticMedia,
       createdAt: new Date().toISOString(),
       replyTo,
-      status: 'SENT',
+      status: initialStatus,
     }
 
     setState((s) => ({ ...s, messages: [...s.messages, localMsg] }))
 
-    if (isUuid(active.id) && isAuthenticated) {
-      const sentViaWs = socketSend(active.id, trimmed, media)
-      if (!sentViaWs) {
+    let finalMedia: MediaItem[] | undefined = media
+
+    if (hasStagedFiles && stagedBatch) {
+      try {
+        finalMedia = await uploadChatMediaBatch(stagedBatch.items.map((item) => item.file))
+      } catch (err: unknown) {
+        console.error('Lỗi tải tệp đính kèm lên Cloudinary:', err)
+        const msg = err instanceof Error ? err.message : 'Không thể tải tệp đính kèm lên'
+        toast.error(msg)
+        setState((s) => ({
+          ...s,
+          messages: s.messages.map((m) => (m.id === tempId ? { ...m, status: 'FAILED' } : m)),
+        }))
+        stagedBatch.releaseUrls()
+        return
+      }
+    }
+
+    if (isBackendChat) {
+      const sentViaWs = socketSend(convId, trimmed, finalMedia)
+      if (sentViaWs) {
+        setState((s) => ({
+          ...s,
+          messages: s.messages.map((m) =>
+            m.id === tempId
+              ? {
+                  ...m,
+                  media: finalMedia,
+                  status: m.status === 'SENDING' ? 'SENT' : m.status,
+                }
+              : m,
+          ),
+        }))
+        stagedBatch?.releaseUrls()
+      } else {
         try {
-          const res = await chatApi.sendMessage(active.id, { content: trimmed, media })
+          const res = await chatApi.sendMessage(convId, { content: trimmed, media: finalMedia })
           setState((s) => ({
             ...s,
             messages: s.messages.map((m) =>
-              m.id === tempId ? { ...m, id: res.id, status: res.status } : m,
+              m.id === tempId
+                ? { ...m, id: res.id, media: res.media ?? finalMedia, status: res.status }
+                : m,
             ),
           }))
         } catch (err) {
           console.error('Lỗi gửi tin nhắn qua REST fallback:', err)
           toast.error('Không thể gửi tin nhắn. Vui lòng thử lại!')
+          setState((s) => ({
+            ...s,
+            messages: s.messages.map((m) => (m.id === tempId ? { ...m, status: 'FAILED' } : m)),
+          }))
+        } finally {
+          stagedBatch?.releaseUrls()
         }
       }
-    } else if (isTestEnv) {
-      if (active.id.endsWith('-chat') || active.id === 'cau-giay' || active.id === 'design') {
-        const otherId = active.memberIds.find((id) => id !== 'me') ?? 'linh'
-        setTimeout(() => {
-          const replies = [
-            'Mình vừa nhận được tin của bạn!',
-            'Tuyệt vời, hẹn gặp bạn lát nữa nhé.',
-            'Đồng ý nhé, mình sẽ chuẩn bị trước.',
-            'Cảm ơn bạn đã thông tin!',
-          ]
-          const randomReply = replies[Math.floor(Math.random() * replies.length)]
-          const autoMsg: ChatMessage = {
-            id: `reply-${Date.now()}`,
-            conversationId: active.id,
-            senderId: otherId,
-            text: randomReply,
-            createdAt: new Date().toISOString(),
-          }
-          setState((s) => ({ ...s, messages: [...s.messages, autoMsg] }))
-        }, 1500)
+    } else {
+      if (hasStagedFiles) {
+        setState((s) => ({
+          ...s,
+          messages: s.messages.map((m) =>
+            m.id === tempId ? { ...m, media: finalMedia, status: 'SENT' } : m,
+          ),
+        }))
+        stagedBatch?.releaseUrls()
+      }
+
+      if (isTestEnv) {
+        if (convId.endsWith('-chat') || convId === 'cau-giay' || convId === 'design') {
+          const otherId = active.memberIds.find((id) => id !== 'me') ?? 'linh'
+          setTimeout(() => {
+            const replies = [
+              'Mình vừa nhận được tin của bạn!',
+              'Tuyệt vời, hẹn gặp bạn lát nữa nhé.',
+              'Đồng ý nhé, mình sẽ chuẩn bị trước.',
+              'Cảm ơn bạn đã thông tin!',
+            ]
+            const randomReply = replies[Math.floor(Math.random() * replies.length)]
+            const autoMsg: ChatMessage = {
+              id: `reply-${Date.now()}`,
+              conversationId: convId,
+              senderId: otherId,
+              text: randomReply,
+              createdAt: new Date().toISOString(),
+            }
+            setState((s) => ({ ...s, messages: [...s.messages, autoMsg] }))
+          }, 1500)
+        }
       }
     }
   }
@@ -492,7 +566,8 @@ export function ChatPage() {
       } catch (err: unknown) {
         console.error('Lỗi khi tạo direct chat:', err)
         const errMsg =
-          (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+          (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data
+            ?.message ||
           (err as Error)?.message ||
           'Không thể tạo cuộc trò chuyện mới'
         toast.error(errMsg)

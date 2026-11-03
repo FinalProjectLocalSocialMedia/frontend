@@ -200,7 +200,7 @@ export function ConversationList({
                   {conversation.muted && <BellOff className="size-3.5 text-muted-foreground" />}
                 </span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  {last ? (last.text ?? last.attachmentLabel) : 'Chưa có tin nhắn nào'}
+                  {last ? getLastMessagePreview(last) : 'Chưa có tin nhắn nào'}
                 </span>
               </span>
               {conversation.unread ? <Badge>{conversation.unread}</Badge> : null}
@@ -274,4 +274,15 @@ export function ConversationList({
 
 function lastTime(message?: ChatMessage) {
   return message ? Date.parse(message.createdAt) : Number.MAX_SAFE_INTEGER
+}
+
+function getLastMessagePreview(message: ChatMessage): string {
+  if (message.text?.trim()) return message.text
+  if (message.attachmentLabel) return message.attachmentLabel
+  const firstMedia = message.media?.[0]
+  if (!firstMedia) return 'Tin nhắn đính kèm'
+  if (firstMedia.type === 'AUDIO') return 'Đã gửi một đoạn ghi âm'
+  if (firstMedia.type === 'VIDEO') return 'Đã gửi một video'
+  if (firstMedia.type === 'IMAGE') return 'Đã gửi một hình ảnh'
+  return firstMedia.name || 'Đã gửi một tệp'
 }

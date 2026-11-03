@@ -1,18 +1,13 @@
 import { useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
 import { Heart, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatRelativeTime } from '@/lib/date-time'
 import type { Comment as CommentData } from '@/features/post/types/comment'
 import { UserAvatar } from './user-avatar'
 import { PostMediaGrid } from './post-media-grid'
 import { CommentReplies } from './comment-replies'
 import { CommentComposer } from './comment-composer'
 import { vi } from 'date-fns/locale'
-
-function formatCommentTime(createdAt: string) {
-  const date = new Date(createdAt)
-  return Number.isNaN(date.getTime()) ? createdAt : formatDistanceToNow(date, { addSuffix: true , locale: vi})
-}
 
 export function CommentCard({ comment, postId }: { comment: CommentData; postId: string }) {
   const [replying, setReplying] = useState(false)
@@ -28,7 +23,7 @@ export function CommentCard({ comment, postId }: { comment: CommentData; postId:
             dateTime={comment.createdAt}
             title={comment.createdAt}
           >
-            {formatCommentTime(comment.createdAt)}
+            {formatRelativeTime(comment.createdAt)}
           </time>
         </div>
         {comment.content && (

@@ -5,12 +5,14 @@ import { Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { useStagedMedia } from '@/hooks/use-staged-media'
 import { createComment } from '../api/comment-api'
-import { uploadPostMedia } from '../api/post-upload-api'
-import type { createCommentParams } from '../api/comment-api'
+import { uploadPostMediaBatch } from '../api/post-upload-api'
 import type { CommentCursorPage } from '../types/comment'
 import type { PostSearchItem } from '../types/post'
 import { PostMediaUploader } from './post-media-uploader'
+
+const COMMENT_MEDIA_TYPES = ['IMAGE', 'VIDEO'] as const
 
 function incrementParentCommentCount(
   data: InfiniteData<CommentCursorPage> | undefined,
@@ -42,10 +44,21 @@ export function CommentComposer({
 }) {
   const queryClient = useQueryClient()
   const [content, setContent] = useState('')
-  const [media, setMedia] = useState<NonNullable<createCommentParams['media']>>([])
+  const { stagedFiles, error, addFiles, removeFile, clearFiles } = useStagedMedia({
+    allowedTypes: COMMENT_MEDIA_TYPES,
+  })
   const isReply = Boolean(parentCommentId)
   const mutation = useMutation({
-    mutationFn: (request: createCommentParams) => createComment(request),
+    mutationFn: async ({ text, files }: { text: string; files: File[] }) => {
+      const uploadedMedia = files.length > 0 ? await uploadPostMediaBatch(files) : []
+
+      return createComment({
+        postId,
+        content: text,
+        parentCommentId,
+        media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
+      })
+    },
     onSuccess: async () => {
       queryClient.setQueryData<PostSearchItem>(['post-detail', postId], (post) =>
         post ? { ...post, commentCount: post.commentCount ? post.commentCount + 1 : 1 } : post,
@@ -61,7 +74,7 @@ export function CommentComposer({
         )
       }
       setContent('')
-      setMedia([])
+      clearFiles()
       onCreated?.()
       toast.success(isReply ? 'Đã gửi câu trả lời' : 'Đã đăng bình luận')
 
@@ -71,9 +84,9 @@ export function CommentComposer({
         queryClient.invalidateQueries({ queryKey: ['comment-replies', postId] }),
       ])
     },
-    onError: (error) => {
+    onError: (err) => {
       toast.error(isReply ? 'Không thể gửi câu trả lời' : 'Không thể đăng bình luận', {
-        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
+        description: err instanceof Error ? err.message : 'Đã xảy ra lỗi không xác định.',
       })
     },
   })
@@ -81,13 +94,11 @@ export function CommentComposer({
   function submitComment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const trimmedContent = content.trim()
-    if ((!trimmedContent && media.length === 0) || mutation.isPending) return
+    if ((!trimmedContent && stagedFiles.length === 0) || mutation.isPending) return
 
     mutation.mutate({
-      postId,
-      content: trimmedContent,
-      parentCommentId,
-      media: media.length ? media : undefined,
+      text: trimmedContent,
+      files: stagedFiles.map((item) => item.file),
     })
   }
 
@@ -102,10 +113,12 @@ export function CommentComposer({
         className="min-h-20"
       />
       <PostMediaUploader
-        media={media}
-        onMediaChange={setMedia}
-        uploadFile={uploadPostMedia}
+        stagedFiles={stagedFiles}
+        onFilesAdd={addFiles}
+        onFileRemove={removeFile}
+        error={error}
         disabled={mutation.isPending}
+        isUploading={mutation.isPending && stagedFiles.length > 0}
       />
       <div className="flex items-center justify-end gap-2">
         {onCreated && (
@@ -114,7 +127,10 @@ export function CommentComposer({
             variant="ghost"
             size="sm"
             disabled={mutation.isPending}
-            onClick={onCreated}
+            onClick={() => {
+              clearFiles()
+              onCreated()
+            }}
           >
             Hủy
           </Button>
@@ -122,7 +138,7 @@ export function CommentComposer({
         <Button
           type="submit"
           size="sm"
-          disabled={(!content.trim() && media.length === 0) || mutation.isPending}
+          disabled={(!content.trim() && stagedFiles.length === 0) || mutation.isPending}
         >
           <Send aria-hidden="true" />
           {mutation.isPending ? 'Đang gửi…' : isReply ? 'Trả lời' : 'Bình luận'}
