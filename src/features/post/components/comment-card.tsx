@@ -7,9 +7,12 @@ import { UserAvatar } from './user-avatar'
 import { PostMediaGrid } from './post-media-grid'
 import { CommentReplies } from './comment-replies'
 import { CommentComposer } from './comment-composer'
+import { useToggleCommentLike } from '../hooks/use-toggle-comment-like'
 
 export function CommentCard({ comment, postId }: { comment: CommentData; postId: string }) {
   const [replying, setReplying] = useState(false)
+  const commentLikeMutation = useToggleCommentLike(comment, postId)
+
 
   return (
     <article className="flex gap-3 py-3">
@@ -36,8 +39,25 @@ export function CommentCard({ comment, postId }: { comment: CommentData; postId:
           </div>
         )}
         <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-          <Heart aria-hidden="true" className="size-3.5" />
-          <span>{comment.likeCount ?? 0}</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            aria-label={comment.isLikedByMe ? 'Bỏ thích bình luận' : 'Thích bình luận'}
+            aria-pressed={comment.isLikedByMe}
+            disabled={commentLikeMutation.isPending}
+            onClick={() => commentLikeMutation.mutate(!comment.isLikedByMe)}
+          >
+            <Heart
+              aria-hidden="true"
+              className={`size-3.5 ${
+                comment.isLikedByMe
+                  ? 'fill-red-500 text-red-500'
+                  : ''
+              }`}
+            />
+            {comment.likeCount ?? 0}
+          </Button>
           <Button
             type="button"
             variant="ghost"

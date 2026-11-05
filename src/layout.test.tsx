@@ -67,8 +67,6 @@ function makeCreatedPost(content: string): Post {
     likeCount: 0,
     commentCount: 0,
     shareCount: 0,
-    comments: null,
-    likes: null,
   }
 }
 

@@ -1,7 +1,6 @@
-import { createHttpClient } from '@/lib/http-client'
+import { apiClient } from "@/lib/api-client";
 
-export const postHttp = createHttpClient({
+
+export const postHttp = apiClient.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL ?? ''}`,
-  withCredentials: true,
-  timeout: 15_000,
 })

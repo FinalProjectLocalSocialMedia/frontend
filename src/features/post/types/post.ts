@@ -17,8 +17,6 @@ export interface Post {
   likeCount: number
   commentCount: number
   shareCount: number
-  comments: Comment[] | null
-  likes: LikePost[] | null
   isLikedByMe?: boolean
   isSavedByMe?: boolean
 }

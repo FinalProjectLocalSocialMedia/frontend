@@ -80,7 +80,7 @@ export const useToggleLike = (post: PostSearchItem) => {
                     : current,
             )
             toast.error('Không thể cập nhật lượt thích', {
-                description: _error instanceof Error ? _error.message : 'Vui lòng thử lại.',
+                description: _error instanceof Error ? _error.message : 'Vui lòng thử lại sau.',
             })
         },
         onSettled: () => {

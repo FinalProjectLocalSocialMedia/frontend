@@ -7,8 +7,8 @@ import { useNavigate } from 'react-router-dom'
 import type { PostSearchItem } from '../types/post'
 import { usePostInteractions } from '../context/post-interactions-context'
 import { useAuth } from '@/features/auth/context/auth-context'
-import { useToggleLike } from '../hooks/useToggleLike'
-
+import { useToggleLike } from '../hooks/use-toggle-like'
+import { useToggleSavePost } from '../hooks/use-toggle-save-post'
 
 interface PostCardProps {
   post: PostSearchItem
@@ -16,15 +16,14 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const { user } = useAuth()
-  const { removedIds, toggleSaved, removePost } = usePostInteractions()
+  const { removedIds, removePost } = usePostInteractions()
   const navigate = useNavigate()
- 
+
   const liked = post.isLikedByMe ?? false
   const saved = post.isSavedByMe ?? false
   const isOwn = user !== null && post.author.id === user.id
   const likeMutation = useToggleLike(post)
-
-  
+  const savePostMutation = useToggleSavePost(post)
 
   if (removedIds.includes(post.id)) return null
 
@@ -43,7 +42,7 @@ export function PostCard({ post }: PostCardProps) {
             post={post}
             saved={saved}
             isOwn={isOwn}
-            toggleSaved={toggleSaved}
+            toggleSaved={() => savePostMutation.mutate(!saved)}
             removePost={removePost}
           />
         </div>
