@@ -35,7 +35,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import { useLikedPosts, useSavedPosts, useUserPosts } from '@/features/post/api/post-queries'
-import { usePostInteractions } from '@/features/post/context/post-interactions-context'
 import { Spinner } from '@/components/ui/spinner'
 import { PostCard } from '@/features/post/components/post-card'
 
@@ -150,7 +149,6 @@ export function ProfilePage({
   const navigate = useNavigate()
   const { userId } = useParams()
   const { user } = useAuth()
-  const { removedIds } = usePostInteractions()
 
   // Xác định xem có phải trang cá nhân của chính mình không (dựa vào prop hoặc userId trên route)
   const isActualOwn = isOwnProfile && (!userId || userId === user?.id || userId === 'me')
@@ -354,7 +352,7 @@ export function ProfilePage({
           const list =
             query.data?.pages
               .flatMap((page) => page.items)
-              .filter((post) => !removedIds.includes(post.id)) ?? []
+               ?? []
           return (
             <TabsContent key={item} value={item}>
               <div className="space-y-4">

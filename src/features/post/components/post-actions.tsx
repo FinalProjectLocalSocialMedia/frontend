@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bookmark, BookmarkCheck, Copy, Flag, MoreHorizontal, Trash2 } from 'lucide-react'
+import { Bookmark, BookmarkCheck, Copy, Flag, Loader2, MoreHorizontal, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -26,11 +26,12 @@ interface PostActionsProps {
   post: PostSearchItem
   saved: boolean
   isOwn: boolean
+  isDeletePending: boolean
   toggleSaved: (id: PostSearchItem['id']) => void
   removePost: (id: PostSearchItem['id']) => void
 }
 
-export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: PostActionsProps) {
+export function PostActions({ post, saved, isOwn, isDeletePending, toggleSaved, removePost }: PostActionsProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   async function copyText(text: string) {
@@ -90,23 +91,45 @@ export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: Pos
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!isDeletePending) {
+            setDeleteDialogOpen(open)
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa bài viết này?</AlertDialogTitle>
-            <AlertDialogDescription>Hành động này không thể hoàn tác.</AlertDialogDescription>
+            <AlertDialogDescription>
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeletePending}>
+              Hủy
+            </AlertDialogCancel>
+
             <AlertDialogAction
               variant="destructive"
+              disabled={isDeletePending}
               onClick={() => {
                 removePost(post.id)
-                setDeleteDialogOpen(false)
-                toast.success('Đã xóa bài viết')
               }}
             >
-              Xóa
+              {isDeletePending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Đang xóa...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="size-4" />
+                  Xóa
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -5,10 +5,10 @@ import { PostEngagement } from './post-engagement'
 import { PostContent } from './post-content'
 import { useNavigate } from 'react-router-dom'
 import type { PostSearchItem } from '../types/post'
-import { usePostInteractions } from '../context/post-interactions-context'
 import { useAuth } from '@/features/auth/context/auth-context'
 import { useToggleLike } from '../hooks/use-toggle-like'
 import { useToggleSavePost } from '../hooks/use-toggle-save-post'
+import { useDeletePost } from '../hooks/use-delete-post'
 
 interface PostCardProps {
   post: PostSearchItem
@@ -16,7 +16,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const { user } = useAuth()
-  const { removedIds, removePost } = usePostInteractions()
+
   const navigate = useNavigate()
 
   const liked = post.isLikedByMe ?? false
@@ -24,8 +24,9 @@ export function PostCard({ post }: PostCardProps) {
   const isOwn = user !== null && post.author.id === user.id
   const likeMutation = useToggleLike(post)
   const savePostMutation = useToggleSavePost(post)
+  const deletePostMutation = useDeletePost()
 
-  if (removedIds.includes(post.id)) return null
+  
 
   return (
     <article
@@ -42,8 +43,9 @@ export function PostCard({ post }: PostCardProps) {
             post={post}
             saved={saved}
             isOwn={isOwn}
+            isDeletePending={deletePostMutation.isPending}
             toggleSaved={() => savePostMutation.mutate(!saved)}
-            removePost={removePost}
+            removePost={() => deletePostMutation.mutate(post.id)}
           />
         </div>
       </div>

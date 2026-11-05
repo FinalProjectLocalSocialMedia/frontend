@@ -8,12 +8,12 @@ import { useFeedPosts } from '@/features/post/api/post-queries'
 import { useInfiniteScroll } from '@/features/post/hooks/use-infinite-scroll'
 import { Spinner } from '@/components/ui/spinner'
 import { currentLocation, trending } from '@/lib/mock-nearby'
-import { usePostInteractions } from '@/features/post/context/post-interactions-context'
+
 
 export default function HomeFeed() {
   const openCreate = useCreatePost()
   const feed = useFeedPosts()
-  const { removedIds } = usePostInteractions()
+  
 
   const sentinelRef = useInfiniteScroll({
     enabled: !!feed.hasNextPage && !feed.isFetchingNextPage,
@@ -22,7 +22,7 @@ export default function HomeFeed() {
   const posts =
     feed.data?.pages
       .flatMap((page) => page.items)
-      .filter((post) => !removedIds.includes(post.id)) ?? []
+       ?? []
 
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-8">
