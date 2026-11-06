@@ -1,24 +1,32 @@
-import { usePosts } from '@/lib/posts-context'
-
 import { PostHeader } from './post-header'
 import { PostActions } from './post-actions'
 import { PostMediaGrid } from './post-media-grid'
 import { PostEngagement } from './post-engagement'
 import { PostContent } from './post-content'
 import { useNavigate } from 'react-router-dom'
-import { PostSearchItem } from '../types/post'
+import type { PostSearchItem } from '../types/post'
+import { useAuth } from '@/features/auth/context/auth-context'
+import { useToggleLike } from '../hooks/use-toggle-like'
+import { useToggleSavePost } from '../hooks/use-toggle-save-post'
+import { useDeletePost } from '../hooks/use-delete-post'
 
 interface PostCardProps {
   post: PostSearchItem
-  currentUserId?: string
 }
 
-export function PostCard({ post, currentUserId }: PostCardProps) {
-  const { savedIds, likedIds, toggleLiked, toggleSaved, removePost } = usePosts()
+export function PostCard({ post }: PostCardProps) {
+  const { user } = useAuth()
+
   const navigate = useNavigate()
-  const liked = likedIds.includes(post.id)
-  const saved = savedIds.includes(post.id)
-  const isOwn = currentUserId !== undefined && post.author.id === currentUserId
+
+  const liked = post.isLikedByMe ?? false
+  const saved = post.isSavedByMe ?? false
+  const isOwn = user !== null && post.author.id === user.id
+  const likeMutation = useToggleLike(post)
+  const savePostMutation = useToggleSavePost(post)
+  const deletePostMutation = useDeletePost()
+
+  
 
   return (
     <article
@@ -30,15 +38,14 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           <PostHeader post={post} />
         </div>
 
-        <div onClick={(e) => e.stopPropagation()}
-          className="shrink-0"
-        >
+        <div onClick={(e) => e.stopPropagation()} className="shrink-0">
           <PostActions
             post={post}
             saved={saved}
             isOwn={isOwn}
-            toggleSaved={toggleSaved}
-            removePost={removePost}
+            isDeletePending={deletePostMutation.isPending}
+            toggleSaved={() => savePostMutation.mutate(!saved)}
+            removePost={() => deletePostMutation.mutate(post.id)}
           />
         </div>
       </div>
@@ -51,7 +58,12 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       </div>
 
       <div onClick={(e) => e.stopPropagation()}>
-        <PostEngagement post={post} liked={liked} toggleLiked={toggleLiked} />
+        <PostEngagement
+          post={post}
+          liked={liked}
+          isLikePending={likeMutation.isPending}
+          toggleLiked={() => likeMutation.mutate(!liked)}
+        />
       </div>
     </article>
   )

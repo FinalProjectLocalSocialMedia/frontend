@@ -17,8 +17,8 @@ export interface Post {
   likeCount: number
   commentCount: number
   shareCount: number
-  comments: Comment[] | null
-  likes: LikePost[] | null
+  isLikedByMe?: boolean
+  isSavedByMe?: boolean
 }
 
 export type PostSearchItem = {
@@ -36,6 +36,8 @@ export type PostSearchItem = {
   status: string
   likeCount?: number
   commentCount?: number
+  isLikedByMe?: boolean
+  isSavedByMe?: boolean
   createdAt: string
 }
 

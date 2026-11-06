@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { InfiniteData } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,11 +16,12 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useStagedMedia } from '@/hooks/use-staged-media'
 import { createPost } from '@/features/post/api/post-api'
+import { postKeys } from '@/features/post/api/post-queries'
 import { uploadPostMediaBatch } from '@/features/post/api/post-upload-api'
 import { PostMediaUploader } from '@/features/post/components/post-media-uploader'
 import type { PostMedia } from '@/features/post/types/post-media'
+import type { PostCursorPage } from '@/features/post/types/post'
 import { currentLocation } from '@/lib/mock-nearby'
-import { usePosts } from '@/lib/posts-context'
 
 const MAX_LENGTH = 280
 const POST_MEDIA_TYPES = ['IMAGE', 'VIDEO'] as const
@@ -33,7 +35,6 @@ export function CreatePostDialog({
 }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { addPost } = usePosts()
   const [text, setText] = useState('')
   const { stagedFiles, error, addFiles, removeFile, clearFiles } = useStagedMedia({
     allowedTypes: POST_MEDIA_TYPES,
@@ -41,8 +42,7 @@ export function CreatePostDialog({
 
   const createPostMutation = useMutation({
     mutationFn: async ({ content, files }: { content: string; files: File[] }) => {
-      const uploadedMedia: PostMedia[] =
-        files.length > 0 ? await uploadPostMediaBatch(files) : []
+      const uploadedMedia: PostMedia[] = files.length > 0 ? await uploadPostMediaBatch(files) : []
 
       return createPost({
         content,
@@ -54,19 +54,38 @@ export function CreatePostDialog({
       })
     },
     onSuccess: (post) => {
-      addPost({
-        items: [
-          {
-            ...post,
-            createdAt: post.createdAt || new Date().toISOString(),
-          },
-        ],
-        page: {
-          nextCursor: null,
-          hasMore: false,
+      const createdPost = {
+        ...post,
+        createdAt: post.createdAt || new Date().toISOString(),
+      }
+
+      queryClient.setQueryData<InfiniteData<PostCursorPage, string | undefined>>(
+        postKeys.feed(),
+        (current) => {
+          if (!current?.pages.length) {
+            return {
+              pages: [
+                {
+                  items: [createdPost],
+                  page: { nextCursor: null, hasMore: false },
+                },
+              ],
+              pageParams: [undefined],
+            }
+          }
+
+          return {
+            ...current,
+            pages: current.pages.map((page, index) => ({
+              ...page,
+              items:
+                index === 0
+                  ? [createdPost, ...page.items.filter((item) => item.id !== createdPost.id)]
+                  : page.items.filter((item) => item.id !== createdPost.id),
+            })),
+          }
         },
-      })
-      void queryClient.invalidateQueries({ queryKey: ['posts', 'feed'] })
+      )
       setText('')
       clearFiles()
       onOpenChange(false)
@@ -127,9 +146,7 @@ export function CreatePostDialog({
           isUploading={createPostMutation.isPending && stagedFiles.length > 0}
         />
         <DialogFooter className="items-center sm:justify-between">
-          <span className="text-xs text-muted-foreground">
-            {/* {text.length}/{MAX_LENGTH} */}
-          </span>
+          <span className="text-xs text-muted-foreground">{/* {text.length}/{MAX_LENGTH} */}</span>
           <Button
             onClick={submit}
             disabled={(!text.trim() && stagedFiles.length === 0) || createPostMutation.isPending}

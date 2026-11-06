@@ -172,3 +172,7 @@ export async function getPostById(postId: string): Promise<Post> {
   const response = await postHttp.get<Post>(`/post/posts/${postId}`)
   return response.data
 }
+
+export async function deletePost(postId: string): Promise<void> {
+  await postHttp.delete(`/post/posts/${postId}`)
+}

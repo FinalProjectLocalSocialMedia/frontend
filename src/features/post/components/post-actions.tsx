@@ -1,7 +1,18 @@
-import { Bookmark, BookmarkCheck, Copy, Flag, MoreHorizontal, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { Bookmark, BookmarkCheck, Copy, Flag, Loader2, MoreHorizontal, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,11 +26,14 @@ interface PostActionsProps {
   post: PostSearchItem
   saved: boolean
   isOwn: boolean
+  isDeletePending: boolean
   toggleSaved: (id: PostSearchItem['id']) => void
   removePost: (id: PostSearchItem['id']) => void
 }
 
-export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: PostActionsProps) {
+export function PostActions({ post, saved, isOwn, isDeletePending, toggleSaved, removePost }: PostActionsProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+
   async function copyText(text: string) {
     try {
       await navigator.clipboard.writeText(text)
@@ -48,7 +62,6 @@ export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: Pos
         <DropdownMenuItem
           onClick={() => {
             toggleSaved(post.id)
-            toast(saved ? 'Đã bỏ lưu bài viết' : 'Đã lưu bài viết')
           }}
         >
           {saved ? <BookmarkCheck /> : <Bookmark />}
@@ -62,13 +75,7 @@ export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: Pos
         <DropdownMenuSeparator />
 
         {isOwn ? (
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => {
-              removePost(post.id)
-              toast.success('Đã xóa bài viết')
-            }}
-          >
+          <DropdownMenuItem variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
             <Trash2 /> Xóa bài viết
           </DropdownMenuItem>
         ) : (
@@ -84,6 +91,49 @@ export function PostActions({ post, saved, isOwn, toggleSaved, removePost }: Pos
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!isDeletePending) {
+            setDeleteDialogOpen(open)
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa bài viết này?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletePending}>
+              Hủy
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isDeletePending}
+              onClick={() => {
+                removePost(post.id)
+              }}
+            >
+              {isDeletePending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Đang xóa...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="size-4" />
+                  Xóa
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DropdownMenu>
   )
 }

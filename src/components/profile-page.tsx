@@ -1,5 +1,4 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { formatRelativeTime } from '@/lib/date-time'
 import {
   Camera,
   Check,
@@ -7,7 +6,6 @@ import {
   Flag,
   MoreHorizontal,
   Search,
-  Trash2,
   UserPlus,
   UserRound,
   Users,
@@ -34,9 +32,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { currentUserId, usePosts } from '@/lib/posts-context'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
+import { useLikedPosts, useSavedPosts, useUserPosts } from '@/features/post/api/post-queries'
+import { Spinner } from '@/components/ui/spinner'
+import { PostCard } from '@/features/post/components/post-card'
 import type { PostSearchItem } from '@/features/post/types/post'
 import { vi } from 'date-fns/locale'
 
@@ -130,57 +130,14 @@ function getInitials(name: string) {
   )
 }
 
-function formatPostTime(createdAt: string) {
-  return formatRelativeTime(createdAt)
-}
-
-/** `onDelete` is only passed for posts the current user is allowed to delete. */
-function ProfilePost({ post, onDelete }: { post: PostSearchItem; onDelete?: () => void }) {
-  const topic = post.content.match(/#[\p{L}\p{N}_]+/u)?.[0]
-
-  return (
-    <article className="border-b border-border p-5 last:border-0">
-      <div className="flex gap-3">
-        <Avatar>
-          <AvatarFallback>{getInitials(post.author.fullName)}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <div className="flex justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold">{post.author.fullName}</p>
-              <p className="text-xs text-muted-foreground">
-                {formatPostTime(post.createdAt)} · {post.location?.name ?? 'Nearby'}
-              </p>
-            </div>
-            {onDelete && (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Xóa bài viết"
-                onClick={onDelete}
-                className="-mr-2 -mt-1 text-muted-foreground"
-              >
-                <Trash2 />
-              </Button>
-            )}
-          </div>
-          <p className="mt-3 leading-6">{post.content}</p>
-          {topic && <p className="mt-2 text-xs font-semibold text-primary">{topic}</p>}
-          <div className="mt-4 flex gap-5 text-xs text-muted-foreground">
-            <span>♡ {post.likeCount}</span>
-            <span>{post.commentCount} bình luận</span>
-          </div>
-        </div>
-      </div>
-    </article>
-  )
-}
-
-type Confirm = { kind: 'block' } | { kind: 'report' } | { kind: 'delete'; postId: string } | null
+type Confirm = { kind: 'block' } | { kind: 'report' } | null
 
 const emptyStates: Record<string, { title: string; hint: string }> = {
   Posts: { title: 'Chưa có bài viết nào', hint: 'Bài viết được chia sẻ sẽ xuất hiện tại đây.' },
-  Liked: { title: 'Chưa có bài viết đã thích', hint: 'Nhấn vào biểu tượng trái tim trên bài viết để thích.' },
+  Liked: {
+    title: 'Chưa có bài viết đã thích',
+    hint: 'Nhấn vào biểu tượng trái tim trên bài viết để thích.',
+  },
   Saved: { title: 'Chưa có bài viết đã lưu', hint: 'Dùng menu tùy chọn trên bài viết để lưu lại.' },
 }
 
@@ -194,7 +151,6 @@ export function ProfilePage({
   const navigate = useNavigate()
   const { userId } = useParams()
   const { user } = useAuth()
-  const { posts: allPosts, savedIds, likedIds, removePost } = usePosts()
 
   // Xác định xem có phải trang cá nhân của chính mình không (dựa vào prop hoặc userId trên route)
   const isActualOwn = isOwnProfile && (!userId || userId === user?.id || userId === 'me')
@@ -246,15 +202,11 @@ export function ProfilePage({
   const [draft, setDraft] = useState(data)
   const avatarInput = useRef<HTMLInputElement>(null)
 
-  const postItems = allPosts?.items ?? []
-  const profileUserId = isActualOwn ? currentUserId : (userId || profile.username.replace(/^@/, ''))
-  const ownPosts = postItems.filter((post: PostSearchItem) => post.author.id === profileUserId)
+  const profileUserId = isActualOwn ? user?.id : userId || profile.username.replace(/^@/, '')
   const tabs = isActualOwn ? ['Posts', 'Liked', 'Saved'] : ['Posts']
-  const postsByTab: Record<string, PostSearchItem[]> = {
-    Posts: ownPosts,
-    Liked: postItems.filter((post: PostSearchItem) => likedIds.includes(post.id)),
-    Saved: postItems.filter((post: PostSearchItem) => savedIds.includes(post.id)),
-  }
+  const postsQuery = useUserPosts(profileUserId, tab === 'Posts')
+  const likedQuery = useLikedPosts(isActualOwn && tab === 'Liked')
+  const savedQuery = useSavedPosts(isActualOwn && tab === 'Saved')
   const visiblePeople = people.filter((person) =>
     `${person.name} ${person.username}`.toLowerCase().includes(peopleSearch.toLowerCase()),
   )
@@ -283,13 +235,12 @@ export function ProfilePage({
 
   function executeConfirm() {
     if (!confirm) return
-    if (confirm.kind === 'delete') {
-      removePost(confirm.postId)
-      toast.success('Đã xóa bài viết')
-    } else if (confirm.kind === 'block') {
+    if (confirm.kind === 'block') {
       toast.success('Đã chặn người dùng')
     } else {
-      toast.success('Đã gửi báo cáo', { description: 'Cảm ơn bạn đã góp phần giữ an toàn cho Nearby.' })
+      toast.success('Đã gửi báo cáo', {
+        description: 'Cảm ơn bạn đã góp phần giữ an toàn cho Nearby.',
+      })
     }
     closeConfirm()
   }
@@ -305,15 +256,14 @@ export function ProfilePage({
       text: 'Người dùng này sẽ không thể xem hoặc tương tác với bạn.',
       action: 'Chặn',
     },
-    delete: {
-      title: 'Xóa bài viết này?',
-      text: 'Hành động này không thể hoàn tác.',
-      action: 'Xóa',
-    },
   }
 
   return (
-    <Tabs value={tab} onValueChange={(value) => setTab(String(value))} className="w-full flex flex-col gap-0">
+    <Tabs
+      value={tab}
+      onValueChange={(value) => setTab(String(value))}
+      className="w-full flex flex-col gap-0"
+    >
       <section className="w-full border-b border-border bg-card px-5 py-8 sm:px-10">
         <div className="mx-auto max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
@@ -338,7 +288,10 @@ export function ProfilePage({
                   <strong>{data.following}</strong> đang theo dõi
                 </button>
                 <span>
-                  <strong>{ownPosts.length}</strong> bài viết
+                  <strong>
+                    {postsQuery.data?.pages.flatMap((page) => page.items).length ?? 0}
+                  </strong>{' '}
+                  bài viết
                 </span>
               </div>
             </div>
@@ -397,27 +350,72 @@ export function ProfilePage({
 
       <section className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-10">
         {tabs.map((item) => {
-          const list = postsByTab[item]
+          const query = item === 'Liked' ? likedQuery : item === 'Saved' ? savedQuery : postsQuery
+          const list =
+            query.data?.pages
+              .flatMap((page) => page.items)
+               ?? []
           return (
             <TabsContent key={item} value={item}>
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
-                {list.length ? (
-                  list.map((post) => (
-                    <ProfilePost
-                      key={post.id}
-                      post={post}
-                      onDelete={
-                        item === 'Posts' && isOwnProfile
-                          ? () => setConfirm({ kind: 'delete', postId: post.id })
-                          : undefined
-                      }
-                    />
-                  ))
+              <div className="space-y-4">
+                {query.isPending ? (
+                  <div
+                    role="status"
+                    className="flex justify-center rounded-2xl border border-border bg-card px-6 py-16"
+                  >
+                    <Spinner />
+                    <span className="sr-only">Đang tải bài viết</span>
+                  </div>
+                ) : query.isError && !query.data ? (
+                  <div
+                    role="alert"
+                    className="rounded-2xl border border-border bg-card px-6 py-16 text-center"
+                  >
+                    <p className="text-sm text-destructive">{query.error.message}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => void query.refetch()}
+                    >
+                      Thử lại
+                    </Button>
+                  </div>
+                ) : list.length ? (
+                  list.map((post) => <PostCard key={post.id} post={post} />)
                 ) : (
-                  <div className="px-6 py-16 text-center">
+                  <div className="rounded-2xl border border-border bg-card px-6 py-16 text-center">
                     <Users className="mx-auto text-primary" />
                     <h2 className="mt-4 font-semibold">{emptyStates[item].title}</h2>
                     <p className="mt-2 text-sm text-muted-foreground">{emptyStates[item].hint}</p>
+                  </div>
+                )}
+                {query.isFetchNextPageError && (
+                  <p
+                    role="alert"
+                    className="rounded-2xl border border-destructive/30 bg-card px-6 py-3 text-center text-sm text-destructive"
+                  >
+                    Không thể tải thêm bài viết. Vui lòng thử lại.
+                  </p>
+                )}
+                {query.hasNextPage && (
+                  <div className="text-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void query.fetchNextPage()}
+                      disabled={query.isFetchingNextPage}
+                    >
+                      {query.isFetchingNextPage ? (
+                        <>
+                          <Spinner /> Đang tải thêm...
+                        </>
+                      ) : query.isFetchNextPageError ? (
+                        'Thử tải lại'
+                      ) : (
+                        'Xem thêm'
+                      )}
+                    </Button>
                   </div>
                 )}
               </div>
@@ -506,7 +504,9 @@ export function ProfilePage({
                 </button>
               ))
             ) : (
-              <p className="px-2 py-8 text-center text-sm text-muted-foreground">Không tìm thấy người dùng nào.</p>
+              <p className="px-2 py-8 text-center text-sm text-muted-foreground">
+                Không tìm thấy người dùng nào.
+              </p>
             )}
           </div>
         </Dialog>

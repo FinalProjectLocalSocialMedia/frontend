@@ -1,43 +1,28 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCreatePost } from '@/components/layout/create-post-context'
 import { PostCard } from '@/features/post/components/post-card'
 import { PostSearchForm } from '@/features/post/components/post-search-form'
-import { getFeed } from '@/features/post/api/post-api'
+import { useFeedPosts } from '@/features/post/api/post-queries'
 import { useInfiniteScroll } from '@/features/post/hooks/use-infinite-scroll'
 import { Spinner } from '@/components/ui/spinner'
 import { currentLocation, trending } from '@/lib/mock-nearby'
-import { currentUserId, usePosts } from '@/lib/posts-context'
 
-const FEED_PAGE_SIZE = 20
 
 export default function HomeFeed() {
-  const { posts: localPosts, nextPost } = usePosts()
   const openCreate = useCreatePost()
-  const feed = useInfiniteQuery({
-    queryKey: ['posts', 'feed'],
-    initialPageParam: undefined as string | undefined,
-    queryFn: async ({ pageParam }) => {
-      const page = await getFeed({ cursor: pageParam, limit: FEED_PAGE_SIZE })
-      nextPost(page)
-      return page
-    },
-    getNextPageParam: (lastPage) => lastPage?.page?.nextCursor || undefined,
-  })
+  const feed = useFeedPosts()
+  
 
   const sentinelRef = useInfiniteScroll({
     enabled: !!feed.hasNextPage && !feed.isFetchingNextPage,
     onLoadMore: () => void feed.fetchNextPage(),
   })
-  const remotePosts = feed.data?.pages.flatMap((page) => page.items) ?? []
-  const posts = [
-    ...localPosts.items,
-    ...remotePosts.filter(
-      (post) => !localPosts.items.some((localPost) => localPost.id === post.id),
-    ),
-  ]
+  const posts =
+    feed.data?.pages
+      .flatMap((page) => page.items)
+       ?? []
 
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-8">
@@ -54,9 +39,7 @@ export default function HomeFeed() {
           onClick={openCreate}
           className="w-full rounded-2xl border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.02] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
-          <p className="text-sm font-medium text-muted-foreground">
-            Có gì đang diễn ra quanh bạn?
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">Có gì đang diễn ra quanh bạn?</p>
           <div className="mt-2 flex items-center gap-2 text-lg font-semibold">
             <MapPin className="size-5 text-primary" /> {currentLocation.name}
           </div>
@@ -71,7 +54,6 @@ export default function HomeFeed() {
                 likeCount: post.likeCount ?? 0,
                 commentCount: post.commentCount ?? 0,
               }}
-              currentUserId={currentUserId}
             />
           ))}
 

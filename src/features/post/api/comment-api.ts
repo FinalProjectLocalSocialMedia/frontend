@@ -66,3 +66,7 @@ export async function createComment({
     media,
   })
 }
+
+export async function deleteComment(commentId: string): Promise<void> {
+  await postHttp.delete(`/post/posts/comments/${commentId}`)
+}

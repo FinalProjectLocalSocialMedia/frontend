@@ -78,8 +78,6 @@ function makeCreatedPost(content: string): Post {
     likeCount: 0,
     commentCount: 0,
     shareCount: 0,
-    comments: null,
-    likes: null,
   }
 }
 
@@ -124,7 +122,10 @@ const sidebarLink = (name: string) =>
 async function submitCreatePost(user: ReturnType<typeof userEvent.setup>, text: string) {
   await user.click(screen.getAllByRole('button', { name: 'Tạo bài viết' })[0])
   const dialog = await screen.findByRole('dialog')
-  await user.type(within(dialog).getByPlaceholderText('Có điều gì đang diễn ra xung quanh bạn?'), text)
+  await user.type(
+    within(dialog).getByPlaceholderText('Có điều gì đang diễn ra xung quanh bạn?'),
+    text,
+  )
   await user.click(within(dialog).getByRole('button', { name: 'Đăng bài' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 }
