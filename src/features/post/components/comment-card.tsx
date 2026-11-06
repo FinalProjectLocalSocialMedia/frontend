@@ -12,6 +12,7 @@ import { CommentComposer } from './comment-composer'
 import { useToggleCommentLike } from '../hooks/use-toggle-comment-like'
 import { useDeleteComment } from '../hooks/use-delete-comment'
 import { CommentAction } from './comment-action'
+import { vi } from 'date-fns/locale'
 
 export function CommentCard({ comment, postId }: { comment: CommentData; postId: string }) {
   const [replying, setReplying] = useState(false)

@@ -37,6 +37,8 @@ import { cn } from '@/lib/utils'
 import { useLikedPosts, useSavedPosts, useUserPosts } from '@/features/post/api/post-queries'
 import { Spinner } from '@/components/ui/spinner'
 import { PostCard } from '@/features/post/components/post-card'
+import type { PostSearchItem } from '@/features/post/types/post'
+import { vi } from 'date-fns/locale'
 
 export type ProfileData = {
   id: string
