@@ -362,6 +362,16 @@ export function ChatPage() {
     onTypingReceived: handleTypingReceived,
     onReadReceiptReceived: handleReadReceiptReceived,
     onConversationReceived: handleConversationReceived,
+    onErrorReceived: (err) => {
+      setState((s) => ({
+        ...s,
+        messages: s.messages.map((m) =>
+          m.status === 'SENDING' && (!err.conversationId || m.conversationId === err.conversationId)
+            ? { ...m, status: 'FAILED' }
+            : m,
+        ),
+      }))
+    },
   })
 
   useEffect(() => {
