@@ -26,6 +26,7 @@ import {
   mockSearchService,
   mockUserService,
 } from './mock/map.mock'
+import { httpMapService, httpSearchService } from './map.http'
 
 export type RequestOptions = {
   signal?: AbortSignal
@@ -69,8 +70,8 @@ export interface UserService {
   ): Promise<PageResponse<PostCardData>>
 }
 
-// Trong các pha đầu, mặc định sử dụng triển khai mock (USE_MOCK = true)
-export const mapService: MapService = USE_MOCK ? mockMapService : mockMapService
+// Khi VITE_USE_MOCK=false, tự động chuyển đổi sang HTTP client thực tế kết nối với backend qua Gateway
+export const mapService: MapService = USE_MOCK ? mockMapService : httpMapService
 export const feedService: FeedService = USE_MOCK ? mockFeedService : mockFeedService
-export const searchService: SearchService = USE_MOCK ? mockSearchService : mockSearchService
+export const searchService: SearchService = USE_MOCK ? mockSearchService : httpSearchService
 export const userService: UserService = USE_MOCK ? mockUserService : mockUserService

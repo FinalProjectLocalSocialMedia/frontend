@@ -112,15 +112,27 @@ export function useMapUrlState() {
   // Chuyển đổi modal / bảng tìm kiếm sử dụng push để nút Back của trình duyệt có thể đóng lại
   // Quy tắc 6.4b: Chỉ mở một panel mỗi lúc (mở place thì đóng topic/search và ngược lại)
   const setPlaceId = useCallback(
-    (id: string | null) => {
+    (id: string | null, targetCenter?: GeoPoint | null, targetZoom?: number | null) => {
       setSearchParams(
         (prev) => {
-          const updates: { placeId: string | null; topic?: string | null; searchQuery?: string | null } = {
+          const updates: {
+            placeId: string | null
+            topic?: string | null
+            searchQuery?: string | null
+            center?: GeoPoint
+            zoom?: number
+          } = {
             placeId: id,
           }
           if (id) {
             updates.topic = null
             updates.searchQuery = null
+          }
+          if (targetCenter) {
+            updates.center = targetCenter
+          }
+          if (targetZoom !== undefined && targetZoom !== null) {
+            updates.zoom = targetZoom
           }
           return serializeMapUrlParams(updates, prev)
         },

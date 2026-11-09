@@ -49,6 +49,7 @@ export default function ExplorePage() {
   const [totalPostsInView, setTotalPostsInView] = useState<number>(0)
   const [loadedPlaces, setLoadedPlaces] = useState<MapPlace[]>([])
   const [dismissedFocusPlaceId, setDismissedFocusPlaceId] = useState<string | null>(null)
+  const mapRef = useRef<google.maps.Map | null>(null)
 
   // Đồng bộ ô nhập liệu tìm kiếm khi search param thay đổi
   useEffect(() => {
@@ -198,6 +199,9 @@ export default function ExplorePage() {
           zoom={urlState.zoom}
           onIdle={handleMapIdle}
           onMapClick={handleMapClick}
+          onMapReady={(map) => {
+            mapRef.current = map
+          }}
           className={`size-full ${isPickingLocation ? 'cursor-crosshair' : ''}`}
         >
           {/* Lớp mật độ hoạt động (Pha 2 & Pha 2B: HEATMAP hoặc HEX) */}
@@ -221,11 +225,11 @@ export default function ExplorePage() {
           />
 
           {/* Marker chủ đề xu hướng (Pha 4: zoom >= 15, tối đa 40 marker DOM dạng pill) */}
-          {/* <TopicMarkers
+          <TopicMarkers
             viewport={currentViewport}
             statsWindow={urlState.window}
             onSelectTopic={(topic, placeId) => setTopic(topic, placeId)}
-          /> */}
+          />
 
           {/* Chấm tròn biểu thị toạ độ GPS của người dùng */}
           <UserLocationDot position={gpsPosition} />
@@ -238,6 +242,7 @@ export default function ExplorePage() {
             center={areaCenter}
             radiusKm={urlState.radiusKm}
             autoFit={autoFitRadius}
+            onAutoFitComplete={() => setAutoFitRadius(false)}
           />
         </BaseMap>
       </GoogleMapsProvider>
@@ -274,7 +279,11 @@ export default function ExplorePage() {
         radiusKm={urlState.radiusKm}
         onSelectPlace={(place) => {
           setAreaCenter(place.center)
-          setPlaceId(place.id)
+          setPlaceId(place.id, place.center, 13)
+          if (mapRef.current) {
+            mapRef.current.panTo({ lat: place.center.latitude, lng: place.center.longitude })
+            mapRef.current.setZoom(13)
+          }
         }}
       />
 

@@ -14,6 +14,7 @@ export type BaseMapProps = {
   mapId?: string
   className?: string
   children?: ReactNode
+  onMapReady?: (map: google.maps.Map | null) => void
   onIdle?: (viewport: MapViewState) => void
   onMapClick?: (event: google.maps.MapMouseEvent) => void
 }
@@ -97,6 +98,7 @@ export function BaseMap({
   children,
   onIdle,
   onMapClick,
+  onMapReady,
 }: BaseMapProps) {
   useForceLight()
 
@@ -162,7 +164,10 @@ export function BaseMap({
           className="size-full"
         >
           <MapSynchronizer
-            onMapReady={setMapInstance}
+            onMapReady={(map) => {
+              setMapInstance(map)
+              onMapReady?.(map)
+            }}
             onIdleChange={handleIdle}
             onMapClick={onMapClick}
           />

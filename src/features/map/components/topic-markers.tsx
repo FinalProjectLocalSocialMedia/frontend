@@ -44,6 +44,7 @@ export function TopicMarkers({ viewport, statsWindow, onSelectTopic }: TopicMark
   const { data: rawMarkers } = useTopicMarkersQuery(
     {
       bounds: queryBounds ?? { north: 0, south: 0, east: 0, west: 0 },
+      zoom: Math.floor(currentZoom),
       limit: MAP_CONFIG.MAX_TOPIC_MARKERS,
       window: statsWindow,
     },

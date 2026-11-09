@@ -91,6 +91,7 @@ export type DensityResponse = {
 // ===== Marker =====
 export type PlaceMarkersQuery = {
   bounds: LatLngBounds
+  zoom: number
   limit: number
   window: StatsWindow
 }
@@ -107,6 +108,7 @@ export type TopicMarker = {
 
 export type TopicMarkersQuery = {
   bounds: LatLngBounds
+  zoom: number
   limit: number
   window: StatsWindow
 }
@@ -223,6 +225,7 @@ export type HeatPoint = {
 
 export type HeatPointsQuery = {
   bounds: LatLngBounds
+  zoom: number
   window: StatsWindow
   limit: number
 }

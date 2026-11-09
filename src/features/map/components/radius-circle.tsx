@@ -7,16 +7,23 @@ export type RadiusCircleProps = {
   center: GeoPoint
   radiusKm: RadiusKm
   autoFit?: boolean
+  onAutoFitComplete?: () => void
 }
 
 /**
  * Vẽ vòng tròn bán kính màu primary bao quanh tâm khu vực đang chọn.
  * Tự động dọn dẹp instance google.maps.Circle khi unmount.
  */
-export function RadiusCircle({ center, radiusKm, autoFit = false }: RadiusCircleProps) {
+export function RadiusCircle({
+  center,
+  radiusKm,
+  autoFit = false,
+  onAutoFitComplete,
+}: RadiusCircleProps) {
   const { map, fitBounds } = useMapContext()
   const circleRef = useRef<google.maps.Circle | null>(null)
   const isFirstRenderRef = useRef(true)
+  const prevRadiusRef = useRef(radiusKm)
 
   // Khởi tạo hoặc cập nhật đối tượng Google Maps Circle
   useEffect(() => {
@@ -55,9 +62,16 @@ export function RadiusCircle({ center, radiusKm, autoFit = false }: RadiusCircle
       if (!autoFit) return
     }
 
+    // Nếu không có yêu cầu autoFit và bán kính không thay đổi thì không tự ý fitBounds làm sai lệch zoom của người dùng
+    if (!autoFit && prevRadiusRef.current === radiusKm) {
+      return
+    }
+
+    prevRadiusRef.current = radiusKm
     const bounds = radiusToBounds(center, radiusKm)
     fitBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 })
-  }, [map, center.latitude, center.longitude, radiusKm, autoFit, fitBounds])
+    onAutoFitComplete?.()
+  }, [map, center.latitude, center.longitude, radiusKm, autoFit, fitBounds, onAutoFitComplete])
 
   return null
 }

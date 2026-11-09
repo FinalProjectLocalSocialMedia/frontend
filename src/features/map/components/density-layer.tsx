@@ -116,10 +116,11 @@ export function DensityLayer({
   const heatQuery: HeatPointsQuery = useMemo(
     () => ({
       bounds: debouncedViewport?.bounds ?? { north: 0, south: 0, east: 0, west: 0 },
+      zoom: Math.floor(viewport?.zoom ?? 0),
       window: statsWindow,
       limit: MAP_CONFIG.HEATMAP.MAX_POINTS,
     }),
-    [debouncedViewport, statsWindow],
+    [debouncedViewport, statsWindow, viewport?.zoom],
   )
 
   // 1. Kích hoạt truy vấn ô lục giác HEX

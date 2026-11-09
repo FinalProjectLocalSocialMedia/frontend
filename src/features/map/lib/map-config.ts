@@ -18,7 +18,7 @@ export const MAP_CONFIG = {
   MAX_CELLS: 1500,
   MAX_PLACE_MARKERS: 60,
   MAX_TOPIC_MARKERS: 40,
-  MIN_POSTS_PER_CELL: 3, // Ngưỡng riêng tư tối thiểu (M11)
+  MIN_POSTS_PER_CELL: 0, // Bỏ ngưỡng ẩn (E9) - hiển thị số lượng bài thật
   FETCH_DEBOUNCE_MS: 250,
   STALE_TIME_MS: 60_000,
   GC_TIME_MS: 300_000,

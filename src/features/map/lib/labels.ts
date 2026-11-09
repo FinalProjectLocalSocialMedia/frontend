@@ -13,6 +13,7 @@ export const LOCATION_TYPE_LABELS: Record<string, string> = {
   lake: 'Hồ nước',
   landmark: 'Địa danh',
   transit: 'Bến xe / Ga tàu',
+  ward: 'phường'
 }
 
 /** Định dạng kiểu địa điểm thành nhãn tiếng Việt thân thiện */

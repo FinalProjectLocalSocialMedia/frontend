@@ -44,6 +44,7 @@ export function PlaceMarkers({ viewport, statsWindow, onSelectPlace, onPlacesLoa
   const { data: rawPlaces } = usePlaceMarkersQuery(
     {
       bounds: queryBounds ?? { north: 0, south: 0, east: 0, west: 0 },
+      zoom: Math.floor(currentZoom),
       limit: queryLimit,
       window: statsWindow,
     },

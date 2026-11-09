@@ -44,6 +44,7 @@ describe('mockMapService', () => {
   it('retrieves place markers sorted by trend score within bounds', async () => {
     const places = await mockMapService.getPlaceMarkers({
       bounds: hanoiBounds,
+      zoom: 14,
       limit: 10,
       window: '7d',
     })
@@ -59,6 +60,7 @@ describe('mockMapService', () => {
   it('retrieves topic markers positioned at place center (R3)', async () => {
     const markers = await mockMapService.getTopicMarkers({
       bounds: hanoiBounds,
+      zoom: 15,
       limit: 15,
       window: '7d',
     })
