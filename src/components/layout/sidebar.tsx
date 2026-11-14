@@ -13,6 +13,7 @@ import {
 import { navItems } from '@/lib/nav'
 import { useAuth } from '@/lib/auth-context'
 import { getDisplayName } from '@/features/auth/types/auth'
+import { useNavBadges } from './nav-badges-context'
 import { ThemeToggle } from './theme-toggle'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -30,6 +31,7 @@ const revealOnExpand =
  */
 export function Sidebar({ onCreate }: { onCreate: () => void }) {
   const { user, isAuthenticated, logout } = useAuth()
+  const { notificationUnread, chatUnread } = useNavBadges()
   const navigate = useNavigate()
   const displayName = user ? getDisplayName(user) : ''
   const avatarUrl = user && 'avatarUrl' in user ? user.avatarUrl : undefined
@@ -60,40 +62,47 @@ export function Sidebar({ onCreate }: { onCreate: () => void }) {
         </Link>
 
         <nav aria-label="Primary" className="flex flex-col gap-1">
-          {navItems.map(({ to, label, icon: Icon, end, count }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                cn(
-                  'relative flex h-11 items-center gap-3 rounded-xl px-3.5 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                )
-              }
-            >
-              <Icon className="size-5 shrink-0" />
-              <span className={revealOnExpand}>{label}</span>
-              {count ? (
-                <>
-                  <Badge
-                    variant="secondary"
-                    className={cn(revealOnExpand, 'ml-auto')}
-                    aria-label={`${count} mới`}
-                  >
-                    {count}
-                  </Badge>
-                  {/* Collapsed state: a dot on the icon instead of the number. */}
-                  <span
-                    aria-hidden
-                    className="absolute top-2.5 left-7 size-2 rounded-full bg-destructive ring-2 ring-card group-hover/sidebar:hidden group-has-[:focus-visible]/sidebar:hidden"
-                  />
-                </>
-              ) : null}
-            </NavLink>
-          ))}
+          {navItems.map(({ to, label, icon: Icon, end, count }) => {
+            const badgeCount =
+              to === '/notifications'
+                ? notificationUnread
+                : to === '/messages'
+                  ? chatUnread
+                  : (count ?? 0)
+            const badgeText = badgeCount > 99 ? '99+' : String(badgeCount)
+
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                aria-label={badgeCount > 0 ? `${label}, ${badgeCount} chưa đọc` : undefined}
+                className={({ isActive }) =>
+                  cn(
+                    'relative flex h-11 items-center gap-3 rounded-xl px-3.5 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )
+                }
+              >
+                <Icon className="size-5 shrink-0" />
+                <span className={revealOnExpand}>{label}</span>
+                {badgeCount > 0 ? (
+                  <>
+                    <Badge variant="secondary" className={cn(revealOnExpand, 'ml-auto')}>
+                      {badgeText}
+                    </Badge>
+                    {/* Collapsed state: a dot on the icon instead of the number. */}
+                    <span
+                      aria-hidden
+                      className="absolute top-2.5 left-7 size-2 rounded-full bg-destructive ring-2 ring-card group-hover/sidebar:hidden group-has-[:focus-visible]/sidebar:hidden"
+                    />
+                  </>
+                ) : null}
+              </NavLink>
+            )
+          })}
         </nav>
 
         <Button

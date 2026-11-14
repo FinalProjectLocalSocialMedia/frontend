@@ -1,17 +1,18 @@
 import { Bell, LogIn, Navigation } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { navItems } from '@/lib/nav'
 import { useAuth } from '@/lib/auth-context'
 import { getDisplayName } from '@/features/auth/types/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { useNavBadges } from './nav-badges-context'
 import { ThemeToggle } from './theme-toggle'
-
-const notifications = navItems.find((item) => item.to === '/notifications')
 
 export function MobileHeader() {
   const { user, isAuthenticated } = useAuth()
+  const { notificationUnread } = useNavBadges()
   const displayName = user ? getDisplayName(user) : ''
   const avatarUrl = user && 'avatarUrl' in user ? user.avatarUrl : undefined
+  const badgeText = notificationUnread > 99 ? '99+' : String(notificationUnread)
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border/70 bg-card/90 px-4 py-3 backdrop-blur lg:hidden">
@@ -27,12 +28,19 @@ export function MobileHeader() {
         <ThemeToggle iconClassName="size-5" className="size-9 text-muted-foreground" />
         <Link
           to="/notifications"
-          aria-label={`Thông báo${notifications?.count ? `, ${notifications.count} mới` : ''}`}
+          aria-label={
+            notificationUnread > 0 ? `Thông báo, ${notificationUnread} chưa đọc` : 'Thông báo'
+          }
           className="relative rounded-lg p-2 text-muted-foreground hover:bg-muted"
         >
           <Bell className="size-5" />
-          {notifications?.count ? (
-            <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-destructive ring-2 ring-card" />
+          {notificationUnread > 0 ? (
+            <Badge
+              variant="default"
+              className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 text-[10px] leading-none"
+            >
+              {badgeText}
+            </Badge>
           ) : null}
         </Link>
         {isAuthenticated && user ? (

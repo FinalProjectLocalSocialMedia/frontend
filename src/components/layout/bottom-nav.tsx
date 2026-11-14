@@ -1,22 +1,37 @@
 import { Plus } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { bottomNavLeft, bottomNavRight, type NavItem } from '@/lib/nav'
+import { useNavBadges } from './nav-badges-context'
 import { cn } from '@/lib/utils'
 
-function BottomNavLink({ to, label, icon: Icon, end }: NavItem) {
+function BottomNavLink({ to, label, icon: Icon, end, badgeCount = 0 }: NavItem & { badgeCount?: number }) {
+  const badgeText = badgeCount > 99 ? '99+' : String(badgeCount)
+
   return (
     <NavLink
       to={to}
       end={end}
+      aria-label={badgeCount > 0 ? `${label}, ${badgeCount} chưa đọc` : undefined}
       className={({ isActive }) =>
         cn(
-          'flex flex-col items-center justify-center gap-1 text-[11px] font-medium outline-none transition-colors focus-visible:bg-muted',
+          'relative flex flex-col items-center justify-center gap-1 text-[11px] font-medium outline-none transition-colors focus-visible:bg-muted',
           isActive ? 'text-primary' : 'text-muted-foreground',
         )
       }
     >
-      <Icon className="size-5" />
+      <span className="relative">
+        <Icon className="size-5" />
+        {badgeCount > 0 ? (
+          <Badge
+            variant="default"
+            className="absolute -top-1.5 -right-2.5 h-4 min-w-4 px-1 text-[10px] leading-none"
+          >
+            {badgeText}
+          </Badge>
+        ) : null}
+      </span>
       {label}
     </NavLink>
   )
@@ -24,6 +39,14 @@ function BottomNavLink({ to, label, icon: Icon, end }: NavItem) {
 
 /** Mobile/tablet navigation (hidden from `lg` up, where the Sidebar takes over). */
 export function BottomNav({ onCreate }: { onCreate: () => void }) {
+  const { notificationUnread, chatUnread } = useNavBadges()
+
+  const getBadgeCount = (to: string, count?: number) => {
+    if (to === '/notifications') return notificationUnread
+    if (to === '/messages') return chatUnread
+    return count ?? 0
+  }
+
   return (
     <nav
       aria-label="Primary"
@@ -31,7 +54,11 @@ export function BottomNav({ onCreate }: { onCreate: () => void }) {
     >
       <div className="grid h-16 grid-cols-5">
         {bottomNavLeft.map((item) => (
-          <BottomNavLink key={item.to} {...item} />
+          <BottomNavLink
+            key={item.to}
+            {...item}
+            badgeCount={getBadgeCount(item.to, item.count)}
+          />
         ))}
         <div className="flex items-center justify-center">
           <Button
@@ -44,7 +71,11 @@ export function BottomNav({ onCreate }: { onCreate: () => void }) {
           </Button>
         </div>
         {bottomNavRight.map((item) => (
-          <BottomNavLink key={item.to} {...item} />
+          <BottomNavLink
+            key={item.to}
+            {...item}
+            badgeCount={getBadgeCount(item.to, item.count)}
+          />
         ))}
       </div>
     </nav>
