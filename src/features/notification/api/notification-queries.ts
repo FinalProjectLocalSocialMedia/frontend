@@ -36,6 +36,7 @@ export function useMarkReadMutation() {
     mutationFn: (id: string) => notificationApi.markRead(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
     },
   })
 }

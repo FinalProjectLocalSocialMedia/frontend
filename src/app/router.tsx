@@ -1,15 +1,14 @@
 import { lazy, Suspense } from 'react'
-import { Bell } from 'lucide-react'
 import { Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Spinner } from '@/components/ui/spinner'
-import ComingSoonPage from '@/pages/coming-soon'
 import NotFoundPage from '@/pages/not-found'
 import { ProfilePage } from '@/components/profile-page'
 import HomeFeed from '@/features/post/pages/home-feed'
 import PostDetail from '@/features/post/pages/post-detail'
 import PostSearch from '@/features/post/pages/post-search'
 import { ChatPage } from '@/features/chat/pages/chat-page'
+import { NotificationPage } from '@/features/notification/pages/notification-page'
 import AuthPage from '@/features/auth/pages/auth-page'
 
 import { RequireAuth } from '@/features/auth/components/guards'
@@ -61,10 +60,7 @@ export function AppRouter() {
           <Route path="messages" element={<ChatPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="profile/:userId" element={<ProfilePage />} />
-          <Route
-            path="notifications"
-            element={<ComingSoonPage title="Thông báo" icon={Bell} />}
-          />
+          <Route path="notifications" element={<NotificationPage />} />
         </Route>
 
         <Route path="login" element={<AuthPage initialMode="login" />} />
