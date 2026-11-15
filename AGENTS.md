@@ -61,6 +61,7 @@ Kích thước `Button`: `default | xs | sm | lg | icon | icon-xs | icon-sm | ic
 - **Hai dialog modal không được chồng nhau** (ví dụ Sheet + Dialog). Đóng lớp dưới trước khi mở lớp trên (xem `onReport` trong `chat-page.tsx`).
 - **Test:** toast của Sonner xuất hiện hai lần trong DOM → dùng `findAllByText`. Menu/Select của Base UI cần `userEvent` (không dùng `fireEvent`). jsdom không có `matchMedia` → dùng `setViewport(true|false)` từ `src/test-setup.ts`.
 - **Hai danh tính "tôi" khác nhau trong mock** (chat: `@minhanh`; profile/bài viết: `@minhnguyen`). Đừng giả định chúng là một cho tới khi có auth thật (xem roadmap).
+- **SSE / `EventSource` không tự refresh token:** Khi gặp lỗi hoặc sự kiện `reauth`, phải chủ động gọi `es.close()`, làm mới token qua `refreshAccessToken()` (single-flight) rồi tự mở lại kết nối — không để `EventSource` tự reconnect.
 
 ## Cách giao việc cho AI hiệu quả
 

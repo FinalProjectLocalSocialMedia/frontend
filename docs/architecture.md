@@ -47,6 +47,7 @@ frontend/src/
 ├── features/                         # Module hóa theo từng tính năng nghiệp vụ
 │   ├── auth/                         # Xác thực người dùng thường & quản trị viên
 │   ├── chat/                         # Nhắn tin 1-1, nhóm, WebSocket STOMP thời gian thực
+│   ├── notification/                 # Thông báo trong ứng dụng (REST + SSE realtime)
 │   ├── post/                         # Bài viết, Newsfeed theo vị trí, bình luận, tương tác, upload media
 │   ├── explore/                      # Bản đồ, lọc bán kính, xu hướng địa phương
 │   ├── profile/                      # Hồ sơ cá nhân, bài viết đã lưu, đã thích
@@ -215,7 +216,6 @@ export const isStaff = (u: AuthUser | null): u is StaffUser => !!u && u.role !==
   - Subscribe:
     - Tin nhắn hội thoại: `/topic/conversation.{conversationId}`
     - Trạng thái đang gõ: `/topic/conversation.{conversationId}.typing`
-    - Thông báo cá nhân: `/user/queue/notifications`
   - Publish:
     - Gửi tin nhắn: `/app/chat.send`
     - Gửi trạng thái gõ: `/app/chat.typing`
@@ -229,6 +229,15 @@ export const isStaff = (u: AuthUser | null): u is StaffUser => !!u && u.role !==
   - Thống kê bài viết và hashtag (`/api/v1/admin/stats/*`).
   - Quản lý người dùng, khóa/mở tài khoản (`/api/v1/admin/users/*`).
   - Hàng đợi duyệt nội dung vi phạm (`/api/v1/moderation/reports/*`).
+
+### 6.4 Feature `notification` (Thông báo trong ứng dụng qua SSE)
+- **REST API & Query:** `notificationApi` (`/notification/notifications*`, `/user/follow-requests/{followId}`) kết hợp TanStack Query (`notificationKeys`, `useNotificationsInfiniteQuery`, `useUnreadCountQuery`).
+- **Luồng SSE (`EventSource`):**
+  - Chỉ mở cho người dùng thường (`user.role === 'USER'`) thông qua `NotificationStreamBridge` trong `app/providers.tsx`, kết nối tới `${API_BASE_URL}/notification/stream` kèm `{ withCredentials: true }`.
+  - Nhận các sự kiện: `notification`, `unread-count`, `notification-removed`, `reauth`.
+  - **Xử lý `reauth` (làm mới định kỳ ~15 phút):** Server đóng stream sau khi gửi `reauth`. Client chủ động gọi `es.close()`, gọi `refreshAccessToken()` (single-flight dùng chung với Axios interceptor) rồi mở lại kết nối ngay lập tức.
+  - **Xử lý `onerror` & Backoff:** Chủ động gọi `es.close()` (không để trình duyệt tự reconnect), chờ exponential backoff (1s → 30s kèm jitter), gọi `refreshAccessToken()` rồi kết nối lại. Nếu `refreshAccessToken()` trả về `AuthExpiredError` (401/403), phát `authEvents.emit('unauthorized')` và dừng stream hẳn.
+- **Huy hiệu menu:** `NavBadgesContext` đặt tại `components/layout/` và được nối dữ liệu từ `app/nav-badges-bridge.tsx` để tuân thủ quy tắc phụ thuộc một chiều.
 
 ---
 

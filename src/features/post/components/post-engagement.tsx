@@ -36,7 +36,7 @@ export function PostEngagement({ post, liked, isLikePending, toggleLiked }: Post
   }
 
   return (
-    <div className="mt-4 flex items-center gap-1 border-t border-border pt-3 pl-11 text-muted-foreground">
+    <div className="mt-4 flex items-center gap-1 border-t border-border pt-3 text-muted-foreground">
       <Button
         variant="ghost"
         size="sm"
