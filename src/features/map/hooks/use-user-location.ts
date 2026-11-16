@@ -5,14 +5,14 @@ import type { GeoPoint } from '../lib/types'
 
 export type UseUserLocationOptions = {
   onGpsAcquired?: (point: GeoPoint) => void
-  userHasInteracted: boolean
+  userHasInteracted?: boolean
 }
 
 export function useUserLocation({ onGpsAcquired, userHasInteracted }: UseUserLocationOptions) {
   const [gpsPosition, setGpsPosition] = useState<GeoPoint | null>(null)
   const [isLoadingGps, setIsLoadingGps] = useState(false)
   const hasAttemptedGpsRef = useRef(false)
-
+  const watchIdRef = useRef<number | null>(null)
   const requestGps = (isAutoTrigger = false) => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       if (!isAutoTrigger) {
@@ -23,13 +23,14 @@ export function useUserLocation({ onGpsAcquired, userHasInteracted }: UseUserLoc
 
     setIsLoadingGps(true)
 
-    navigator.geolocation.getCurrentPosition(
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         setIsLoadingGps(false)
         const point: GeoPoint = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         }
+        console.log('GPS position acquired:', point)
         setGpsPosition(point)
 
         // Chỉ tự động di chuyển bản đồ tới toạ độ GPS nếu người dùng chưa chủ động tương tác với camera
@@ -57,9 +58,15 @@ export function useUserLocation({ onGpsAcquired, userHasInteracted }: UseUserLoc
 
   // Tự động yêu cầu toạ độ GPS khi mount lần đầu (M10, non-blocking)
   useEffect(() => {
-    if (!hasAttemptedGpsRef.current) {
+    {
       hasAttemptedGpsRef.current = true
       requestGps(true)
+    }
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+        watchIdRef.current = null
+      }
     }
   }, [])
 

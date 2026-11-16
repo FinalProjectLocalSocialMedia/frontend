@@ -8,11 +8,32 @@ import { useFeedPosts } from '@/features/post/api/post-queries'
 import { useInfiniteScroll } from '@/features/post/hooks/use-infinite-scroll'
 import { Spinner } from '@/components/ui/spinner'
 import { currentLocation, trending } from '@/lib/mock-nearby'
+import { useUserLocation } from '@/features/map/hooks/use-user-location'
+import { useQuery } from '@tanstack/react-query'
+import { getPlaceFromGeoPoint } from '../api/google-map-api'
 
 
 export default function HomeFeed() {
   const openCreate = useCreatePost()
-  const feed = useFeedPosts()
+  console.log('log 1')
+  const { gpsPosition, isLoadingGps } = useUserLocation({})
+  console.log('log 2')
+  const userLocation= useQuery({
+    queryKey: ['user-location', gpsPosition?.latitude, gpsPosition?.longitude],
+    queryFn: async () => {
+      if (!gpsPosition) {
+        console.log('GPS position is not available yet.')
+        return null
+      }
+      return getPlaceFromGeoPoint(gpsPosition)
+    },
+    enabled: !!gpsPosition,
+  })
+  const nearby_map_last_view = localStorage.getItem('nearby_map_last_view') 
+  const radiusKm = nearby_map_last_view ? JSON.parse(nearby_map_last_view).radiusKm : 1;
+  const feed = useFeedPosts(gpsPosition ? { latitude: gpsPosition.latitude, longitude: gpsPosition.longitude } : undefined, radiusKm)
+
+  
   
 
   const sentinelRef = useInfiniteScroll({
@@ -41,7 +62,13 @@ export default function HomeFeed() {
         >
           <p className="text-sm font-medium text-muted-foreground">Có gì đang diễn ra quanh bạn?</p>
           <div className="mt-2 flex items-center gap-2 text-lg font-semibold">
-            <MapPin className="size-5 text-primary" /> {currentLocation.name}
+            <MapPin className="size-5 text-primary" /> 
+            {userLocation.isLoading || isLoadingGps ? (
+              <span>Đang tải...</span>
+            ) : (
+              userLocation.data?.placeName ?? userLocation.data?.formattedAddress
+              
+            )}
           </div>
         </button>
 
