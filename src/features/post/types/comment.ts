@@ -12,7 +12,7 @@ export interface Comment {
   media?: PostMedia[] | null
   createdAt: string
   updatedAt: string
-  parentComment: Comment | null
+  parentCommentId: string | null
   likeCount?: number
   commentCount?: number
   isLikedByMe?: boolean

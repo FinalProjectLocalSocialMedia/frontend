@@ -6,6 +6,7 @@ import { useInfiniteScroll } from '@/features/post/hooks/use-infinite-scroll'
 import { usePostSearch } from '@/features/post/hooks/use-post-search'
 import { PostSearchResults } from '../components/post-search-result'
 import { PostSearchItem } from '../types/post'
+import { useUserLocation } from '@/features/map/hooks/use-user-location'
 
 /**
  * Trang tìm kiếm bài viết (PostSearch) mở rộng theo mục 6.8 (PHA 5):
@@ -17,7 +18,7 @@ import { PostSearchItem } from '../types/post'
 export default function PostSearch() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-
+  const { gpsPosition, isLoadingGps } = useUserLocation({})
   const query = searchParams.get('q') ?? ''
   const locationId = searchParams.get('locationId') ?? ''
   const locationName = searchParams.get('locationName') ?? ''
@@ -26,12 +27,16 @@ export default function PostSearch() {
 
   const hasContextFilter = Boolean(locationId || topic)
   const displayLocation = locationName.trim() || 'địa điểm đã chọn'
+  const nearby_map_last_view = localStorage.getItem('nearby_map_last_view') 
+  const radiusKm = nearby_map_last_view ? JSON.parse(nearby_map_last_view).radiusKm : 1;
 
   // Gọi hook tìm kiếm với bộ 3 tham số { q, locationId, topic }
   const search = usePostSearch({
     q: query,
     locationId: locationId || undefined,
     topic: topic || undefined,
+    coordinates: gpsPosition ? { latitude: gpsPosition.latitude, longitude: gpsPosition.longitude } : undefined,
+    radiusKm,
   })
 
   // Quay lại bản đồ với đúng trạng thái trước đó (camera + panel)

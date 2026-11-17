@@ -8,6 +8,8 @@ import { seedDatabase } from '@/features/map/api/mock/seed'
 export type GetFeedParams = {
   cursor?: string
   limit?: number
+  coordinates?: GeoPoint
+  radiusKm?: number
 }
 
 export type SearchPostsParams = {
@@ -16,6 +18,9 @@ export type SearchPostsParams = {
   topic?: string
   cursor?: string
   limit?: number
+  latitude?: number
+  longitude?: number
+  radiusKm?: number
   signal?: AbortSignal
 }
 export interface CreatePostRequest {
@@ -36,13 +41,13 @@ export async function createPost(request: CreatePostRequest): Promise<Post> {
   return response.data
 }
 
-export async function getFeed({ cursor, limit = 5 }: GetFeedParams): Promise<PostCursorPage> {
+export async function getFeed({ cursor, limit = 5, coordinates, radiusKm }: GetFeedParams): Promise<PostCursorPage> {
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
     throw new RangeError('Feed limit must be an integer between 1 and 50')
   }
 
   const response = await postHttp.get<PostCursorPage>('feed/feed/local', {
-    params: { cursor, limit }
+    params: { cursor, limit, latitude: coordinates?.latitude, longitude: coordinates?.longitude, radiusKm },
   })
   return response.data
 }
@@ -133,6 +138,9 @@ export async function searchPosts({
   cursor,
   limit = 5,
   signal,
+  radiusKm,
+  latitude,
+  longitude,
 }: SearchPostsParams): Promise<PostCursorPage> {
   const query = q.trim()
   const trimmedLocationId = locationId?.trim()
@@ -158,6 +166,9 @@ export async function searchPosts({
         topic: trimmedTopic || undefined,
         cursor,
         limit,
+        latitude,
+        longitude,
+        radiusKm,
       },
       signal,
     })
