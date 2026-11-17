@@ -2,6 +2,22 @@ import axios, { type AxiosRequestConfig } from 'axios'
 import { API_BASE_URL } from '@/config/env'
 import { authEvents } from '@/features/auth/lib/auth-events'
 
+export class AuthExpiredError extends Error {
+  readonly status = 401
+  constructor(message = 'Phiên đăng nhập đã hết hạn', options?: ErrorOptions) {
+    super(message, options)
+    this.name = 'AuthExpiredError'
+    Object.setPrototypeOf(this, AuthExpiredError.prototype)
+  }
+}
+
+export function isAuthExpiredError(error: unknown): error is AuthExpiredError {
+  return (
+    error instanceof AuthExpiredError ||
+    (error instanceof Error && error.name === 'AuthExpiredError')
+  )
+}
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true, // Tự động gửi & nhận HttpOnly cookies
@@ -11,7 +27,56 @@ export const apiClient = axios.create({
   },
 })
 
-// Biến lưu trạng thái đang refresh để tránh gọi trùng lặp nhiều lần nếu nhiều API cùng 401
+let lastUnauthorizedEmit = 0
+export const emitUnauthorized = () => {
+  const now = Date.now()
+  if (now - lastUnauthorizedEmit > 1500) {
+    lastUnauthorizedEmit = now
+    authEvents.emit('unauthorized')
+  }
+}
+
+// Biến lưu Promise đang refresh để thực hiện single-flight cho cả Interceptor và SSE
+let refreshPromise: Promise<void> | null = null
+
+export async function refreshAccessToken(): Promise<void> {
+  if (refreshPromise) {
+    return refreshPromise
+  }
+
+  const executeRefresh = async () => {
+    try {
+      if (
+        typeof navigator !== 'undefined' &&
+        'locks' in navigator &&
+        typeof navigator.locks?.request === 'function'
+      ) {
+        await navigator.locks.request('auth-refresh', async () => {
+          await apiClient.post('/user/auth/refresh')
+        })
+      } else {
+        await apiClient.post('/user/auth/refresh')
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status
+        if (status === 401 || status === 403) {
+          emitUnauthorized()
+          throw new AuthExpiredError('Phiên đăng nhập đã hết hạn', { cause: err })
+        }
+      }
+      throw err
+    }
+  }
+
+  refreshPromise = executeRefresh().finally(() => {
+    refreshPromise = null
+  })
+
+  return refreshPromise
+}
+
+// Biến lưu trạng thái đang refresh cho Axios interceptor
 let isRefreshing = false
 let failedQueue: Array<{
   resolve: (value?: unknown) => void
@@ -27,15 +92,6 @@ const processQueue = (error: unknown) => {
     }
   })
   failedQueue = []
-}
-
-let lastUnauthorizedEmit = 0
-const emitUnauthorized = () => {
-  const now = Date.now()
-  if (now - lastUnauthorizedEmit > 1500) {
-    lastUnauthorizedEmit = now
-    authEvents.emit('unauthorized')
-  }
 }
 
 apiClient.interceptors.response.use(
@@ -62,8 +118,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        // Trình duyệt tự động gửi cookie refreshToken và nhận cặp cookie mới
-        await apiClient.post('/user/auth/refresh')
+        await refreshAccessToken()
         processQueue(null)
         return apiClient(originalRequest)
       } catch (refreshError) {
