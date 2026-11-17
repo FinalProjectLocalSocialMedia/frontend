@@ -66,7 +66,7 @@ export function CommentSection({
       ) : (
         <div className="divide-y divide-border">
           {comments.map((comment) => (
-            <CommentCard key={comment.id} comment={comment} postId={postId} />
+            <CommentCard key={comment.id} comment={comment} postId={postId} depth={1} />
           ))}
         </div>
       )}

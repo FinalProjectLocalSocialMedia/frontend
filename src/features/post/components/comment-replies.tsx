@@ -7,7 +7,17 @@ import type { Comment as CommentData } from '@/features/post/types/comment'
 import { getCommentReplyByCommentId } from '../api/comment-api'
 import { CommentCard } from './comment-card'
 
-export function CommentReplies({ comment, postId }: { comment: CommentData; postId: string }) {
+const MAX_COMMENT_DEPTH = 3
+
+export function CommentReplies({
+  comment,
+  postId,
+  depth,
+}: {
+  comment: CommentData
+  postId: string
+  depth: number
+}) {
   const [expanded, setExpanded] = useState(false)
 
   const repliesQuery = useInfiniteQuery({
@@ -23,9 +33,7 @@ export function CommentReplies({ comment, postId }: { comment: CommentData; post
     getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
     enabled: expanded,
   })
-
   const replies = repliesQuery.data?.pages.flatMap((page) => page.items) ?? []
-
   return (
     <div className="mt-1">
       <Button
@@ -39,7 +47,7 @@ export function CommentReplies({ comment, postId }: { comment: CommentData; post
       </Button>
 
       {expanded && (
-        <div className="ml-2 border-l border-border pl-3">
+        <div className={`border-l border-border ${depth >= MAX_COMMENT_DEPTH ? '-ml-11' : ''}`}>
           {repliesQuery.isPending ? (
             <div
               role="status"
@@ -66,7 +74,13 @@ export function CommentReplies({ comment, postId }: { comment: CommentData; post
           ) : (
             <div className="divide-y divide-border">
               {replies.map((reply) => (
-                <CommentCard key={reply.id} comment={reply} postId={postId} />
+                <CommentCard
+                  parentComment={comment}
+                  key={reply.id}
+                  comment={reply}
+                  postId={postId}
+                  depth={Math.min(depth + 1, MAX_COMMENT_DEPTH)}
+                />
               ))}
             </div>
           )}

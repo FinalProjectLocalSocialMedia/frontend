@@ -5,7 +5,10 @@ type PostContentProps = {
 }
 
 export function PostContent({ content }: PostContentProps) {
-  const parts = content.split(/(#[\p{L}\p{N}_]+)/u)
+  const regex =
+    /(https?:\/\/[^\s]+|www\.[^\s]+|#[\p{L}\p{N}_]+|[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,})/gu
+
+  const parts = content.split(regex)
 
   return (
     <div className="whitespace-pre-wrap break-words">
@@ -24,6 +27,38 @@ export function PostContent({ content }: PostContentProps) {
             >
               {part}
             </Link>
+          )
+        }
+        if (/^(https?:\/\/|www\.)/i.test(part)) {
+          const url = part.startsWith('www.')
+            ? `https://${part}`
+            : part
+
+          return (
+            <a
+              key={index}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {part}
+            </a>
+          )
+        }
+
+        // Email
+        if (/^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$/.test(part)) {
+          return (
+            <a
+              key={index}
+              href={`mailto:${part}`}
+              className="text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {part}
+            </a>
           )
         }
 

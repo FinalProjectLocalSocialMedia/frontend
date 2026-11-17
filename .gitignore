@@ -10,3 +10,4 @@ admin-moderator-plan.md
 docs/explore-map-plan.md
 *.test.ts
 *.test.tsx
+*.tsbuildinfo

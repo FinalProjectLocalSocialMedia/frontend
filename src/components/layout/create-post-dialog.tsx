@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { InfiniteData } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { MapPin } from 'lucide-react'
@@ -22,6 +22,8 @@ import { PostMediaUploader } from '@/features/post/components/post-media-uploade
 import type { PostMedia } from '@/features/post/types/post-media'
 import type { PostCursorPage } from '@/features/post/types/post'
 import { currentLocation } from '@/lib/mock-nearby'
+import { useUserLocation } from '@/features/map/hooks/use-user-location'
+import { getPlaceFromGeoPoint } from '@/features/post/api/google-map-api'
 
 const MAX_LENGTH = 280
 const POST_MEDIA_TYPES = ['IMAGE', 'VIDEO'] as const
@@ -39,17 +41,30 @@ export function CreatePostDialog({
   const { stagedFiles, error, addFiles, removeFile, clearFiles } = useStagedMedia({
     allowedTypes: POST_MEDIA_TYPES,
   })
+  const { gpsPosition, isLoadingGps } = useUserLocation({})
+
+  const userLocation= useQuery({
+    queryKey: ['user-location', gpsPosition?.latitude, gpsPosition?.longitude],
+    queryFn: async () => {
+      if (!gpsPosition) {
+        console.log('GPS position is not available yet.')
+        return null
+      }
+      return getPlaceFromGeoPoint(gpsPosition)
+    },
+    enabled: !!gpsPosition,
+  })
 
   const createPostMutation = useMutation({
-    mutationFn: async ({ content, files }: { content: string; files: File[] }) => {
+    mutationFn: async ({ content, files, coordinates }: { content: string; files: File[]; coordinates: { latitude: number; longitude: number } }) => {
       const uploadedMedia: PostMedia[] = files.length > 0 ? await uploadPostMediaBatch(files) : []
 
       return createPost({
         content,
         media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
         coordinates: {
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
         },
       })
     },
@@ -111,9 +126,24 @@ export function CreatePostDialog({
   function submit() {
     const value = text.trim()
     if ((!value && stagedFiles.length === 0) || createPostMutation.isPending) return
+    if (isLoadingGps) {
+      return
+    }
+
+    if (!gpsPosition) {
+      toast.error('Không thể xác định vị trí của bạn', {
+        description: 'Vui lòng bật định vị để đăng bài viết.',
+      })
+      return
+    }
+      
     createPostMutation.mutate({
       content: value,
       files: stagedFiles.map((item) => item.file),
+      coordinates: {
+        latitude: gpsPosition.latitude,
+        longitude: gpsPosition.longitude,
+      },
     })
   }
 
@@ -123,7 +153,7 @@ export function CreatePostDialog({
         <DialogHeader>
           <DialogTitle>Chia sẻ bài viết</DialogTitle>
           <DialogDescription className="flex items-center gap-1.5">
-            <MapPin className="size-3.5 text-primary" /> {currentLocation.name}
+            <MapPin className="size-3.5 text-primary" /> {userLocation.data?.placeName ?? userLocation.data?.formattedAddress}
           </DialogDescription>
         </DialogHeader>
         <Textarea
@@ -132,7 +162,7 @@ export function CreatePostDialog({
           maxLength={MAX_LENGTH}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit()
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)&& !isLoadingGps) submit()
           }}
           placeholder="Có điều gì đang diễn ra xung quanh bạn?"
           className="min-h-28"
@@ -149,7 +179,7 @@ export function CreatePostDialog({
           <span className="text-xs text-muted-foreground">{/* {text.length}/{MAX_LENGTH} */}</span>
           <Button
             onClick={submit}
-            disabled={(!text.trim() && stagedFiles.length === 0) || createPostMutation.isPending}
+            disabled={(!text.trim() && stagedFiles.length === 0) || createPostMutation.isPending || isLoadingGps}
           >
             {createPostMutation.isPending ? 'Đang đăng…' : 'Đăng bài'}
           </Button>

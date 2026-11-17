@@ -30,13 +30,14 @@ function useCursorPosts(
   })
 }
 
-export function useFeedPosts() {
+export function useFeedPosts(coordinates?: { latitude: number; longitude: number } | undefined, radiusKm?: number) {
   return useInfiniteQuery({
     queryKey: postKeys.feed(),
     initialPageParam: undefined as string | undefined,
-    queryFn: ({ pageParam }) => getFeed({ cursor: pageParam, limit: FEED_PAGE_SIZE }),
+    queryFn: ({ pageParam }) => getFeed({ cursor: pageParam, limit: FEED_PAGE_SIZE, coordinates, radiusKm }),
     getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
     staleTime: 30_000,
+    enabled: !!coordinates, 
   })
 }
 
