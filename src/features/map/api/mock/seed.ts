@@ -138,137 +138,137 @@ export type SeedDatabase = {
  * Khởi tạo cơ sở dữ liệu mẫu xác định (deterministic mock database).
  * @param referenceTime Mốc thời gian 'hiện tại' làm neo cho các bài viết trong quá khứ (mặc định: 2026-10-26T12:00:00Z)
  */
-export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.000Z')): SeedDatabase {
-  const rand = createPRNG(42)
+// export function buildSeedDatabase(referenceTime = new Date('2026-10-26T12:00:00.000Z')): SeedDatabase {
+//   const rand = createPRNG(42)
 
-  // 1. Tạo danh sách MapPlaces với chỉ mục H3 ở độ phân giải 8
-  const places: MapPlace[] = RAW_LOCATIONS.map((loc) => {
-    const h3Index = latLngToCell(loc.lat, loc.lng, 8)
-    return {
-      id: loc.id,
-      name: loc.name,
-      locationType: loc.type,
-      center: { latitude: loc.lat, longitude: loc.lng },
-      h3Index,
-      postCount: 0,
-      trendScore: 0,
-      topTopic: undefined,
-    }
-  })
+//   // 1. Tạo danh sách MapPlaces với chỉ mục H3 ở độ phân giải 8
+//   const places: MapPlace[] = RAW_LOCATIONS.map((loc) => {
+//     const h3Index = latLngToCell(loc.lat, loc.lng, 8)
+//     return {
+//       id: loc.id,
+//       name: loc.name,
+//       locationType: loc.type,
+//       center: { latitude: loc.lat, longitude: loc.lng },
+//       h3Index,
+//       postCount: 0,
+//       trendScore: 0,
+//       topTopic: undefined,
+//     }
+//   })
 
-  // 2. Tạo ~800 bài viết phân bổ trong vòng 45 ngày qua
-  const posts: PostDetail[] = []
-  const totalPosts = 800
-  const nowMs = referenceTime.getTime()
-  const fortyFiveDaysMs = 45 * 24 * 60 * 60 * 1000
+//   // 2. Tạo ~800 bài viết phân bổ trong vòng 45 ngày qua
+//   const posts: PostDetail[] = []
+//   const totalPosts = 800
+//   const nowMs = referenceTime.getTime()
+//   const fortyFiveDaysMs = 45 * 24 * 60 * 60 * 1000
 
-  // Các địa điểm 'nóng' có tần suất hoạt động cao hơn
-  const hotPlaceIds = new Set(['plc-1', 'plc-9', 'plc-16', 'plc-24', 'plc-30', 'plc-33'])
+//   // Các địa điểm 'nóng' có tần suất hoạt động cao hơn
+//   const hotPlaceIds = new Set(['plc-1', 'plc-9', 'plc-16', 'plc-24', 'plc-30', 'plc-33'])
 
-  for (let i = 1; i <= totalPosts; i++) {
-    // Chọn địa điểm với xác suất ưu tiên địa điểm hot
-    let place = places[Math.floor(rand() * places.length)]
-    if (rand() < 0.35) {
-      const hotList = places.filter((p) => hotPlaceIds.has(p.id))
-      place = hotList[Math.floor(rand() * hotList.length)]
-    }
+//   for (let i = 1; i <= totalPosts; i++) {
+//     // Chọn địa điểm với xác suất ưu tiên địa điểm hot
+//     let place = places[Math.floor(rand() * places.length)]
+//     if (rand() < 0.35) {
+//       const hotList = places.filter((p) => hotPlaceIds.has(p.id))
+//       place = hotList[Math.floor(rand() * hotList.length)]
+//     }
 
-    const author = SEED_AUTHORS[Math.floor(rand() * SEED_AUTHORS.length)]
+//     const author = SEED_AUTHORS[Math.floor(rand() * SEED_AUTHORS.length)]
 
-    // Phân bổ thời gian: ưu tiên các ngày gần đây (dùng hàm mũ để tập trung bài gần mốc hiện tại)
-    const ageFactor = Math.pow(rand(), 1.8)
-    const postTimeMs = nowMs - Math.floor(ageFactor * fortyFiveDaysMs)
-    const createdAt = new Date(postTimeMs).toISOString()
+//     // Phân bổ thời gian: ưu tiên các ngày gần đây (dùng hàm mũ để tập trung bài gần mốc hiện tại)
+//     const ageFactor = Math.pow(rand(), 1.8)
+//     const postTimeMs = nowMs - Math.floor(ageFactor * fortyFiveDaysMs)
+//     const createdAt = new Date(postTimeMs).toISOString()
 
-    // Gán từ 1 đến 3 chủ đề (topics)
-    const topicCount = 1 + Math.floor(rand() * 3)
-    const assignedTopics: string[] = []
-    for (let t = 0; t < topicCount; t++) {
-      const candidate = SEED_TOPICS[Math.floor(rand() * SEED_TOPICS.length)]
-      if (!assignedTopics.includes(candidate)) {
-        assignedTopics.push(candidate)
-      }
-    }
+//     // Gán từ 1 đến 3 chủ đề (topics)
+//     const topicCount = 1 + Math.floor(rand() * 3)
+//     const assignedTopics: string[] = []
+//     for (let t = 0; t < topicCount; t++) {
+//       const candidate = SEED_TOPICS[Math.floor(rand() * SEED_TOPICS.length)]
+//       if (!assignedTopics.includes(candidate)) {
+//         assignedTopics.push(candidate)
+//       }
+//     }
 
-    // Xác định số lượng hình ảnh (0 đến 3)
-    const imageCount = rand() < 0.65 ? 1 + Math.floor(rand() * 3) : 0
-    const imageUrls: string[] = []
-    for (let img = 0; img < imageCount; img++) {
-      imageUrls.push(`https://picsum.photos/seed/post-${i}-${img}/600/400`)
-    }
+//     // Xác định số lượng hình ảnh (0 đến 3)
+//     const imageCount = rand() < 0.65 ? 1 + Math.floor(rand() * 3) : 0
+//     const imageUrls: string[] = []
+//     for (let img = 0; img < imageCount; img++) {
+//       imageUrls.push(`https://picsum.photos/seed/post-${i}-${img}/600/400`)
+//     }
 
-    const likeCount = Math.floor(rand() * 150)
-    const commentCount = Math.floor(rand() * 40)
+//     const likeCount = Math.floor(rand() * 150)
+//     const commentCount = Math.floor(rand() * 40)
 
-    const contentSnippets = [
-      `Hôm nay không khí tại ${place.name} thật tuyệt vời! Mọi người ghé qua đừng quên trải nghiệm nhé. #${assignedTopics.join(' #')}`,
-      `Góc nhỏ bình yên tại ${place.name}. Một ngày cuối tuần thư thái ngắm nhìn phố phường. #${assignedTopics.join(' #')}`,
-      `Cập nhật tình hình tại ${place.name}: khá đông đúc và nhộn nhịp, thời tiết đẹp. #${assignedTopics.join(' #')}`,
-      `Kỷ niệm đáng nhớ cùng bạn bè ở ${place.name}! #${assignedTopics.join(' #')}`,
-      `Gợi ý địa điểm check-in cực đỉnh: ${place.name}. Chắc chắn sẽ quay lại sớm! #${assignedTopics.join(' #')}`,
-    ]
-    const content = contentSnippets[Math.floor(rand() * contentSnippets.length)]
+//     const contentSnippets = [
+//       `Hôm nay không khí tại ${place.name} thật tuyệt vời! Mọi người ghé qua đừng quên trải nghiệm nhé. #${assignedTopics.join(' #')}`,
+//       `Góc nhỏ bình yên tại ${place.name}. Một ngày cuối tuần thư thái ngắm nhìn phố phường. #${assignedTopics.join(' #')}`,
+//       `Cập nhật tình hình tại ${place.name}: khá đông đúc và nhộn nhịp, thời tiết đẹp. #${assignedTopics.join(' #')}`,
+//       `Kỷ niệm đáng nhớ cùng bạn bè ở ${place.name}! #${assignedTopics.join(' #')}`,
+//       `Gợi ý địa điểm check-in cực đỉnh: ${place.name}. Chắc chắn sẽ quay lại sớm! #${assignedTopics.join(' #')}`,
+//     ]
+//     const content = contentSnippets[Math.floor(rand() * contentSnippets.length)]
 
-    posts.push({
-      id: `post-${i}`,
-      author,
-      content,
-      imageUrls,
-      imageCount,
-      createdAt,
-      place: { id: place.id, name: place.name },
-      topics: assignedTopics,
-      likeCount,
-      commentCount,
-      likedByMe: rand() < 0.2,
-      savedByMe: rand() < 0.15,
-    })
-  }
+//     posts.push({
+//       id: `post-${i}`,
+//       author,
+//       content,
+//       imageUrls,
+//       imageCount,
+//       createdAt,
+//       place: { id: place.id, name: place.name },
+//       topics: assignedTopics,
+//       likeCount,
+//       commentCount,
+//       likedByMe: rand() < 0.2,
+//       savedByMe: rand() < 0.15,
+//     })
+//   }
 
-  // Sắp xếp bài theo thời gian giảm dần (mới nhất trước)
-  posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+//   // Sắp xếp bài theo thời gian giảm dần (mới nhất trước)
+//   posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-  // 3. Tạo bình luận mẫu cho các bài viết gần đây
-  const comments: CommentItem[] = []
-  let commentCounter = 1
-  for (let pIdx = 0; pIdx < Math.min(60, posts.length); pIdx++) {
-    const post = posts[pIdx]
-    const numComments = Math.min(5, post.commentCount)
-    for (let c = 0; c < numComments; c++) {
-      const commenter = SEED_AUTHORS[Math.floor(rand() * SEED_AUTHORS.length)]
-      const commentTimeMs = new Date(post.createdAt).getTime() + (c + 1) * 3600 * 1000
-      comments.push({
-        id: `cmt-${commentCounter++}`,
-        postId: post.id,
-        author: commenter,
-        content: `Bình luận hay quá, đồng quan điểm với tác giả tại ${post.place.name}!`,
-        createdAt: new Date(commentTimeMs).toISOString(),
-        replyCount: 0,
-      })
-    }
-  }
+//   // 3. Tạo bình luận mẫu cho các bài viết gần đây
+//   const comments: CommentItem[] = []
+//   let commentCounter = 1
+//   for (let pIdx = 0; pIdx < Math.min(60, posts.length); pIdx++) {
+//     const post = posts[pIdx]
+//     const numComments = Math.min(5, post.commentCount)
+//     for (let c = 0; c < numComments; c++) {
+//       const commenter = SEED_AUTHORS[Math.floor(rand() * SEED_AUTHORS.length)]
+//       const commentTimeMs = new Date(post.createdAt).getTime() + (c + 1) * 3600 * 1000
+//       comments.push({
+//         id: `cmt-${commentCounter++}`,
+//         postId: post.id,
+//         author: commenter,
+//         content: `Bình luận hay quá, đồng quan điểm với tác giả tại ${post.place.name}!`,
+//         createdAt: new Date(commentTimeMs).toISOString(),
+//         replyCount: 0,
+//       })
+//     }
+//   }
 
-  // 4. Khởi tạo hồ sơ người dùng mẫu
-  const profiles: PublicProfile[] = SEED_AUTHORS.map((author, index) => {
-    const authorPosts = posts.filter((p) => p.author.id === author.id)
-    return {
-      id: author.id,
-      displayName: author.displayName,
-      avatarUrl: author.avatarUrl,
-      bio: `Thích chia sẻ những khoảnh khắc đời thường tại Hà Nội. Yêu thích chụp ảnh và khám phá địa điểm mới (#${SEED_TOPICS[index % SEED_TOPICS.length]}).`,
-      followerCount: 50 + Math.floor(rand() * 800),
-      followingCount: 30 + Math.floor(rand() * 300),
-      postCount: authorPosts.length,
-    }
-  })
+//   // 4. Khởi tạo hồ sơ người dùng mẫu
+//   const profiles: PublicProfile[] = SEED_AUTHORS.map((author, index) => {
+//     const authorPosts = posts.filter((p) => p.author.id === author.id)
+//     return {
+//       id: author.id,
+//       displayName: author.displayName,
+//       avatarUrl: author.avatarUrl,
+//       bio: `Thích chia sẻ những khoảnh khắc đời thường tại Hà Nội. Yêu thích chụp ảnh và khám phá địa điểm mới (#${SEED_TOPICS[index % SEED_TOPICS.length]}).`,
+//       followerCount: 50 + Math.floor(rand() * 800),
+//       followingCount: 30 + Math.floor(rand() * 300),
+//       postCount: authorPosts.length,
+//     }
+//   })
 
-  return {
-    places,
-    posts,
-    comments,
-    profiles,
-  }
-}
+//   return {
+//     places,
+//     posts,
+//     comments,
+//     profiles,
+//   }
+// }
 
 // Cơ sở dữ liệu seed toàn cục khởi tạo một lần
-export const seedDatabase = buildSeedDatabase()
+// export const seedDatabase = buildSeedDatabase()
