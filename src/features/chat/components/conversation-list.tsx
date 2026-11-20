@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BellOff, Search, UserPlus, Radio, X, User } from 'lucide-react'
+import { BellOff, Search, UserPlus, Radio, X, User, Settings } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,7 @@ import { messagesFor } from '../mocks/mock-chat'
 import { chatApi } from '../api/chat-api'
 import type { ChatMessage, Conversation } from '../types/chat'
 import { ChatAvatar, GroupAvatars } from './chat-avatar'
+import { ChatPrivacyDialog } from './chat-privacy-dialog'
 
 export type FoundUser = {
   id: string
@@ -55,6 +56,7 @@ export function ConversationList({
 }: Props) {
   const [searchedUsers, setSearchedUsers] = useState<FoundUser[]>([])
   const [searchingUsers, setSearchingUsers] = useState(false)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
 
   const trimmedQuery = query.trim()
   const normQuery = removeVietnameseTones(trimmedQuery)
@@ -145,15 +147,26 @@ export function ConversationList({
             </div>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">Tin nhắn</h1>
           </div>
-          <Button
-            variant="outline"
-            size="icon-lg"
-            aria-label="Tạo nhóm chat"
-            onClick={onCreateGroup}
-            title="Tạo nhóm chat"
-          >
-            <UserPlus />
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="icon-lg"
+              aria-label="Cài đặt tin nhắn"
+              onClick={() => setPrivacyOpen(true)}
+              title="Cài đặt tin nhắn"
+            >
+              <Settings className="size-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon-lg"
+              aria-label="Tạo nhóm chat"
+              onClick={onCreateGroup}
+              title="Tạo nhóm chat"
+            >
+              <UserPlus />
+            </Button>
+          </div>
         </div>
         <div className="relative mt-5">
           <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
@@ -268,6 +281,12 @@ export function ConversationList({
           Đặt lại dữ liệu mẫu
         </Button>
       )}
+
+      <ChatPrivacyDialog
+        open={privacyOpen}
+        onClose={() => setPrivacyOpen(false)}
+        isLoggedIn={Boolean(currentUserId)}
+      />
     </aside>
   )
 }
