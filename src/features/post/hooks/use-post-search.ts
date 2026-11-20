@@ -1,46 +1,30 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { searchPosts } from '@/features/post/api/post-api'
-
-const DEFAULT_PAGE_SIZE = 20
+import { useSearchPostsQuery } from '@/features/post/api/search-queries'
+import type { GeoPoint } from '../types/geo-point'
 
 export type UsePostSearchParams = {
   q?: string
   locationId?: string
   topic?: string
+  coordinates?: GeoPoint
+  radiusKm?: number
 }
 
 /**
- * Hook tìm kiếm bài viết (usePostSearch) theo mục 6.8:
- * - Nhận { q, locationId, topic } hoặc (query, locationId)
- * - enabled khi có ít nhất một trong ba giá trị được cung cấp
- * - Đưa cả 3 tham số vào queryKey để tự động đồng bộ cache
+ * Hook tìm kiếm bài viết (usePostSearch):
+ * - Nhận { q, locationId, topic, coordinates, radiusKm } hoặc (query, locationId)
+ * - Uỷ quyền cho useSearchPostsQuery (dùng searchKeys.posts)
  */
 export function usePostSearch(params: string | UsePostSearchParams, locationIdParam?: string) {
-  const { q, locationId, topic } =
+  const { q, locationId, topic, coordinates, radiusKm } =
     typeof params === 'string'
-      ? { q: params, locationId: locationIdParam, topic: undefined }
+      ? {
+          q: params,
+          locationId: locationIdParam,
+          topic: undefined,
+          coordinates: undefined,
+          radiusKm: undefined,
+        }
       : params
 
-  const trimmedQ = (q ?? '').trim()
-  const trimmedLocationId = locationId?.trim()
-  const trimmedTopic = topic?.trim()
-
-  // Kích hoạt truy vấn khi có ít nhất 1 điều kiện lọc (từ khoá, địa điểm hoặc chủ đề)
-  const hasAnyFilter = Boolean(trimmedQ || trimmedLocationId || trimmedTopic)
-
-  return useInfiniteQuery({
-    queryKey: ['posts', 'search', { q: trimmedQ, locationId: trimmedLocationId, topic: trimmedTopic }],
-    enabled: hasAnyFilter,
-    initialPageParam: undefined as string | undefined,
-    queryFn: ({ pageParam, signal }) =>
-      searchPosts({
-        q: trimmedQ,
-        locationId: trimmedLocationId,
-        topic: trimmedTopic,
-        cursor: pageParam,
-        limit: DEFAULT_PAGE_SIZE,
-        signal,
-      }),
-    getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
-  })
+  return useSearchPostsQuery({ q, locationId, topic, coordinates, radiusKm })
 }

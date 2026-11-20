@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import {  Heart, MessageCircle } from 'lucide-react'
+import { Heart, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 import { formatRelativeTime } from '@/lib/date-time'
@@ -14,18 +14,26 @@ import { useDeleteComment } from '../hooks/use-delete-comment'
 import { CommentAction } from './comment-action'
 import { vi } from 'date-fns/locale'
 
-export function CommentCard({ comment, postId }: { comment: CommentData; postId: string }) {
+export function CommentCard({
+  comment,
+  postId,
+  depth = 1,
+  parentComment,
+}: {
+  comment: CommentData
+  postId: string
+  depth: number
+  parentComment?: CommentData
+}) {
   const [replying, setReplying] = useState(false)
-  
+
   const { user } = useAuth()
   const isOwnComment = user?.id === comment.author.id
   const commentLikeMutation = useToggleCommentLike(comment, postId)
   const deleteCommentMutation = useDeleteComment(postId)
 
-  
-
   return (
-    <article className="flex gap-3 py-3">
+    <article id={`comment-${comment.id}`} className="flex gap-3 py-3 scroll-mt-14">
       <UserAvatar user={comment.author} />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
@@ -47,6 +55,22 @@ export function CommentCard({ comment, postId }: { comment: CommentData; postId:
         </div>
         {comment.content && (
           <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-foreground/90">
+            {parentComment && (
+              <button
+                type="button"
+                className="font-semibold text-primary"
+                aria-label={`Đi tới bình luận của ${parentComment.author.fullName}`}
+                onClick={() =>{
+                  
+                  document
+                    .getElementById(`comment-${parentComment.id}`)
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+                }
+              >
+                @{parentComment.author.fullName}
+              </button>
+            )}{' '}
             {comment.content}
           </p>
         )}
@@ -94,7 +118,9 @@ export function CommentCard({ comment, postId }: { comment: CommentData; postId:
           </div>
         )}
 
-        {(comment.commentCount ?? 0) > 0 && <CommentReplies comment={comment} postId={postId} />}
+        {(comment.commentCount ?? 0) > 0 && (
+          <CommentReplies comment={comment} postId={postId} depth={depth} />
+        )}
       </div>
     </article>
   )

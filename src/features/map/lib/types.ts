@@ -181,7 +181,7 @@ export type TopicFeedQuery = {
 }
 
 // ===== Tìm kiếm (R7) =====
-export type SearchKind = 'POST' | 'USER' | 'PLACE'
+export type SearchKind = 'POST'| 'PLACE'
 
 export type MapSearchQuery = {
   q: string
@@ -193,13 +193,13 @@ export type MapSearchQuery = {
 }
 
 export type PostHit = { kind: 'POST' } & PostCardData
-export type UserHit = { kind: 'USER'; id: Uuid; displayName: string; avatarUrl?: string; bio?: string }
+// export type UserHit = { kind: 'USER'; id: Uuid; displayName: string; avatarUrl?: string; bio?: string }
 export type PlaceHit = { kind: 'PLACE'; id: Uuid; name: string; locationType: string; center: GeoPoint; postCount: number }
 
 export type SearchResponse = {
   q: string
   posts: PageResponse<PostHit>
-  users: UserHit[]
+  // users: UserHit[]
   places: PlaceHit[]
 }
 

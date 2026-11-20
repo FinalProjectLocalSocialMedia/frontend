@@ -13,7 +13,7 @@ export type NavItem = {
 export const navItems: NavItem[] = [
   { to: '/', label: 'Trang chủ', icon: Home, end: true },
   { to: '/explore', label: 'Khám phá', icon: Search },
-  // { to: '/notifications', label: 'Thông báo', icon: Bell, count: 3 },
+  { to: '/notifications', label: 'Thông báo', icon: Bell },
   { to: '/messages', label: 'Tin nhắn', icon: MessageCircle },
   { to: '/profile', label: 'Trang cá nhân', icon: UserRound },
 ]

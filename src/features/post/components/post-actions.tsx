@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ReportTargetDialog } from '@/components/shared/report-target-dialog'
 import { PostSearchItem } from '../types/post'
 
 interface PostActionsProps {
@@ -33,6 +34,7 @@ interface PostActionsProps {
 
 export function PostActions({ post, saved, isOwn, isDeletePending, toggleSaved, removePost }: PostActionsProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [reportDialogOpen, setReportDialogOpen] = useState(false)
 
   async function copyText(text: string) {
     try {
@@ -81,11 +83,7 @@ export function PostActions({ post, saved, isOwn, isDeletePending, toggleSaved, 
         ) : (
           <DropdownMenuItem
             variant="destructive"
-            onClick={() =>
-              toast.success('Đã gửi báo cáo', {
-                description: 'Cảm ơn bạn đã góp phần giữ an toàn cho Nearby.',
-              })
-            }
+            onClick={() => setReportDialogOpen(true)}
           >
             <Flag /> Báo cáo bài viết
           </DropdownMenuItem>
@@ -134,6 +132,13 @@ export function PostActions({ post, saved, isOwn, isDeletePending, toggleSaved, 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {reportDialogOpen && (
+        <ReportTargetDialog
+          targetType="POST"
+          targetId={post.id}
+          onClose={() => setReportDialogOpen(false)}
+        />
+      )}
     </DropdownMenu>
   )
 }
