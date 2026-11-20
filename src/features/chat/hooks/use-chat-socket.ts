@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Client, type StompSubscription } from '@stomp/stompjs'
+import { toast } from 'sonner'
 import type { MessageDto, TypingEvent, ReadReceiptEvent, ConversationSummary, MediaItem } from '../types/chat'
+
+export interface ChatErrorEvent {
+  type?: string
+  conversationId?: string
+  message: string
+}
 
 export interface UseChatSocketOptions {
   userId?: string | null
@@ -9,6 +16,7 @@ export interface UseChatSocketOptions {
   onTypingReceived?: (event: TypingEvent) => void
   onReadReceiptReceived?: (event: ReadReceiptEvent) => void
   onConversationReceived?: (conversation: ConversationSummary) => void
+  onErrorReceived?: (error: ChatErrorEvent) => void
 }
 
 export function useChatSocket({
@@ -18,6 +26,7 @@ export function useChatSocket({
   onTypingReceived,
   onReadReceiptReceived,
   onConversationReceived,
+  onErrorReceived,
 }: UseChatSocketOptions) {
   const [isConnected, setIsConnected] = useState(false)
   const clientRef = useRef<Client | null>(null)
@@ -29,12 +38,14 @@ export function useChatSocket({
   const onTypingRef = useRef(onTypingReceived)
   const onReadRef = useRef(onReadReceiptReceived)
   const onConvRef = useRef(onConversationReceived)
+  const onErrorRef = useRef(onErrorReceived)
 
   useEffect(() => {
     onMessageRef.current = onMessageReceived
     onTypingRef.current = onTypingReceived
     onReadRef.current = onReadReceiptReceived
     onConvRef.current = onConversationReceived
+    onErrorRef.current = onErrorReceived
   })
 
   const processIncomingMessage = useCallback((stompMessage: { body: string }) => {
@@ -136,6 +147,20 @@ export function useChatSocket({
             console.error('Lỗi phân tích /user/queue/read-receipts:', err)
           }
         })
+
+        const handleErrorMessage = (stompMessage: { body: string }) => {
+          try {
+            const data = JSON.parse(stompMessage.body)
+            if (data?.message) {
+              toast.error(data.message)
+            }
+            onErrorRef.current?.(data)
+          } catch (err) {
+            console.error('Lỗi phân tích /user/queue/errors:', err)
+          }
+        }
+        client.subscribe('/user/queue/errors', handleErrorMessage)
+        client.subscribe(`/topic/users/${userId}/errors`, handleErrorMessage)
 
         if (activeConversationId) {
           subscribeToConversation(client, activeConversationId)

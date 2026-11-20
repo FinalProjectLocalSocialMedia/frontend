@@ -91,4 +91,16 @@ export const chatApi = {
     )
     return res.data
   },
+
+  // Lấy cài đặt tin nhắn riêng tư hiện tại
+  async getMySettings(): Promise<{ blockStrangers?: boolean }> {
+    const res = await apiClient.get<{ blockStrangers?: boolean }>('/user/users/me/settings')
+    return res.data
+  },
+
+  // Cập nhật quyền ai có thể nhắn tin cho tôi
+  async updateMySettings(data: { blockStrangers: boolean }): Promise<{ blockStrangers?: boolean }> {
+    const res = await apiClient.patch<{ blockStrangers?: boolean }>('/user/users/me/settings', data)
+    return res.data
+  },
 }
