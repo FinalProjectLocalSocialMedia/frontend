@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { GoogleMapsProvider } from '@/components/map/google-maps-provider'
 import { BaseMap } from '@/components/map/base-map'
 import type { MapViewState } from '@/components/map/map-types'
@@ -40,6 +41,22 @@ export default function ExplorePage() {
     setTopic,
     setSearchQuery,
   } = useMapUrlState()
+
+  const [searchParams, setSearchParams] = useSearchParams()
+  const searchTabParam = searchParams.get('tab') === 'places' ? 'places' : 'posts'
+  const isGlobalSearch = searchParams.get('global') === '1'
+
+  const clearExtraSearchParams = useCallback(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('tab')
+        next.delete('global')
+        return next
+      },
+      { replace: true },
+    )
+  }, [setSearchParams])
 
   const [areaCenter, setAreaCenter] = useState<GeoPoint>(urlState.center)
   const [isPickingLocation, setIsPickingLocation] = useState(false)
@@ -268,7 +285,10 @@ export default function ExplorePage() {
       {/* Bảng kết quả tìm kiếm trên bản đồ (Pha 6) - MapSidePanel không overlay */}
       <SearchResultsPanel
         isOpen={Boolean(urlState.searchQuery)}
-        onClose={() => setSearchQuery(null, null)}
+        onClose={() => {
+          setSearchQuery(null, null)
+          clearExtraSearchParams()
+        }}
         query={urlState.searchQuery || ''}
         placeId={urlState.placeId || null}
         placeName={
@@ -277,9 +297,12 @@ export default function ExplorePage() {
         }
         areaCenter={areaCenter}
         radiusKm={urlState.radiusKm}
+        initialTab={searchTabParam}
+        globalScope={isGlobalSearch}
         onSelectPlace={(place) => {
           setAreaCenter(place.center)
           setPlaceId(place.id, place.center, 13)
+          clearExtraSearchParams()
           if (mapRef.current) {
             mapRef.current.panTo({ lat: place.center.latitude, lng: place.center.longitude })
             mapRef.current.setZoom(13)
@@ -311,9 +334,15 @@ export default function ExplorePage() {
             value={searchInputValue}
             onChange={(val) => {
               setSearchInputValue(val)
-              if (!val) setSearchQuery(null, null)
+              if (!val) {
+                setSearchQuery(null, null)
+                clearExtraSearchParams()
+              }
             }}
-            onSubmit={(term) => setSearchQuery(term, null)}
+            onSubmit={(term) => {
+              clearExtraSearchParams()
+              setSearchQuery(term, null)
+            }}
             suggestions={loadedPlaces}
             onSelectSuggestion={(place) => setSearchQuery(place.name, place.id)}
           />
