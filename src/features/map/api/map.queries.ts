@@ -1,8 +1,6 @@
 import {
   keepPreviousData,
-  useMutation,
   useQuery,
-  useQueryClient,
 } from '@tanstack/react-query'
 import { MAP_CONFIG } from '../lib/map-config'
 import type {
@@ -19,7 +17,6 @@ import {
   feedService,
   mapService,
   searchService,
-  userService,
 } from './map.service'
 
 export const mapQueryKeys = {
@@ -94,9 +91,6 @@ export const mapQueryKeys = {
       q.page,
       q.pageSize,
     ] as const,
-  postDetail: (postId: Uuid) => [...mapQueryKeys.all, 'post', postId] as const,
-  comments: (postId: Uuid, page: number, pageSize: number) =>
-    [...mapQueryKeys.all, 'comments', postId, page, pageSize] as const,
   search: (q: MapSearchQuery) =>
     [
       ...mapQueryKeys.all,
@@ -108,9 +102,6 @@ export const mapQueryKeys = {
       q.page,
       q.pageSize,
     ] as const,
-  userProfile: (userId: Uuid) => [...mapQueryKeys.all, 'userProfile', userId] as const,
-  userPosts: (userId: Uuid, page: number, pageSize: number) =>
-    [...mapQueryKeys.all, 'userPosts', userId, page, pageSize] as const,
 }
 
 export function useDensityQuery(query: DensityQuery, enabled = true) {
@@ -186,68 +177,11 @@ export function useTopicFeedQuery(query: TopicFeedQuery, enabled = true) {
   })
 }
 
-export function usePostDetailQuery(postId: Uuid | null | undefined, enabled = true) {
-  return useQuery({
-    queryKey: postId ? mapQueryKeys.postDetail(postId) : ['map', 'post', 'empty'],
-    queryFn: ({ signal }) => (postId ? feedService.getPost(postId, { signal }) : Promise.reject('No postId')),
-    enabled: Boolean(postId) && enabled,
-    staleTime: MAP_CONFIG.STALE_TIME_MS,
-  })
-}
-
-export function useCommentsQuery(
-  postId: Uuid,
-  pagination: { page: number; pageSize: number },
-  enabled = true,
-) {
-  return useQuery({
-    queryKey: mapQueryKeys.comments(postId, pagination.page, pagination.pageSize),
-    queryFn: ({ signal }) => feedService.getComments(postId, pagination, { signal }),
-    enabled,
-    staleTime: 30_000,
-  })
-}
-
-export function useAddCommentMutation(postId: Uuid) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ content, parentCommentId }: { content: string; parentCommentId?: Uuid }) =>
-      feedService.addComment(postId, content, parentCommentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [...mapQueryKeys.all, 'comments', postId] })
-      queryClient.invalidateQueries({ queryKey: mapQueryKeys.postDetail(postId) })
-    },
-  })
-}
-
 export function useMapSearchQuery(query: MapSearchQuery, enabled = true) {
   return useQuery({
     queryKey: mapQueryKeys.search(query),
     queryFn: ({ signal }) => searchService.search(query, { signal }),
     enabled: Boolean(query.q.trim()) && enabled,
-    placeholderData: keepPreviousData,
-    staleTime: MAP_CONFIG.STALE_TIME_MS,
-  })
-}
-
-export function usePublicProfileQuery(userId: Uuid | null | undefined, enabled = true) {
-  return useQuery({
-    queryKey: userId ? mapQueryKeys.userProfile(userId) : ['map', 'userProfile', 'empty'],
-    queryFn: ({ signal }) => (userId ? userService.getPublicProfile(userId, { signal }) : Promise.reject('No userId')),
-    enabled: Boolean(userId) && enabled,
-    staleTime: MAP_CONFIG.STALE_TIME_MS,
-  })
-}
-
-export function useUserPostsQuery(
-  userId: Uuid,
-  pagination: { page: number; pageSize: number },
-  enabled = true,
-) {
-  return useQuery({
-    queryKey: mapQueryKeys.userPosts(userId, pagination.page, pagination.pageSize),
-    queryFn: ({ signal }) => userService.getUserPosts(userId, pagination, { signal }),
-    enabled: Boolean(userId) && enabled,
     placeholderData: keepPreviousData,
     staleTime: MAP_CONFIG.STALE_TIME_MS,
   })

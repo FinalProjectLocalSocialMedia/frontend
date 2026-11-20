@@ -1,5 +1,4 @@
 import type {
-  CommentItem,
   DensityQuery,
   DensityResponse,
   HeatPointsQuery,
@@ -11,22 +10,13 @@ import type {
   PlacePostsQuery,
   PlaceSummary,
   PostCardData,
-  PostDetail,
-  PublicProfile,
   SearchResponse,
   TopicFeedQuery,
   TopicMarker,
   TopicMarkersQuery,
   Uuid,
 } from '../lib/types'
-import { USE_MOCK } from '@/config/env'
-import {
-  mockFeedService,
-  mockMapService,
-  mockSearchService,
-  mockUserService,
-} from './mock/map.mock'
-import { httpMapService, httpSearchService } from './map.http'
+import { httpFeedService, httpMapService, httpSearchService } from './map.http'
 
 export type RequestOptions = {
   signal?: AbortSignal
@@ -43,35 +33,13 @@ export interface MapService {
 
 export interface FeedService {
   getTopicFeed(q: TopicFeedQuery, o?: RequestOptions): Promise<PageResponse<PostCardData>>
-  getPost(id: Uuid, o?: RequestOptions): Promise<PostDetail>
-  getComments(
-    postId: Uuid,
-    p: { page: number; pageSize: number },
-    o?: RequestOptions,
-  ): Promise<PageResponse<CommentItem>>
-  addComment(
-    postId: Uuid,
-    content: string,
-    parentCommentId?: Uuid,
-    o?: RequestOptions,
-  ): Promise<CommentItem>
 }
 
 export interface SearchService {
   search(q: MapSearchQuery, o?: RequestOptions): Promise<SearchResponse>
 }
 
-export interface UserService {
-  getPublicProfile(id: Uuid, o?: RequestOptions): Promise<PublicProfile>
-  getUserPosts(
-    id: Uuid,
-    p: { page: number; pageSize: number },
-    o?: RequestOptions,
-  ): Promise<PageResponse<PostCardData>>
-}
-
-// Khi VITE_USE_MOCK=false, tự động chuyển đổi sang HTTP client thực tế kết nối với backend qua Gateway
-export const mapService: MapService = USE_MOCK ? mockMapService : httpMapService
-export const feedService: FeedService = USE_MOCK ? mockFeedService : mockFeedService
-export const searchService: SearchService = USE_MOCK ? mockSearchService : httpSearchService
-export const userService: UserService = USE_MOCK ? mockUserService : mockUserService
+// Sử dụng trực tiếp HTTP service kết nối Backend qua API Gateway (không dùng mock trên map)
+export const mapService: MapService = httpMapService
+export const feedService: FeedService = httpFeedService
+export const searchService: SearchService = httpSearchService

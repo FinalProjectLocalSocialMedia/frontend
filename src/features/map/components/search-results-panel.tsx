@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FileText, Users, MapPin, ChevronRight, Loader2, AlertCircle } from 'lucide-react'
+import { FileText, MapPin, ChevronRight, AlertCircle } from 'lucide-react'
 import { MapSidePanel } from './map-side-panel'
 import { TimeFilter } from './time-filter'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -21,16 +21,15 @@ export type SearchResultsPanelProps = {
   onSelectPlace: (place: { id: string; name: string; center: GeoPoint }) => void
 }
 
-type TabKey = 'posts' | 'users' | 'places'
+type TabKey = 'posts' | 'places'
 
 /**
  * Bảng hiển thị kết quả tìm kiếm trên bản đồ (SearchResultsPanel) theo mục 6.6 và 6.7.
  * - Dùng chung khung MapSidePanel (không overlay/backdrop, bản đồ vẫn thao tác được)
- * - 3 Tab: Bài viết (mặc định) · Người dùng · Địa điểm (Bước 4)
- * - Bộ lọc thời gian TimeFilter: preset (3h, 1d, 7d, 30d) hoặc chọn ngày cụ thể (Bước 5, 6)
- * - Điều hướng chi tiết theo mục 6.6 Bước 7:
+ * - 2 Tab: Bài viết (mặc định) · Địa điểm
+ * - Bộ lọc thời gian TimeFilter: preset (3h, 1d, 7d, 30d) hoặc chọn ngày cụ thể
+ * - Điều hướng chi tiết:
  *   + Bài viết -> /posts/:id (post-detail có sẵn)
- *   + Người dùng -> /profile/:userId (ProfilePage có sẵn)
  *   + Địa điểm -> bay tới tâm địa điểm + mở PlaceDetailModal
  */
 export function SearchResultsPanel({
@@ -56,7 +55,7 @@ export function SearchResultsPanel({
       ? { placeId }
       : { center: areaCenter, radiusKm },
     time: timeFilter,
-    kinds: ['POST', 'USER', 'PLACE'] as SearchKind[],
+    kinds: ['POST', 'PLACE'] as SearchKind[],
     page,
     pageSize,
   }
@@ -70,7 +69,6 @@ export function SearchResultsPanel({
 
   const posts = searchData?.posts?.items ?? []
   const totalPosts = searchData?.posts?.total ?? 0
-  const users = searchData?.users ?? []
   const places = searchData?.places ?? []
 
   // Định dạng hiển thị thời gian đăng bài theo Bước 4 và Bước 6
@@ -116,7 +114,7 @@ export function SearchResultsPanel({
           />
         </div>
 
-        {/* Danh sách 3 Tab: Bài viết · Người dùng · Địa điểm (Bước 4) */}
+        {/* Danh sách 2 Tab: Bài viết · Địa điểm */}
         <div className="flex items-center rounded-xl bg-muted/70 p-1 text-xs font-semibold">
           <button
             type="button"
@@ -131,21 +129,6 @@ export function SearchResultsPanel({
             <FileText className="size-3.5" />
             <span>Bài viết</span>
             <span className="text-[10px] opacity-70">({totalPosts})</span>
-          </button>
-
-          <button
-            type="button"
-            data-testid="search-tab-users"
-            onClick={() => setActiveTab('users')}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 transition-all ${
-              activeTab === 'users'
-                ? 'bg-background text-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Users className="size-3.5" />
-            <span>Người dùng</span>
-            <span className="text-[10px] opacity-70">({users.length})</span>
           </button>
 
           <button
@@ -254,49 +237,7 @@ export function SearchResultsPanel({
               </>
             )}
 
-            {/* TAB 2: NGƯỜI DÙNG (Mục 6.6 Bước 7 -> /profile/:userId) */}
-            {activeTab === 'users' && (
-              <>
-                {users.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-muted-foreground">
-                    Không tìm thấy người dùng nào phù hợp.
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2 min-w-0">
-                    {users.map((user) => (
-                      <div
-                        key={user.id}
-                        data-testid="search-user-item"
-                        onClick={() => navigate(`/profile/${user.id}`)}
-                        className="group flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card p-2.5 shadow-2xs transition-all hover:border-primary/40 hover:shadow-xs cursor-pointer min-w-0"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <Avatar className="size-8 shrink-0 ring-1 ring-border">
-                            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.displayName} />}
-                            <AvatarFallback className="text-xs font-bold">
-                              {user.displayName.slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col min-w-0">
-                            <span className="truncate text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                              {user.displayName}
-                            </span>
-                            {user.bio && (
-                              <span className="truncate text-[11px] text-muted-foreground">
-                                {user.bio}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <ChevronRight className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* TAB 3: ĐỊA ĐIỂM (Mục 6.6 Bước 7 -> bay tới toạ độ và mở PlaceDetailModal) */}
+            {/* TAB 2: ĐỊA ĐIỂM (bay tới toạ độ và mở PlaceDetailModal) */}
             {activeTab === 'places' && (
               <>
                 {places.length === 0 ? (

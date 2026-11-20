@@ -12,11 +12,12 @@ import type {
   PlaceSummary,
   PostCardData,
   SearchResponse,
+  TopicFeedQuery,
   TopicMarker,
   TopicMarkersQuery,
   Uuid,
 } from '../lib/types'
-import type { MapService, RequestOptions, SearchService } from './map.service'
+import type { FeedService, MapService, RequestOptions, SearchService } from './map.service'
 
 /**
  * Triển khai HTTP Service cho Map Explore kết nối trực tiếp với API Gateway (Pha P7).
@@ -165,5 +166,35 @@ export const httpSearchService: SearchService = {
       signal: o?.signal,
     })
     return response.data
+  },
+}
+
+/**
+ * Triển khai HTTP Service cho Topic Feed trên bản đồ.
+ * Khi mở từ marker topic tại một địa điểm (scope.kind === 'place'), tái sử dụng endpoint
+ * GET /post/locations/{locationId}/posts với tham số topic.
+ */
+export const httpFeedService: FeedService = {
+  async getTopicFeed(q: TopicFeedQuery, o?: RequestOptions): Promise<PageResponse<PostCardData>> {
+    if (q.scope.kind === 'place') {
+      return httpMapService.getPlacePosts(
+        {
+          placeId: q.scope.placeId,
+          topic: q.topic,
+          time: q.time,
+          sort: q.sort,
+          page: q.page,
+          pageSize: q.pageSize,
+        },
+        o,
+      )
+    }
+
+    return {
+      items: [],
+      page: q.page,
+      pageSize: q.pageSize,
+      total: 0,
+    }
   },
 }

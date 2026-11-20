@@ -26,7 +26,7 @@ export function MapSearchBar({
   onSubmit,
   suggestions = [],
   onSelectSuggestion,
-  placeholder = 'Tìm địa điểm, bài viết, người dùng...',
+  placeholder = 'Tìm địa điểm, bài viết...',
 }: MapSearchBarProps) {
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
