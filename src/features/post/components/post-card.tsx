@@ -34,7 +34,7 @@ export function PostCard({ post }: PostCardProps) {
       onClick={() => navigate(`/posts/${post.id}`)}
     >
       <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()} >
           <PostHeader post={post} />
         </div>
 

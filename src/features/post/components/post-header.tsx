@@ -10,7 +10,7 @@ interface PostHeaderProps {
 export function PostHeader({ post }: PostHeaderProps) {
   return (
     <Link
-      to={`/posts/${post.id}`}
+      to={`/profile/${post.author.id}`}
       aria-label={`Xem bài viết của ${post.author.fullName}`}
       className="inline-flex max-w-full items-start gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
