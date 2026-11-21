@@ -15,7 +15,7 @@ export function UserLocationDot({ position }: UserLocationDotProps) {
     >
       <div className="relative flex items-center justify-center">
         {/* Outer pulsating wave */}
-        <span className="absolute size-8 animate-ping rounded-full bg-sky-400 opacity-60" />
+        <span className="absolute size-8 rounded-full bg-sky-400 opacity-60" />
         {/* Soft pulse glow */}
         <span className="absolute size-6 rounded-full bg-sky-500/30" />
         {/* Core solid blue GPS dot */}
