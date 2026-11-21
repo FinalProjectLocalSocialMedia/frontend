@@ -221,7 +221,7 @@ export function NewChatDialog({
               {isLoggedIn && (
                 <span className="text-[10px] text-primary flex items-center gap-1 font-medium">
                   <Sparkles className="size-3" />
-                  Đã kết nối User Service
+  
                 </span>
               )}
             </div>

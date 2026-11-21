@@ -42,21 +42,9 @@ export default function ExplorePage() {
     setSearchQuery,
   } = useMapUrlState()
 
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const searchTabParam = searchParams.get('tab') === 'places' ? 'places' : 'posts'
   const isGlobalSearch = searchParams.get('global') === '1'
-
-  const clearExtraSearchParams = useCallback(() => {
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev)
-        next.delete('tab')
-        next.delete('global')
-        return next
-      },
-      { replace: true },
-    )
-  }, [setSearchParams])
 
   const [areaCenter, setAreaCenter] = useState<GeoPoint>(urlState.center)
   const [isPickingLocation, setIsPickingLocation] = useState(false)
@@ -116,19 +104,29 @@ export default function ExplorePage() {
     (point: GeoPoint) => {
       setAreaCenter(point)
       setSource('GPS')
+      if (mapRef.current) {
+        mapRef.current.panTo({ lat: point.latitude, lng: point.longitude })
+      }
     },
     [setSource],
   )
 
+  // Nếu người dùng đã mở sẵn URL có tìm kiếm/địa điểm/toạ độ hoặc đã tương tác với bản đồ, không để auto-GPS nhảy đè tâm & URL
+  const hasInitialContext = Boolean(
+    urlState.searchQuery || urlState.placeId || urlState.topic || searchParams.get('lat'),
+  )
+  const [hasUserInteracted, setHasUserInteracted] = useState(hasInitialContext)
+
   const { gpsPosition, isLoadingGps, requestGps } = useUserLocation({
     onGpsAcquired: handleGpsAcquired,
-    userHasInteracted: userInteractedRef.current,
+    userHasInteracted: hasUserInteracted || hasInitialContext,
   })
 
   // Xử lý sự kiện idle của bản đồ để đồng bộ tham số URL search params và cập nhật viewport
   const handleMapIdle = useCallback(
     (viewport: MapViewState) => {
       userInteractedRef.current = true
+      setHasUserInteracted(true)
       setCurrentViewport(viewport)
       onCameraIdle(viewport.center, viewport.zoom)
 
@@ -287,7 +285,6 @@ export default function ExplorePage() {
         isOpen={Boolean(urlState.searchQuery)}
         onClose={() => {
           setSearchQuery(null, null)
-          clearExtraSearchParams()
         }}
         query={urlState.searchQuery || ''}
         placeId={urlState.placeId || null}
@@ -300,12 +297,16 @@ export default function ExplorePage() {
         initialTab={searchTabParam}
         globalScope={isGlobalSearch}
         onSelectPlace={(place) => {
+          setHasUserInteracted(true)
+          const currentZoom = mapRef.current?.getZoom() ?? currentViewport?.zoom ?? urlState.zoom
+          const targetZoom = currentZoom < 17 ? 17 : currentZoom
           setAreaCenter(place.center)
-          setPlaceId(place.id, place.center, 13)
-          clearExtraSearchParams()
+          setPlaceId(place.id, place.center, targetZoom)
           if (mapRef.current) {
             mapRef.current.panTo({ lat: place.center.latitude, lng: place.center.longitude })
-            mapRef.current.setZoom(13)
+            if (currentZoom < 17) {
+              mapRef.current.setZoom(17)
+            }
           }
         }}
       />
@@ -333,14 +334,14 @@ export default function ExplorePage() {
           <MapSearchBar
             value={searchInputValue}
             onChange={(val) => {
+              setHasUserInteracted(true)
               setSearchInputValue(val)
               if (!val) {
                 setSearchQuery(null, null)
-                clearExtraSearchParams()
               }
             }}
             onSubmit={(term) => {
-              clearExtraSearchParams()
+              setHasUserInteracted(true)
               setSearchQuery(term, null)
             }}
             suggestions={loadedPlaces}
