@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { getFeed } from './post-api'
+import { getFeed, getLatestFeed } from './post-api'
 import { getLikedPosts, getSavedPosts, getUserPosts } from './post-interaction-api'
 import type { PostCursorPage } from '../types/post'
 
@@ -9,6 +9,12 @@ const PROFILE_PAGE_SIZE = 20
 export const postKeys = {
   all: ['posts'] as const,
   feed: () => [...postKeys.all, 'feed'] as const,
+  latestFeed: () =>
+    [
+      ...postKeys.all,
+      'feed',
+      'latest',
+    ] as const,
   profile: (userId: string | undefined) => [...postKeys.all, 'profile', userId] as const,
   liked: () => [...postKeys.all, 'liked'] as const,
   saved: () => [...postKeys.all, 'saved'] as const,
@@ -30,14 +36,49 @@ function useCursorPosts(
   })
 }
 
-export function useFeedPosts(coordinates?: { latitude: number; longitude: number } | undefined, radiusKm?: number) {
+export function useFeedPosts(
+  coordinates?: { latitude: number; longitude: number } | undefined,
+  radiusKm?: number,
+  lastSeen?: { id?: string; createdAt?: string } | undefined,
+) {
   return useInfiniteQuery({
     queryKey: postKeys.feed(),
     initialPageParam: undefined as string | undefined,
-    queryFn: ({ pageParam }) => getFeed({ cursor: pageParam, limit: FEED_PAGE_SIZE, coordinates, radiusKm }),
+    queryFn: ({ pageParam }) =>
+      getFeed({
+        cursor: pageParam,
+        limit: FEED_PAGE_SIZE,
+        coordinates,
+        radiusKm,
+        lastSeenId: lastSeen?.id,
+        lastSeenCreatedAt: lastSeen?.createdAt,
+      }),
     getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
     staleTime: 30_000,
-    enabled: !!coordinates, 
+    enabled: !!coordinates,
+  })
+}
+
+export function useLatestFeedPosts(
+  coordinates: { latitude: number; longitude: number } | undefined,
+  radiusKm?: number,
+  lastSeen?: { id?: string; createdAt?: string } | undefined,
+) {
+  return useInfiniteQuery({
+    queryKey: postKeys.latestFeed(),
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
+      getLatestFeed({
+        cursor: pageParam,
+        limit: FEED_PAGE_SIZE,
+        coordinates,
+        radiusKm,
+        lastSeenId: lastSeen?.id,
+        lastSeenCreatedAt: lastSeen?.createdAt,
+      }),
+    getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
+    staleTime: 0,
+    enabled: false,
   })
 }
 

@@ -4,12 +4,13 @@ import { GeoPoint } from '../types/geo-point'
 import { PostMedia } from '../types/post-media'
 
 
-
 export type GetFeedParams = {
   cursor?: string
   limit?: number
   coordinates?: GeoPoint
   radiusKm?: number
+  lastSeenId?: string
+  lastSeenCreatedAt?: string
 }
 
 export type SearchPostsParams = {
@@ -41,16 +42,28 @@ export async function createPost(request: CreatePostRequest): Promise<Post> {
   return response.data
 }
 
-export async function getFeed({ cursor, limit = 5, coordinates, radiusKm }: GetFeedParams): Promise<PostCursorPage> {
+export async function getFeed({ cursor, limit = 5, coordinates, radiusKm, lastSeenId, lastSeenCreatedAt }: GetFeedParams): Promise<PostCursorPage> {
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
     throw new RangeError('Feed limit must be an integer between 1 and 50')
   }
 
   const response = await postHttp.get<PostCursorPage>('feed/feed/local', {
-    params: { cursor, limit, latitude: coordinates?.latitude, longitude: coordinates?.longitude, radiusKm },
+    params: { cursor, limit, latitude: coordinates?.latitude, longitude: coordinates?.longitude, radiusKm, lastSeenId, lastSeenCreatedAt },
   })
   return response.data
 }
+
+export async function getLatestFeed({ cursor, limit = 5, coordinates, radiusKm, lastSeenId, lastSeenCreatedAt }: GetFeedParams): Promise<PostCursorPage> {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    throw new RangeError('Feed limit must be an integer between 1 and 50')
+  }
+
+  const response = await postHttp.get<PostCursorPage>('feed/feed/latest', {
+    params: { cursor, limit, latitude: coordinates?.latitude, longitude: coordinates?.longitude, radiusKm, lastSeenId, lastSeenCreatedAt },
+  })
+  return response.data
+}
+
 
 export async function searchPosts({
   q = '',
