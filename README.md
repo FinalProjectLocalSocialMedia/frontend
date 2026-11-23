@@ -2,8 +2,6 @@
 
 Giao diện web của mạng xã hội **location-based**: xem bài viết quanh vị trí hiện tại, khám phá xu hướng/hotspot theo khu vực, nhắn tin và quản lý hồ sơ.
 
-> **Trạng thái:** prototype vẫn dùng mock data cho nhiều khu vực; luồng bài viết có API tìm kiếm/tạo bài và upload media trực tiếp lên Cloudinary. Chưa có auth hoàn chỉnh, bản đồ là hình minh hoạ. Xem [docs/roadmap.md](docs/roadmap.md) để biết cái gì đã có và cái gì còn thiếu.
-
 ## Công nghệ
 
 | Mục | Dùng |

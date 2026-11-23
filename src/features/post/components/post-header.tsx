@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { formatRelativeTime } from '@/lib/date-time'
 import { PostSearchItem } from '../types/post'
 import { UserAvatar } from './user-avatar'
@@ -8,28 +8,56 @@ interface PostHeaderProps {
 }
 
 export function PostHeader({ post }: PostHeaderProps) {
+  const navigate = useNavigate()
+
+  const handleLocationClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    const locationName = post.location?.name?.trim()
+    if (!locationName) return
+    navigate(`/explore?q=${encodeURIComponent(locationName)}&tab=places&global=1`)
+  }
+
   return (
-    <Link
-      to={`/profile/${post.author.id}`}
-      aria-label={`Xem bài viết của ${post.author.fullName}`}
-      className="inline-flex max-w-full items-start gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <UserAvatar user={post.author} />
+    <div className="inline-flex max-w-full items-start gap-3">
+      <Link
+        to={`/posts/${post.id}`}
+        aria-label={`Xem bài viết của ${post.author.fullName}`}
+        className="shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <UserAvatar user={post.author} />
+      </Link>
 
       <div className="min-w-0">
-        <p className="text-sm font-semibold">{post.author.fullName}</p>
+        <Link
+          to={`/posts/${post.id}`}
+          className="block truncate text-sm font-semibold hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xs"
+        >
+          {post.author.fullName}
+        </Link>
 
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {formatRelativeTime(post.createdAt)}
+        <div className="mt-0.5 flex flex-wrap items-center text-xs text-muted-foreground">
+          <Link
+            to={`/posts/${post.id}`}
+            className="hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xs"
+          >
+            {formatRelativeTime(post.createdAt)}
+          </Link>
 
           {post.location?.name && (
             <>
               <span className="px-1">·</span>
-              {post.location.name}
+              <button
+                type="button"
+                onClick={handleLocationClick}
+                aria-label={`Tìm kiếm địa điểm ${post.location.name} trên bản đồ`}
+                className="truncate text-left font-medium text-muted-foreground transition-colors hover:text-primary hover:underline cursor-pointer rounded-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {post.location.name}
+              </button>
             </>
           )}
-        </p>
+        </div>
       </div>
-    </Link>
+    </div>
   )
 }

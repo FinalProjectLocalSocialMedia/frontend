@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { GoogleMapsProvider } from '@/components/map/google-maps-provider'
 import { BaseMap } from '@/components/map/base-map'
 import type { MapViewState } from '@/components/map/map-types'
@@ -40,6 +41,10 @@ export default function ExplorePage() {
     setTopic,
     setSearchQuery,
   } = useMapUrlState()
+
+  const [searchParams] = useSearchParams()
+  const searchTabParam = searchParams.get('tab') === 'places' ? 'places' : 'posts'
+  const isGlobalSearch = searchParams.get('global') === '1'
 
   const [areaCenter, setAreaCenter] = useState<GeoPoint>(urlState.center)
   const [isPickingLocation, setIsPickingLocation] = useState(false)
@@ -99,19 +104,29 @@ export default function ExplorePage() {
     (point: GeoPoint) => {
       setAreaCenter(point)
       setSource('GPS')
+      if (mapRef.current) {
+        mapRef.current.panTo({ lat: point.latitude, lng: point.longitude })
+      }
     },
     [setSource],
   )
 
+  // Nếu người dùng đã mở sẵn URL có tìm kiếm/địa điểm/toạ độ hoặc đã tương tác với bản đồ, không để auto-GPS nhảy đè tâm & URL
+  const hasInitialContext = Boolean(
+    urlState.searchQuery || urlState.placeId || urlState.topic || searchParams.get('lat'),
+  )
+  const [hasUserInteracted, setHasUserInteracted] = useState(hasInitialContext)
+
   const { gpsPosition, isLoadingGps, requestGps } = useUserLocation({
     onGpsAcquired: handleGpsAcquired,
-    userHasInteracted: userInteractedRef.current,
+    userHasInteracted: hasUserInteracted || hasInitialContext,
   })
 
   // Xử lý sự kiện idle của bản đồ để đồng bộ tham số URL search params và cập nhật viewport
   const handleMapIdle = useCallback(
     (viewport: MapViewState) => {
       userInteractedRef.current = true
+      setHasUserInteracted(true)
       setCurrentViewport(viewport)
       onCameraIdle(viewport.center, viewport.zoom)
 
@@ -268,7 +283,9 @@ export default function ExplorePage() {
       {/* Bảng kết quả tìm kiếm trên bản đồ (Pha 6) - MapSidePanel không overlay */}
       <SearchResultsPanel
         isOpen={Boolean(urlState.searchQuery)}
-        onClose={() => setSearchQuery(null, null)}
+        onClose={() => {
+          setSearchQuery(null, null)
+        }}
         query={urlState.searchQuery || ''}
         placeId={urlState.placeId || null}
         placeName={
@@ -277,12 +294,19 @@ export default function ExplorePage() {
         }
         areaCenter={areaCenter}
         radiusKm={urlState.radiusKm}
+        initialTab={searchTabParam}
+        globalScope={isGlobalSearch}
         onSelectPlace={(place) => {
+          setHasUserInteracted(true)
+          const currentZoom = mapRef.current?.getZoom() ?? currentViewport?.zoom ?? urlState.zoom
+          const targetZoom = currentZoom < 17 ? 17 : currentZoom
           setAreaCenter(place.center)
-          setPlaceId(place.id, place.center, 13)
+          setPlaceId(place.id, place.center, targetZoom)
           if (mapRef.current) {
             mapRef.current.panTo({ lat: place.center.latitude, lng: place.center.longitude })
-            mapRef.current.setZoom(13)
+            if (currentZoom < 17) {
+              mapRef.current.setZoom(17)
+            }
           }
         }}
       />
@@ -310,10 +334,16 @@ export default function ExplorePage() {
           <MapSearchBar
             value={searchInputValue}
             onChange={(val) => {
+              setHasUserInteracted(true)
               setSearchInputValue(val)
-              if (!val) setSearchQuery(null, null)
+              if (!val) {
+                setSearchQuery(null, null)
+              }
             }}
-            onSubmit={(term) => setSearchQuery(term, null)}
+            onSubmit={(term) => {
+              setHasUserInteracted(true)
+              setSearchQuery(term, null)
+            }}
             suggestions={loadedPlaces}
             onSelectSuggestion={(place) => setSearchQuery(place.name, place.id)}
           />

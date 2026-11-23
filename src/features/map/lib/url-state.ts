@@ -90,6 +90,7 @@ export type MapUrlUpdates = Partial<Omit<MapUrlState, 'placeId' | 'topic' | 'sea
   topic?: string | null
   searchQuery?: string | null
   timeFilter?: string | null
+  clearSearchMeta?: boolean
 }
 
 /** Tuần tự hoá trạng thái cập nhật vào URLSearchParams mà không ghi đè các tham số khác */
@@ -155,6 +156,11 @@ export function serializeMapUrlParams(
     } else {
       next.delete('t')
     }
+  }
+
+  if (updates.clearSearchMeta) {
+    next.delete('tab')
+    next.delete('global')
   }
 
   return next

@@ -1,5 +1,5 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { getFeed, getLatestFeed } from './post-api'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { getFeed, getMiniMapPreview, getLatestFeed } from './post-api'
 import { getLikedPosts, getSavedPosts, getUserPosts } from './post-interaction-api'
 import type { PostCursorPage } from '../types/post'
 
@@ -9,6 +9,7 @@ const PROFILE_PAGE_SIZE = 20
 export const postKeys = {
   all: ['posts'] as const,
   feed: () => [...postKeys.all, 'feed'] as const,
+  miniMap: (lat: number, lng: number) => [...postKeys.all, 'miniMap', lat.toFixed(2), lng.toFixed(2)] as const,
   latestFeed: () =>
     [
       ...postKeys.all,
@@ -107,4 +108,16 @@ export function useSavedPosts(enabled = true) {
     (cursor) => getSavedPosts({ cursor, limit: PROFILE_PAGE_SIZE }),
     enabled,
   )
+}
+
+export function useMiniMapPreview(coordinates?: { latitude: number; longitude: number } | null) {
+  const lat = coordinates?.latitude ?? 21.0285
+  const lng = coordinates?.longitude ?? 105.8542
+
+  return useQuery({
+    queryKey: postKeys.miniMap(lat, lng),
+    queryFn: ({ signal }) => getMiniMapPreview({ latitude: lat, longitude: lng }, signal),
+    staleTime: 60_000,
+    gcTime: 300_000,
+  })
 }

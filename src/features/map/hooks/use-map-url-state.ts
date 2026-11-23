@@ -121,12 +121,14 @@ export function useMapUrlState() {
             searchQuery?: string | null
             center?: GeoPoint
             zoom?: number
+            clearSearchMeta?: boolean
           } = {
             placeId: id,
           }
           if (id) {
             updates.topic = null
             updates.searchQuery = null
+            updates.clearSearchMeta = true
           }
           if (targetCenter) {
             updates.center = targetCenter
@@ -172,8 +174,14 @@ export function useMapUrlState() {
     (q: string | null, scopePlaceId?: string | null) => {
       setSearchParams(
         (prev) => {
-          const updates: { searchQuery: string | null; placeId?: string | null; topic?: string | null } = {
+          const updates: {
+            searchQuery: string | null
+            placeId?: string | null
+            topic?: string | null
+            clearSearchMeta?: boolean
+          } = {
             searchQuery: q,
+            clearSearchMeta: true,
           }
           if (q) {
             updates.topic = null

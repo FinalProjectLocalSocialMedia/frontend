@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileText, MapPin, ChevronRight, AlertCircle } from 'lucide-react'
 import { MapSidePanel } from './map-side-panel'
@@ -18,6 +18,8 @@ export type SearchResultsPanelProps = {
   placeName?: string | null
   areaCenter: GeoPoint
   radiusKm: RadiusKm
+  initialTab?: TabKey
+  globalScope?: boolean
   onSelectPlace: (place: { id: string; name: string; center: GeoPoint }) => void
 }
 
@@ -40,20 +42,32 @@ export function SearchResultsPanel({
   placeName,
   areaCenter,
   radiusKm,
+  initialTab = 'posts',
+  globalScope = false,
   onSelectPlace,
 }: SearchResultsPanelProps) {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<TabKey>('posts')
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab)
   const [timeFilter, setTimeFilter] = useState<TimeFilterValue>({ kind: 'all' })
   const [page, setPage] = useState(1)
   const pageSize = 10
+
+  // Đồng bộ tab mặc định khi mở từ liên kết địa chỉ trên PostCard (?tab=places)
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab)
+      setPage(1)
+    }
+  }, [isOpen, initialTab, query])
 
   // Thực hiện tìm kiếm thông qua hook useMapSearchQuery
   const searchQueryArg = {
     q: query,
     scope: placeId
       ? { placeId }
-      : { center: areaCenter, radiusKm },
+      : globalScope
+        ? undefined
+        : { center: areaCenter, radiusKm },
     time: timeFilter,
     kinds: ['POST', 'PLACE'] as SearchKind[],
     page,
