@@ -29,6 +29,7 @@ export type PostSearchItem = {
     avatarUrl?: string | null
   }
   content: string
+  sharedPostId?: string | null
   media?: PostMedia[] | null
   location?: {
     name: string

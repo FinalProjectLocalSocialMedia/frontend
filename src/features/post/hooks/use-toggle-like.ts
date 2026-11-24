@@ -5,6 +5,22 @@ import { Post, PostCursorPage, PostSearchItem } from "../types/post"
 import { toast } from "sonner"
 
 
+function updatePostPages(
+    current: InfiniteData<PostCursorPage, string | undefined> | undefined,
+    postId: string,
+    updatePost: (item: PostSearchItem) => PostSearchItem,
+) {
+    if (!current || !Array.isArray(current.pages)) return current
+
+    return {
+        ...current,
+        pages: current.pages.map((page) => ({
+            ...page,
+            items: page.items.map((item) => item.id === postId ? updatePost(item) : item),
+        })),
+    }
+}
+
 export const useToggleLike = (post: PostSearchItem) => {
     const queryClient = useQueryClient()
     const likeMutation = useMutation({
@@ -21,22 +37,11 @@ export const useToggleLike = (post: PostSearchItem) => {
 
             queryClient.setQueriesData<InfiniteData<PostCursorPage, string | undefined>>(
                 { queryKey: postKeys.all },
-                (current) =>
-                    current && {
-                        ...current,
-                        pages: current.pages.map((page) => ({
-                            ...page,
-                            items: page.items.map((item) =>
-                                item.id === post.id
-                                    ? {
-                                        ...item,
-                                        isLikedByMe: nextLiked,
-                                        likeCount: Math.max(0, (item.likeCount ?? 0) + (nextLiked ? 1 : -1)),
-                                    }
-                                    : item,
-                            ),
-                        })),
-                    },
+                (current) => updatePostPages(current, post.id, (item) => ({
+                    ...item,
+                    isLikedByMe: nextLiked,
+                    likeCount: Math.max(0, (item.likeCount ?? 0) + (nextLiked ? 1 : -1)),
+                })),
             )
             queryClient.setQueryData<Post>(detailKey, (current) =>
                 current
@@ -53,22 +58,11 @@ export const useToggleLike = (post: PostSearchItem) => {
         onError: (_error, _nextLiked, context) => {
             queryClient.setQueriesData<InfiniteData<PostCursorPage, string | undefined>>(
                 { queryKey: postKeys.all },
-                (current) =>
-                    current && {
-                        ...current,
-                        pages: current.pages.map((page) => ({
-                            ...page,
-                            items: page.items.map((item) =>
-                                item.id === post.id
-                                    ? {
-                                        ...item,
-                                        isLikedByMe: context?.previousLiked ?? false,
-                                        likeCount: context?.previousLikeCount ?? 0,
-                                    }
-                                    : item,
-                            ),
-                        })),
-                    },
+                (current) => updatePostPages(current, post.id, (item) => ({
+                    ...item,
+                    isLikedByMe: context?.previousLiked ?? false,
+                    likeCount: context?.previousLikeCount ?? 0,
+                })),
             )
             queryClient.setQueryData<Post>(postKeys.detail(post.id), (current) =>
                 current

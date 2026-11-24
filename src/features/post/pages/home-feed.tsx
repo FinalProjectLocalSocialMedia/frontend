@@ -95,10 +95,19 @@ export default function HomeFeed() {
   console.log('lastSeen:', lastSeen)
 
   const mergeLatestPosts = (data: InfiniteData<PostCursorPage, unknown>) => {
+    const latestItems = data.pages.flatMap((page) => page.items)
+    const newestPost = latestItems[0]
+
     queryClient.setQueryData<InfiniteData<PostCursorPage, string | undefined>>(
       postKeys.feed(),
       (current) => mergeLatestFeed(current, data.pages),
     )
+    if (newestPost) {
+      setLastSeen({
+        id: newestPost.id,
+        createdAt: newestPost.createdAt,
+      })
+    }
   }
 
   const handleLoadLatest = async () => {
@@ -149,7 +158,7 @@ export default function HomeFeed() {
               </div>
             </button>
 
-            {hasNewPosts && (
+            {(hasNewPosts&& latestFeed.hasNextPage) && (
               <div className="sticky top-2 z-20 mt-5 flex justify-center">
                 <Button
                   size="sm"
@@ -167,6 +176,25 @@ export default function HomeFeed() {
                 </Button>
               </div>
             )}
+            {latestFeed.hasNextPage && (
+              <Button
+                variant="outline"
+                onClick={() => void handleLoadMoreLatest()}
+                disabled={latestFeed.isFetchingNextPage}
+                className="self-center"
+              >
+                {latestFeed.isFetchingNextPage ? (
+                  <>
+                    <Spinner /> Đang tải bài mới...
+                  </>
+                ) : latestFeed.isFetchNextPageError ? (
+                  'Thử tải lại bài mới'
+                ) : (
+                  'Xem thêm bài mới'
+                )}
+              </Button>
+            )}
+
             <div className="mt-5 flex flex-col gap-4">
               {posts.map((post) => (
                 <PostCard
@@ -212,24 +240,7 @@ export default function HomeFeed() {
                 </p>
               )}
 
-          {latestFeed.hasNextPage && (
-            <Button
-              variant="outline"
-              onClick={() => void handleLoadMoreLatest()}
-              disabled={latestFeed.isFetchingNextPage}
-              className="self-center"
-            >
-              {latestFeed.isFetchingNextPage ? (
-                <>
-                  <Spinner /> Đang tải bài mới...
-                </>
-              ) : latestFeed.isFetchNextPageError ? (
-                'Thử tải lại bài mới'
-              ) : (
-                'Xem thêm bài mới'
-              )}
-            </Button>
-          )}
+
 
               {feed.hasNextPage && (
                 <Button
