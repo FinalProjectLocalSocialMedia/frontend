@@ -20,7 +20,7 @@ export function GoogleMapsProvider({
       apiKey={apiKey}
       language="vi"
       region="VN"
-      libraries={['maps', 'marker']}
+      libraries={['maps', 'marker', 'places']}
     >
       {children}
     </APIProvider>
