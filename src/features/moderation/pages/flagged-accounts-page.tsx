@@ -428,8 +428,14 @@ export function FlaggedAccountsPage() {
               const [field, direction] = val.split(':') as [string, 'asc' | 'desc']
               setSort({ field, direction })
             }}
+            items={{
+              'pendingReports:desc': 'Nhiều báo cáo chờ duyệt nhất',
+              'warnings:desc': 'Nhiều cảnh báo nhất',
+              'totalReports:desc': 'Tổng số báo cáo nhiều nhất',
+              'lastActivityAt:desc': 'Hoạt động gần đây nhất',
+            }}
           >
-            <SelectTrigger className="w-[210px] text-xs">
+            <SelectTrigger className="w-[225px] text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

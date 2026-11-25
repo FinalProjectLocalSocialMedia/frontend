@@ -351,7 +351,11 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                     control={control}
                     name="gender"
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        items={{ '1': 'Nam', '0': 'Nữ', '2': 'Khác' }}
+                      >
                         <SelectTrigger className="text-xs">
                           <SelectValue placeholder="Chọn giới tính" />
                         </SelectTrigger>

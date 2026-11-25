@@ -1,4 +1,10 @@
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Clock, ChevronDown, Check } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { STATS_WINDOW_LABELS } from '../lib/labels'
 import type { StatsWindow } from '../lib/types'
 
@@ -10,35 +16,36 @@ export type WindowControlProps = {
 
 const WINDOW_OPTIONS: StatsWindow[] = ['1d', '7d', '30d']
 
-export function WindowControl({ value, onChange, disabled }: WindowControlProps) {
-  const handleValueChange = (val: string[]) => {
-    if (!val || val.length === 0) return
-    const next = val[val.length - 1] as StatsWindow
-    if (WINDOW_OPTIONS.includes(next)) {
-      onChange(next)
-    }
-  }
+export function WindowControl({ value = '7d', onChange, disabled }: WindowControlProps) {
+  const currentLabel = STATS_WINDOW_LABELS[value] ?? STATS_WINDOW_LABELS['7d']
 
   return (
-    <div className="flex items-center rounded-full border border-border/80 bg-background/95 p-1 shadow-md backdrop-blur-md">
-      <ToggleGroup
-        value={[value]}
-        onValueChange={handleValueChange}
+    <DropdownMenu>
+      <DropdownMenuTrigger
         disabled={disabled}
-        className="gap-1"
+        aria-label={`Khoảng thời gian: ${currentLabel}`}
+        className="flex h-9 items-center gap-1.5 rounded-full border border-border/80 bg-background/95 px-3 text-xs font-medium text-foreground shadow-md backdrop-blur-md transition-colors hover:bg-muted/80 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
       >
-        {WINDOW_OPTIONS.map((w) => (
-          <ToggleGroupItem
-            key={w}
-            value={w}
-            size="sm"
-            aria-label={`Cửa sổ ${STATS_WINDOW_LABELS[w]}`}
-            className="h-7 rounded-full px-2.5 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=on]:hover:bg-primary/90"
-          >
-            {STATS_WINDOW_LABELS[w]}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </div>
+        <Clock className="size-3.5 text-primary shrink-0" />
+        <span>{currentLabel}</span>
+        <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl p-1">
+        {WINDOW_OPTIONS.map((w) => {
+          const isSelected = w === value
+          return (
+            <DropdownMenuItem
+              key={w}
+              onClick={() => onChange(w)}
+              className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium cursor-pointer"
+            >
+              <span>{STATS_WINDOW_LABELS[w]}</span>
+              {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

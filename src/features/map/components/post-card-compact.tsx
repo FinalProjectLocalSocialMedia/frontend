@@ -1,5 +1,5 @@
 import { Heart, MessageSquare } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatRelativeVi } from '../lib/relative-time'
 import type { PostCardData } from '../lib/types'
@@ -17,6 +17,7 @@ export type PostCardCompactProps = {
  * - Tuân thủ nghiêm ngặt quy tắc R3: Đối tượng bài viết tuyệt đối không chứa toạ độ địa lý
  */
 export function PostCardCompact({ post, onClick }: PostCardCompactProps) {
+  const location = useLocation()
   const relativeTime = formatRelativeVi(post.createdAt)
   const authorInitials = post.author.displayName
     ? post.author.displayName.slice(0, 2).toUpperCase()
@@ -25,6 +26,7 @@ export function PostCardCompact({ post, onClick }: PostCardCompactProps) {
   return (
     <Link
       to={`/posts/${post.id}`}
+      state={{ from: `${location.pathname}${location.search}`, fromMap: true }}
       onClick={onClick}
       className="group flex flex-col gap-2 rounded-xl border border-border/70 bg-card p-3 shadow-2xs transition-all hover:border-primary/40 hover:shadow-sm"
     >

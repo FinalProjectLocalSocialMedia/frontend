@@ -12,7 +12,7 @@ import type { PostsTimePoint } from '@/features/admin-moderation/lib/types'
 const chartConfig = {
   count: {
     label: 'Số bài viết',
-    color: 'hsl(var(--primary))',
+    color: 'var(--primary)',
   },
 } satisfies ChartConfig
 
@@ -41,12 +41,13 @@ export function ContentStatsChart({
     )
   }
 
-  // Format short date: "2026-10-24" -> "24/10"
+  // Định dạng ngày ngắn: "2026-10-24" -> "24/10"
   const formattedData = series.map((item) => {
     const parts = item.date.split('-')
     const shortLabel = parts.length === 3 ? `${parts[2]}/${parts[1]}` : item.date
+    const fullLabel = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : item.date
     return {
-      date: item.date,
+      date: fullLabel,
       displayDate: shortLabel,
       count: item.count,
     }
@@ -72,20 +73,25 @@ export function ContentStatsChart({
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-[280px] w-full">
-            <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart data={formattedData} margin={{ top: 12, right: 14, left: -16, bottom: 4 }}>
               <defs>
                 <linearGradient id="fillPostCount" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.38} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
 
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/50" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+                strokeOpacity={0.7}
+              />
 
               <XAxis
                 dataKey="displayDate"
                 tickLine={false}
-                axisLine={false}
+                axisLine={{ stroke: 'var(--border)' }}
                 tickMargin={8}
                 className="text-[11px] fill-muted-foreground"
               />
@@ -100,15 +106,17 @@ export function ContentStatsChart({
 
               <ChartTooltip
                 cursor={{
-                  stroke: 'hsl(var(--muted-foreground))',
+                  stroke: 'var(--primary)',
                   strokeWidth: 1,
                   strokeDasharray: '4 4',
+                  strokeOpacity: 0.6,
                 }}
                 content={
                   <ChartTooltipContent
+                    indicator="dot"
                     labelFormatter={(_label, payload) => {
                       const item = payload[0]?.payload as { date?: string } | undefined
-                      return item?.date ? `Ngày: ${item.date}` : _label
+                      return item?.date ? `Ngày ${item.date}` : String(_label)
                     }}
                   />
                 }
@@ -117,10 +125,22 @@ export function ContentStatsChart({
               <Area
                 type="monotone"
                 dataKey="count"
-                stroke="hsl(var(--primary))"
+                stroke="var(--primary)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#fillPostCount)"
+                dot={{
+                  r: 3.5,
+                  fill: 'var(--card)',
+                  stroke: 'var(--primary)',
+                  strokeWidth: 2,
+                }}
+                activeDot={{
+                  r: 5.5,
+                  fill: 'var(--primary)',
+                  stroke: 'var(--background)',
+                  strokeWidth: 2,
+                }}
               />
             </AreaChart>
           </ChartContainer>

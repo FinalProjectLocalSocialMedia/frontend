@@ -319,8 +319,17 @@ export function ReportsPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Lọc Trạng thái */}
-          <Select value={selectedStatus} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[140px] h-9 text-xs">
+          <Select
+            value={selectedStatus}
+            onValueChange={handleStatusChange}
+            items={{
+              PENDING: 'Chờ xử lý',
+              RESOLVED: 'Đã xử lý',
+              REJECTED: 'Đã bác bỏ',
+              ALL: 'Tất cả trạng thái',
+            }}
+          >
+            <SelectTrigger className="w-[145px] h-9 text-xs">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
             <SelectContent>
@@ -340,8 +349,12 @@ export function ReportsPage() {
           </Select>
 
           {/* Lọc Lý do */}
-          <Select value={selectedReason} onValueChange={handleReasonChange}>
-            <SelectTrigger className="w-[160px] h-9 text-xs">
+          <Select
+            value={selectedReason}
+            onValueChange={handleReasonChange}
+            items={{ ALL: 'Tất cả lý do', ...REPORT_REASONS }}
+          >
+            <SelectTrigger className="w-[165px] h-9 text-xs">
               <SelectValue placeholder="Lý do vi phạm" />
             </SelectTrigger>
             <SelectContent>
@@ -364,8 +377,13 @@ export function ReportsPage() {
               const [field, direction] = val.split(':') as [string, 'asc' | 'desc']
               setSort({ field, direction })
             }}
+            items={{
+              'createdAt:asc': 'Ưu tiên cũ nhất trước',
+              'createdAt:desc': 'Mới nhất trước',
+              'reportCount:desc': 'Bị báo cáo nhiều nhất',
+            }}
           >
-            <SelectTrigger className="w-[170px] h-9 text-xs">
+            <SelectTrigger className="w-[180px] h-9 text-xs">
               <SelectValue placeholder="Sắp xếp" />
             </SelectTrigger>
             <SelectContent>
