@@ -1,10 +1,18 @@
+import { useState } from 'react'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { PostSearchItem } from '../types/post'
+import { PostShareComposer } from './post-share-composer'
 
 interface PostEngagementProps {
   post: PostSearchItem
@@ -14,6 +22,8 @@ interface PostEngagementProps {
 }
 
 export function PostEngagement({ post, liked, isLikePending, toggleLiked }: PostEngagementProps) {
+  const [composerOpen, setComposerOpen] = useState(false)
+
   async function copyText(text: string) {
     try {
       await navigator.clipboard.writeText(text)
@@ -60,9 +70,20 @@ export function PostEngagement({ post, liked, isLikePending, toggleLiked }: Post
         <MessageCircle /> {post.commentCount}
       </Button>
 
-      <Button variant="ghost" size="sm" onClick={() => void share()}>
-        <Share2 /> Chia sẻ
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={<Button variant="ghost" size="sm" aria-label="Chia sẻ bài viết" />}
+        >
+          <Share2 /> Chia sẻ
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={() => setComposerOpen(true)}>
+            Viết nội dung kèm theo
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => void share()}>Chia sẻ nhanh</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <PostShareComposer post={post} open={composerOpen} onOpenChange={setComposerOpen} />
     </div>
   )
 }

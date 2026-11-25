@@ -20,7 +20,7 @@ export function PostHeader({ post }: PostHeaderProps) {
   return (
     <div className="inline-flex max-w-full items-start gap-3">
       <Link
-        to={`/posts/${post.id}`}
+        to={`/profile/${post.author.id}`}
         aria-label={`Xem bài viết của ${post.author.fullName}`}
         className="shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
@@ -29,7 +29,7 @@ export function PostHeader({ post }: PostHeaderProps) {
 
       <div className="min-w-0">
         <Link
-          to={`/posts/${post.id}`}
+          to={`/profile/${post.author.id}`}
           className="block truncate text-sm font-semibold hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xs"
         >
           {post.author.fullName}

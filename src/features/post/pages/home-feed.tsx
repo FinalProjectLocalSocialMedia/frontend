@@ -6,13 +6,17 @@ import { useCreatePost } from '@/components/layout/create-post-context'
 import { PostCard } from '@/features/post/components/post-card'
 import { PostSearchForm } from '@/features/post/components/post-search-form'
 import { NearbyMiniMapCard } from '@/features/post/components/nearby-mini-map-card'
-import { useFeedPosts } from '@/features/post/api/post-queries'
+import { postKeys, useFeedPosts, useLatestFeedPosts } from '@/features/post/api/post-queries'
 import { useInfiniteScroll } from '@/features/post/hooks/use-infinite-scroll'
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { Spinner } from '@/components/ui/spinner'
 import { trending } from '@/lib/mock-nearby'
-import { useUserLocation } from '@/hooks/use-user-location'
+import { useUserLocation } from '@/features/map/hooks/use-user-location'
 import { useQuery } from '@tanstack/react-query'
 import { getPlaceFromGeoPoint } from '../api/google-map-api'
+import { useFeedSSE } from '../hooks/use-feed-sse'
+import type { PostCursorPage } from '@/features/post/types/post'
+import { useEffect, useState } from 'react'
 
 type FeedTab = 'nearby' | 'following' | 'trending'
 
@@ -40,16 +44,25 @@ export default function HomeFeed() {
     typeof window !== 'undefined' ? localStorage.getItem('nearby_map_last_view') : null
   const radiusKm = nearby_map_last_view ? JSON.parse(nearby_map_last_view).radiusKm : 1
 
+  const [lastSeen, setLastSeen] = useState<{ id?: string; createdAt?: string } | undefined>(undefined)
+
   const feed = useFeedPosts(
     gpsPosition ? { latitude: gpsPosition.latitude, longitude: gpsPosition.longitude } : undefined,
     radiusKm,
+    lastSeen,
   )
+  const latestFeed = useLatestFeedPosts(
+    gpsPosition ? { latitude: gpsPosition.latitude, longitude: gpsPosition.longitude } : undefined,
+    radiusKm,
+    lastSeen,
+  )
+  const queryClient = useQueryClient()
+  const { hasNewPosts, clearNewPosts } = useFeedSSE()
 
   const sentinelRef = useInfiniteScroll({
     enabled: activeTab === 'nearby' && !!feed.hasNextPage && !feed.isFetchingNextPage,
     onLoadMore: () => void feed.fetchNextPage(),
   })
-
   const posts = feed.data?.pages.flatMap((page) => page.items) ?? []
 
   const handleTabChange = (nextValue: string) => {
@@ -66,6 +79,52 @@ export default function HomeFeed() {
       },
       { replace: true },
     )
+  }
+
+  useEffect(() => {
+    if (!posts.length || lastSeen) return
+
+    const firstPost = posts[0]
+
+    setLastSeen({
+      id: firstPost.id,
+      createdAt: firstPost.createdAt,
+    })
+  }, [posts, lastSeen])
+
+  console.log('lastSeen:', lastSeen)
+
+  const mergeLatestPosts = (data: InfiniteData<PostCursorPage, unknown>) => {
+    const latestItems = data.pages.flatMap((page) => page.items)
+    const newestPost = latestItems[0]
+
+    queryClient.setQueryData<InfiniteData<PostCursorPage, string | undefined>>(
+      postKeys.feed(),
+      (current) => mergeLatestFeed(current, data.pages),
+    )
+    if (newestPost) {
+      setLastSeen({
+        id: newestPost.id,
+        createdAt: newestPost.createdAt,
+      })
+    }
+  }
+
+  const handleLoadLatest = async () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    const result = await latestFeed.refetch()
+    if (result.data) {
+      mergeLatestPosts(result.data)
+      clearNewPosts()
+    }
+  }
+
+  const handleLoadMoreLatest = async () => {
+    const result = await latestFeed.fetchNextPage()
+    if (result.data) {
+      mergeLatestPosts(result.data)
+    }
   }
 
   return (
@@ -98,6 +157,43 @@ export default function HomeFeed() {
                 )}
               </div>
             </button>
+
+            {(hasNewPosts&& latestFeed.hasNextPage) && (
+              <div className="sticky top-2 z-20 mt-5 flex justify-center">
+                <Button
+                  size="sm"
+                  onClick={() => void handleLoadLatest()}
+                  disabled={latestFeed.isFetching}
+                  className="rounded-full shadow-md"
+                >
+                  {latestFeed.isFetching ? (
+                    <>
+                      <Spinner /> Đang tải bài mới...
+                    </>
+                  ) : (
+                    'Có bài viết mới'
+                  )}
+                </Button>
+              </div>
+            )}
+            {latestFeed.hasNextPage && (
+              <Button
+                variant="outline"
+                onClick={() => void handleLoadMoreLatest()}
+                disabled={latestFeed.isFetchingNextPage}
+                className="self-center"
+              >
+                {latestFeed.isFetchingNextPage ? (
+                  <>
+                    <Spinner /> Đang tải bài mới...
+                  </>
+                ) : latestFeed.isFetchNextPageError ? (
+                  'Thử tải lại bài mới'
+                ) : (
+                  'Xem thêm bài mới'
+                )}
+              </Button>
+            )}
 
             <div className="mt-5 flex flex-col gap-4">
               {posts.map((post) => (
@@ -143,6 +239,8 @@ export default function HomeFeed() {
                   Không thể tải thêm bài viết. Vui lòng thử lại.
                 </p>
               )}
+
+
 
               {feed.hasNextPage && (
                 <Button
@@ -207,4 +305,44 @@ export default function HomeFeed() {
       </aside>
     </div>
   )
+}
+
+
+export function mergeLatestFeed(
+  current: InfiniteData<PostCursorPage, string | undefined> | undefined,
+  latestPages: PostCursorPage[],
+): InfiniteData<PostCursorPage, string | undefined> {
+  const latestItems = latestPages.flatMap((page) => page.items)
+  const seen = new Set<string>()
+  const uniqueLatestItems = latestItems.filter((item) => {
+    if (seen.has(item.id)) return false
+    seen.add(item.id)
+    return true
+  })
+
+  if (!current?.pages.length) {
+    return {
+      pages: [
+        {
+          items: uniqueLatestItems,
+          page: { nextCursor: null, hasMore: false },
+        },
+      ],
+      pageParams: [undefined],
+    }
+  }
+
+  const existingIds = new Set(current.pages.flatMap((page) => page.items.map((item) => item.id)))
+  const newItems = uniqueLatestItems.filter((item) => !existingIds.has(item.id))
+
+  return {
+    ...current,
+    pages: [
+      {
+        ...current.pages[0],
+        items: [...newItems, ...current.pages[0].items],
+      },
+      ...current.pages.slice(1),
+    ],
+  }
 }
