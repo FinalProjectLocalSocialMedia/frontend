@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
+import { AdvancedMarker } from '@vis.gl/react-google-maps'
 import { GoogleMapsProvider } from '@/components/map/google-maps-provider'
 import { BaseMap } from '@/components/map/base-map'
 import type { MapViewState } from '@/components/map/map-types'
@@ -42,13 +43,28 @@ export default function ExplorePage() {
     setSearchQuery,
   } = useMapUrlState()
 
+  const routerLocation = useLocation()
   const [searchParams] = useSearchParams()
   const searchTabParam = searchParams.get('tab') === 'places' ? 'places' : 'posts'
   const isGlobalSearch = searchParams.get('global') === '1'
 
-  const [areaCenter, setAreaCenter] = useState<GeoPoint>(urlState.center)
+  const initialPinnedPlace = (
+    routerLocation.state as {
+      pinnedPlace?: { name: string; location: GeoPoint }
+      pinLocationName?: string
+    } | null
+  )?.pinnedPlace
+
+  const [areaCenter, setAreaCenter] = useState<GeoPoint>(
+    initialPinnedPlace?.location ?? urlState.center,
+  )
+  const [redPinPosition, setRedPinPosition] = useState<GeoPoint | null>(
+    initialPinnedPlace?.location ?? null,
+  )
   const [isPickingLocation, setIsPickingLocation] = useState(false)
-  const [searchInputValue, setSearchInputValue] = useState(urlState.searchQuery || '')
+  const [searchInputValue, setSearchInputValue] = useState(
+    initialPinnedPlace?.name ?? urlState.searchQuery ?? '',
+  )
   const [autoFitRadius, setAutoFitRadius] = useState(false)
   const [currentViewport, setCurrentViewport] = useState<MapViewState | null>(null)
   const [totalPostsInView, setTotalPostsInView] = useState<number>(0)
@@ -56,10 +72,27 @@ export default function ExplorePage() {
   const [dismissedFocusPlaceId, setDismissedFocusPlaceId] = useState<string | null>(null)
   const mapRef = useRef<google.maps.Map | null>(null)
 
-  // Đồng bộ ô nhập liệu tìm kiếm khi search param thay đổi
+  // Đồng bộ ghim đỏ và tên địa điểm trên thanh search khi điều hướng từ PostCard sang ExplorePage
   useEffect(() => {
-    setSearchInputValue(urlState.searchQuery || '')
-  }, [urlState.searchQuery])
+    const state = routerLocation.state as {
+      pinnedPlace?: { name: string; location: GeoPoint }
+      pinLocationName?: string
+    } | null
+
+    if (state?.pinnedPlace) {
+      const { name, location } = state.pinnedPlace
+      setHasUserInteracted(true)
+      setSearchInputValue(name)
+      setAreaCenter(location)
+      setRedPinPosition(location)
+      if (mapRef.current) {
+        mapRef.current.panTo({ lat: location.latitude, lng: location.longitude })
+        mapRef.current.setZoom(17)
+      }
+    } else if (state?.pinLocationName) {
+      setSearchInputValue(state.pinLocationName)
+    }
+  }, [routerLocation.key, routerLocation.state])
 
   // Tính toán địa điểm tiêu điểm gần tâm bản đồ khi zoom >= 17 (mục 6.6)
   // Tuyệt đối không gọi thêm API nào, chỉ dùng danh sách marker đã tải trong bộ nhớ
@@ -216,6 +249,41 @@ export default function ExplorePage() {
           onMapClick={handleMapClick}
           onMapReady={(map) => {
             mapRef.current = map
+            const state = routerLocation.state as {
+              pinnedPlace?: { name: string; location: GeoPoint }
+              pinLocationName?: string
+            } | null
+            if (map && state?.pinnedPlace) {
+              map.panTo({
+                lat: state.pinnedPlace.location.latitude,
+                lng: state.pinnedPlace.location.longitude,
+              })
+              map.setZoom(17)
+              return
+            }
+            const pinLocationName = state?.pinLocationName
+            if (map && pinLocationName && typeof google !== 'undefined' && google.maps?.Geocoder) {
+              const geocoder = new google.maps.Geocoder()
+              void geocoder.geocode({ address: pinLocationName, region: 'VN' }).then((res) => {
+                const first = res.results?.[0]
+                if (first?.geometry?.location) {
+                  const target: GeoPoint = {
+                    latitude: first.geometry.location.lat(),
+                    longitude: first.geometry.location.lng(),
+                  }
+                  setHasUserInteracted(true)
+                  setSearchInputValue(pinLocationName)
+                  setAreaCenter(target)
+                  setRedPinPosition(target)
+                  if (first.geometry.viewport) {
+                    map.fitBounds(first.geometry.viewport)
+                  } else {
+                    map.panTo({ lat: target.latitude, lng: target.longitude })
+                    map.setZoom(17)
+                  }
+                }
+              })
+            }
           }}
           className={`size-full ${isPickingLocation ? 'cursor-crosshair' : ''}`}
         >
@@ -249,6 +317,14 @@ export default function ExplorePage() {
           {/* Chấm tròn biểu thị toạ độ GPS của người dùng */}
           <UserLocationDot position={gpsPosition} />
 
+          {/* Marker màu đỏ mặc định của Google Maps khi tìm kiếm địa điểm hoặc mở địa điểm từ PostCard */}
+          {redPinPosition && (
+            <AdvancedMarker
+              position={{ lat: redPinPosition.latitude, lng: redPinPosition.longitude }}
+              zIndex={1000}
+            />
+          )}
+
           {/* Ghim tâm khu vực khi người dùng chủ động chọn */}
           {urlState.source === 'PICKED' && <CenterPin position={areaCenter} />}
 
@@ -267,6 +343,7 @@ export default function ExplorePage() {
           placeId={urlState.placeId || null}
           isOpen={Boolean(urlState.placeId && !urlState.topic && !urlState.searchQuery)}
           onClose={() => setPlaceId(null)}
+          statsWindow={urlState.window}
         />
 
         {/* Modal bài viết theo chủ đề (Pha 4) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
@@ -319,17 +396,26 @@ export default function ExplorePage() {
               onChange={(val) => {
                 setHasUserInteracted(true)
                 setSearchInputValue(val)
+                if (!val) {
+                  setRedPinPosition(null)
+                }
               }}
-              onSelectGooglePlace={({ location }) => {
+              onSelectGooglePlace={({ name, location, viewport }) => {
                 setHasUserInteracted(true)
-                // Đóng mọi panel chi tiết đang mở; chỉ kéo bản đồ về địa điểm, người dùng tự nhấn marker nếu muốn xem
+                // Giữ tên địa điểm trên thanh search để người dùng có thể bấm nút X xoá ghim đỏ bất cứ lúc nào
+                setSearchInputValue(name)
                 setPlaceId(null)
                 setSearchQuery(null, null)
                 setAreaCenter(location)
+                setRedPinPosition(location)
 
                 if (mapRef.current) {
-                  mapRef.current.panTo({ lat: location.latitude, lng: location.longitude })
-                  mapRef.current.setZoom(19)
+                  if (viewport) {
+                    mapRef.current.fitBounds(viewport)
+                  } else {
+                    mapRef.current.panTo({ lat: location.latitude, lng: location.longitude })
+                    mapRef.current.setZoom(17)
+                  }
                 }
               }}
             />

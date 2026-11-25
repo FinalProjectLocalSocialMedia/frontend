@@ -12,9 +12,38 @@ export function PostHeader({ post }: PostHeaderProps) {
 
   const handleLocationClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
-    const locationName = post.location?.name?.trim()
+    const loc = post.location
+    const locationName = loc?.name?.trim()
     if (!locationName) return
-    navigate(`/explore?q=${encodeURIComponent(locationName)}&tab=places&global=1`)
+
+    const coords = loc?.coordinates
+    if (
+      coords &&
+      typeof coords.latitude === 'number' &&
+      typeof coords.longitude === 'number'
+    ) {
+      navigate(
+        `/explore?lat=${coords.latitude.toFixed(5)}&lng=${coords.longitude.toFixed(5)}&z=17`,
+        {
+          state: {
+            pinnedPlace: {
+              name: locationName,
+              location: {
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+              },
+            },
+          },
+        },
+      )
+      return
+    }
+
+    navigate('/explore', {
+      state: {
+        pinLocationName: locationName,
+      },
+    })
   }
 
   return (

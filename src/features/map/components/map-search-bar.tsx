@@ -62,14 +62,14 @@ export function MapSearchBar({
     return () => clearTimeout(timer)
   }, [value])
 
-  // Gọi Google Places Autocomplete API khi debouncedQuery thay đổi
+  // Gọi Google Places Autocomplete API khi debouncedQuery thay đổi và dropdown đang mở
   useEffect(() => {
     if (suppressFetchRef.current) {
       suppressFetchRef.current = false
       return
     }
 
-    if (!debouncedQuery || debouncedQuery.length < 2 || !placesLib) {
+    if (!isDropdownOpen || !debouncedQuery || debouncedQuery.length < 2 || !placesLib) {
       setPredictions([])
       setIsLoading(false)
       return
@@ -156,7 +156,7 @@ export function MapSearchBar({
     return () => {
       isCancelled = true
     }
-  }, [debouncedQuery, placesLib])
+  }, [debouncedQuery, isDropdownOpen, placesLib])
 
   // Fallback lọc gợi ý cục bộ (chỉ dùng khi không có placesLib như trong môi trường unit test)
   const filteredLocalSuggestions =
@@ -178,9 +178,11 @@ export function MapSearchBar({
   }, [])
 
   const handleSelectPrediction = async (item: PredictionItem) => {
+    const displayLabel = item.mainText || item.fullText
     setIsDropdownOpen(false)
+    setPredictions([])
     suppressFetchRef.current = true
-    onChange(item.mainText || item.fullText)
+    onChange(displayLabel)
 
     try {
       // Nhánh 1: Places API (New) giống test_autocomplete.html
@@ -194,8 +196,13 @@ export function MapSearchBar({
         if (loc) {
           const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat
           const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng
+          const resolvedName =
+            (typeof place.displayName === 'string' ? place.displayName : place.displayName?.text) ||
+            displayLabel
+          suppressFetchRef.current = true
+          onChange(resolvedName)
           onSelectGooglePlace?.({
-            name: place.displayName || item.mainText,
+            name: resolvedName,
             formattedAddress: place.formattedAddress || item.secondaryText,
             location: { latitude: lat, longitude: lng },
             viewport: place.viewport ?? null,
@@ -297,7 +304,7 @@ export function MapSearchBar({
       <div className="relative flex w-full items-center shadow-md rounded-full bg-background/95 border border-border/80 backdrop-blur-md">
         <Search className="absolute left-3.5 size-4 text-muted-foreground pointer-events-none" />
         <Input
-          type="search"
+          type="text"
           value={value}
           onChange={(e) => {
             onChange(e.target.value)

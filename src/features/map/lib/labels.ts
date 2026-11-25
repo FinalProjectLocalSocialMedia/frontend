@@ -292,9 +292,9 @@ export function formatLocationType(type: string): string {
 }
 
 export const STATS_WINDOW_LABELS: Record<StatsWindow, string> = {
-  '1d': 'Hôm nay',
-  '7d': '7 ngày',
-  '30d': '30 ngày',
+  '1d': '24 giờ qua',
+  '7d': '7 ngày qua',
+  '30d': '30 ngày qua',
 }
 
 export const TIME_PRESET_LABELS: Record<TimePreset, string> = {

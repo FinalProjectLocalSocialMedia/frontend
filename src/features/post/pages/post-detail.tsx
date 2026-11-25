@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PostCard } from '@/features/post/components/post-card'
@@ -11,8 +11,19 @@ import { Spinner } from '@/components/ui/spinner'
 import { getCommentsByPostId } from '../api/comment-api'
 import { CommentSection } from '../components/comment-section'
 
+type PostDetailLocationState = {
+  from?: string
+  fromMap?: boolean
+} | null
+
 export default function PostDetail() {
   const { postId } = useParams()
+  const location = useLocation()
+  const locationState = (location.state as PostDetailLocationState) ?? null
+  const isFromMap = Boolean(locationState?.fromMap && locationState?.from)
+  const backUrl = isFromMap && locationState?.from ? locationState.from : '/'
+  const backLabel = isFromMap ? 'Quay lại bản đồ' : 'Quay lại bảng tin'
+
   const postQuery = useQuery({
     queryKey: postKeys.detail(postId ?? ''),
     queryFn: () => getPostById(postId as string),
@@ -31,11 +42,9 @@ export default function PostDetail() {
 
   if (postQuery.isPending) {
     return (
-      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-10">
         <div className="flex items-center justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent">
-            <Spinner />
-          </div>
+          <Spinner className="size-10 text-primary" />
         </div>
       </section>
     )
@@ -45,8 +54,8 @@ export default function PostDetail() {
   if (!selectedPost || postQuery.isError) {
     return (
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
-        <Button render={<Link to="/" />} nativeButton={false} variant="ghost" className="mb-5">
-          <ArrowLeft data-icon="inline-start" /> Quay lại bảng tin
+        <Button render={<Link to={backUrl} />} nativeButton={false} variant="ghost" className="mb-5">
+          <ArrowLeft data-icon="inline-start" /> {backLabel}
         </Button>
         <div className="max-w-2xl rounded-2xl border border-border bg-card px-6 py-12 text-center">
           <h1 className="text-lg font-semibold">Không tìm thấy bài viết</h1>
@@ -61,8 +70,8 @@ export default function PostDetail() {
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-8">
       <section className="min-w-0">
-        <Button render={<Link to="/" />} nativeButton={false} variant="ghost" className="mb-5">
-          <ArrowLeft data-icon="inline-start" /> Quay lại bảng tin
+        <Button render={<Link to={backUrl} />} nativeButton={false} variant="ghost" className="mb-5">
+          <ArrowLeft data-icon="inline-start" /> {backLabel}
         </Button>
         <PostCard
           post={{
