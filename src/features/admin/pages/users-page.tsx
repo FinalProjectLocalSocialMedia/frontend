@@ -551,8 +551,16 @@ export function UsersPage() {
           {/* Lọc trạng thái */}
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-muted-foreground">Trạng thái:</span>
-            <Select value={selectedStatus} onValueChange={handleStatusChange}>
-              <SelectTrigger className="w-[140px] text-xs h-8">
+            <Select
+              value={selectedStatus}
+              onValueChange={handleStatusChange}
+              items={{
+                ALL: 'Tất cả trạng thái',
+                ACTIVE: 'Đang hoạt động',
+                LOCKED: 'Đang bị khoá',
+              }}
+            >
+              <SelectTrigger className="w-[155px] text-xs h-8">
                 <SelectValue placeholder="Tất cả" />
               </SelectTrigger>
               <SelectContent className="text-xs">
@@ -573,8 +581,14 @@ export function UsersPage() {
                 const [field, direction] = val.split(':') as [string, 'asc' | 'desc']
                 setSort({ field, direction })
               }}
+              items={{
+                'createdAt:desc': 'Mới tham gia nhất',
+                'createdAt:asc': 'Cũ nhất trước',
+                'displayName:asc': 'Tên (A-Z)',
+                'displayName:desc': 'Tên (Z-A)',
+              }}
             >
-              <SelectTrigger className="w-[150px] text-xs h-8">
+              <SelectTrigger className="w-[165px] text-xs h-8">
                 <SelectValue placeholder="Mới nhất trước" />
               </SelectTrigger>
               <SelectContent className="text-xs">

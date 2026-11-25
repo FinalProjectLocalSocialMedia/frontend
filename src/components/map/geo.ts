@@ -68,6 +68,15 @@ export function latLngToPixel(point: GeoPoint, zoom: number): { x: number; y: nu
   return { x, y }
 }
 
+/** Phép chiếu ngược Web Mercator: chuyển đổi toạ độ điểm ảnh (pixel) sang kinh/vĩ ở một mức zoom. */
+export function pixelToLatLng(pixel: { x: number; y: number }, zoom: number): GeoPoint {
+  const scale = 256 * Math.pow(2, zoom)
+  const longitude = (pixel.x / scale) * 360 - 180
+  const n = Math.PI - (2 * Math.PI * pixel.y) / scale
+  const latitude = (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)))
+  return { latitude, longitude }
+}
+
 /** Chuyển đổi bounding box sang danh sách khoá tile (slippy tile keys: z/x/y) ở mức zoom. */
 export function boundsToTileKeys(bounds: LatLngBounds, zoom: number): string[] {
   const z = Math.max(0, Math.floor(zoom))
