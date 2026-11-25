@@ -12,8 +12,9 @@ export function UserLocationDot({ position }: UserLocationDotProps) {
     <AdvancedMarker
       position={{ lat: position.latitude, lng: position.longitude }}
       title="Vị trí của bạn"
+      zIndex={1}
     >
-      <div className="relative flex items-center justify-center">
+      <div className="pointer-events-none relative flex items-center justify-center">
         {/* Outer pulsating wave */}
         <span className="absolute size-8 rounded-full bg-sky-400 opacity-60" />
         {/* Soft pulse glow */}

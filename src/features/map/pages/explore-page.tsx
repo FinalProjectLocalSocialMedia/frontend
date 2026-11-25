@@ -231,7 +231,7 @@ export default function ExplorePage() {
             onDensityLoaded={handleDensityLoaded}
           />
 
-          {/* Marker địa điểm (Pha 3: zoom 10-12 hiện chấm hotspot, zoom >= 13 hiện pill) */}
+          {/* Marker địa điểm (hiển thị số lượng bài viết) */}
           <PlaceMarkers
             viewport={currentViewport}
             statsWindow={urlState.window}
@@ -260,152 +260,138 @@ export default function ExplorePage() {
             onAutoFitComplete={() => setAutoFitRadius(false)}
           />
         </BaseMap>
-      </GoogleMapsProvider>
 
-      {/* Modal chi tiết địa điểm (Pha 3/3B) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
-      {/* Quy tắc một panel mỗi lúc: Chỉ mở khi không mở topic và không mở tìm kiếm */}
-      <PlaceDetailModal
-        placeId={urlState.placeId || null}
-        isOpen={Boolean(urlState.placeId && !urlState.topic && !urlState.searchQuery)}
-        onClose={() => setPlaceId(null)}
-      />
+        {/* Modal chi tiết địa điểm (Pha 3/3B) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
+        {/* Quy tắc một panel mỗi lúc: Chỉ mở khi không mở topic và không mở tìm kiếm */}
+        <PlaceDetailModal
+          placeId={urlState.placeId || null}
+          isOpen={Boolean(urlState.placeId && !urlState.topic && !urlState.searchQuery)}
+          onClose={() => setPlaceId(null)}
+        />
 
-      {/* Modal bài viết theo chủ đề (Pha 4) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
-      <TopicPostsModal
-        topic={urlState.topic || null}
-        placeId={urlState.placeId || null}
-        areaCenter={areaCenter}
-        radiusKm={urlState.radiusKm}
-        isOpen={Boolean(urlState.topic && !urlState.searchQuery)}
-        onClose={() => setTopic(null, null)}
-      />
+        {/* Modal bài viết theo chủ đề (Pha 4) - Đặt ngoài cây bản đồ để không làm re-render BaseMap */}
+        <TopicPostsModal
+          topic={urlState.topic || null}
+          placeId={urlState.placeId || null}
+          areaCenter={areaCenter}
+          radiusKm={urlState.radiusKm}
+          isOpen={Boolean(urlState.topic && !urlState.searchQuery)}
+          onClose={() => setTopic(null, null)}
+        />
 
-      {/* Bảng kết quả tìm kiếm trên bản đồ (Pha 6) - MapSidePanel không overlay */}
-      <SearchResultsPanel
-        isOpen={Boolean(urlState.searchQuery)}
-        onClose={() => {
-          setSearchQuery(null, null)
-        }}
-        query={urlState.searchQuery || ''}
-        placeId={urlState.placeId || null}
-        placeName={
-          loadedPlaces.find((p) => p.id === urlState.placeId)?.name ||
-          (urlState.placeId ? urlState.searchQuery : null)
-        }
-        areaCenter={areaCenter}
-        radiusKm={urlState.radiusKm}
-        initialTab={searchTabParam}
-        globalScope={isGlobalSearch}
-        onSelectPlace={(place) => {
-          setHasUserInteracted(true)
-          const currentZoom = mapRef.current?.getZoom() ?? currentViewport?.zoom ?? urlState.zoom
-          const targetZoom = currentZoom < 17 ? 17 : currentZoom
-          setAreaCenter(place.center)
-          setPlaceId(place.id, place.center, targetZoom)
-          if (mapRef.current) {
-            mapRef.current.panTo({ lat: place.center.latitude, lng: place.center.longitude })
-            if (currentZoom < 17) {
-              mapRef.current.setZoom(17)
-            }
+        {/* Bảng kết quả tìm kiếm trên bản đồ (Pha 6) - MapSidePanel không overlay */}
+        <SearchResultsPanel
+          isOpen={Boolean(urlState.searchQuery)}
+          onClose={() => {
+            setSearchQuery(null, null)
+          }}
+          query={urlState.searchQuery || ''}
+          placeId={urlState.placeId || null}
+          placeName={
+            loadedPlaces.find((p) => p.id === urlState.placeId)?.name ||
+            (urlState.placeId ? urlState.searchQuery : null)
           }
-        }}
-      />
-
-      {/* Thẻ tiêu điểm địa điểm (Pha 6: zoom >= 17, tâm gần địa điểm <= 80m, không gọi API thêm) */}
-      <PlaceFocusCard
-        place={
-          !urlState.placeId && !urlState.topic && !urlState.searchQuery
-            ? nearestFocusPlace
-            : null
-        }
-        statsWindow={urlState.window}
-        onSelectPlace={(place) => setSearchQuery(place.name, place.id)}
-        onDismiss={() => {
-          if (nearestFocusPlace) {
-            setDismissedFocusPlaceId(nearestFocusPlace.id)
-          }
-        }}
-      />
-
-      {/* Lớp giao diện nổi phía trên */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col justify-between gap-3 p-3 sm:flex-row sm:items-start sm:p-4">
-        {/* Góc trên bên trái: Thanh tìm kiếm & Tuỳ chọn bán kính */}
-        <div className="pointer-events-auto flex flex-col gap-2.5">
-          <MapSearchBar
-            value={searchInputValue}
-            onChange={(val) => {
-              setHasUserInteracted(true)
-              setSearchInputValue(val)
-              if (!val) {
-                setSearchQuery(null, null)
+          areaCenter={areaCenter}
+          radiusKm={urlState.radiusKm}
+          initialTab={searchTabParam}
+          globalScope={isGlobalSearch}
+          onSelectPlace={(place) => {
+            setHasUserInteracted(true)
+            const currentZoom = mapRef.current?.getZoom() ?? currentViewport?.zoom ?? urlState.zoom
+            const targetZoom = currentZoom < 17 ? 17 : currentZoom
+            setAreaCenter(place.center)
+            setPlaceId(place.id, place.center, targetZoom)
+            if (mapRef.current) {
+              mapRef.current.panTo({ lat: place.center.latitude, lng: place.center.longitude })
+              if (currentZoom < 17) {
+                mapRef.current.setZoom(17)
               }
-            }}
-            onSubmit={(term) => {
-              setHasUserInteracted(true)
-              setSearchQuery(term, null)
-            }}
-            suggestions={loadedPlaces}
-            onSelectSuggestion={(place) => setSearchQuery(place.name, place.id)}
-          />
-          <RadiusControl
-            value={urlState.radiusKm}
-            onChange={handleRadiusChange}
-          />
-        </div>
+            }
+          }}
+        />
 
-        {/* Góc trên bên phải: Chuyển chế độ mật độ, Nút chọn vị trí, Nút định vị GPS & Bộ chọn khoảng thời gian */}
-        <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
-          {/* <DensityModeControl
-            value={urlState.densityMode}
-            onChange={setDensityMode}
-          /> */}
-          <PickLocationButton
-            isPicking={isPickingLocation}
-            onToggle={() => setIsPickingLocation((prev) => !prev)}
-          />
-          <LocateButton
-            onClick={handleLocateMe}
-            isActive={urlState.source === 'GPS'}
-            loading={isLoadingGps}
-          />
-          <WindowControl
-            value={urlState.window}
-            onChange={setWindow}
-          />
-        </div>
-      </div>
+        {/* Lớp giao diện nổi phía trên */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col justify-between gap-3 p-3 sm:flex-row sm:items-start sm:p-4">
+          {/* Góc trên bên trái: Thanh tìm kiếm Google Places Autocomplete & Tuỳ chọn bán kính */}
+          <div className="pointer-events-auto flex flex-col gap-2.5">
+            <MapSearchBar
+              value={searchInputValue}
+              onChange={(val) => {
+                setHasUserInteracted(true)
+                setSearchInputValue(val)
+              }}
+              onSelectGooglePlace={({ location }) => {
+                setHasUserInteracted(true)
+                // Đóng mọi panel chi tiết đang mở; chỉ kéo bản đồ về địa điểm, người dùng tự nhấn marker nếu muốn xem
+                setPlaceId(null)
+                setSearchQuery(null, null)
+                setAreaCenter(location)
 
-      {/* Lớp giao diện nổi phía dưới */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex items-end justify-between px-3 sm:px-4">
-        {/* Góc dưới bên trái: Bảng chú giải thang màu mật độ (Heatmap / H3) */}
-        {/* Khi panel chi tiết mở, dịch chuyển sang bên phải mép panel trên màn hình desktop */}
-        <div
-          className={cn(
-            'pointer-events-auto transition-transform duration-300 ease-in-out',
-            Boolean(urlState.placeId || urlState.topic || urlState.searchQuery) &&
-              'lg:translate-x-[calc(clamp(20rem,33%,26rem)+0.75rem)]',
-          )}
-        >
-          {/* <DensityLegend
-            window={urlState.window}
-            mode={urlState.densityMode}
-            totalPosts={totalPostsInView}
-            className="max-w-[220px]"
-          /> */}
-        </div>
+                if (mapRef.current) {
+                  mapRef.current.panTo({ lat: location.latitude, lng: location.longitude })
+                  mapRef.current.setZoom(19)
+                }
+              }}
+            />
+            <RadiusControl
+              value={urlState.radiusKm}
+              onChange={handleRadiusChange}
+            />
+          </div>
 
-        {/* Góc dưới bên phải: Bảng theo dõi hiệu năng (Performance HUD) */}
-        {/* <PerformanceHUD metrics={metrics} /> */}
-      </div>
-
-      {/* Banner hướng dẫn khi đang ở chế độ chọn vị trí */}
-      {isPickingLocation && (
-        <div className="pointer-events-none absolute bottom-6 inset-x-0 z-20 flex justify-center px-4">
-          <div className="pointer-events-auto animate-bounce rounded-full border border-primary/20 bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-lg">
-            Nhấp chuột vào một vị trí trên bản đồ để đặt làm tâm khu vực
+          {/* Góc trên bên phải: Chuyển chế độ mật độ, Nút chọn vị trí, Nút định vị GPS & Bộ chọn khoảng thời gian */}
+          <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
+            {/* <DensityModeControl
+              value={urlState.densityMode}
+              onChange={setDensityMode}
+            /> */}
+            <PickLocationButton
+              isPicking={isPickingLocation}
+              onToggle={() => setIsPickingLocation((prev) => !prev)}
+            />
+            <LocateButton
+              onClick={handleLocateMe}
+              isActive={urlState.source === 'GPS'}
+              loading={isLoadingGps}
+            />
+            <WindowControl
+              value={urlState.window}
+              onChange={setWindow}
+            />
           </div>
         </div>
-      )}
+
+        {/* Lớp giao diện nổi phía dưới */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex items-end justify-between px-3 sm:px-4">
+          {/* Góc dưới bên trái: Bảng chú giải thang màu mật độ (Heatmap / H3) */}
+          <div
+            className={cn(
+              'pointer-events-auto transition-transform duration-300 ease-in-out',
+              Boolean(urlState.placeId || urlState.topic || urlState.searchQuery) &&
+                'lg:translate-x-[calc(clamp(20rem,33%,26rem)+0.75rem)]',
+            )}
+          >
+            {/* <DensityLegend
+              window={urlState.window}
+              mode={urlState.densityMode}
+              totalPosts={totalPostsInView}
+              className="max-w-[220px]"
+            /> */}
+          </div>
+
+          {/* Góc dưới bên phải: Bảng theo dõi hiệu năng (Performance HUD) */}
+          {/* <PerformanceHUD metrics={metrics} /> */}
+        </div>
+
+        {/* Banner hướng dẫn khi đang ở chế độ chọn vị trí */}
+        {isPickingLocation && (
+          <div className="pointer-events-none absolute bottom-6 inset-x-0 z-20 flex justify-center px-4">
+            <div className="pointer-events-auto animate-bounce rounded-full border border-primary/20 bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-lg">
+              Nhấp chuột vào một vị trí trên bản đồ để đặt làm tâm khu vực
+            </div>
+          </div>
+        )}
+      </GoogleMapsProvider>
     </div>
   )
 }
