@@ -19,9 +19,18 @@ interface PostEngagementProps {
   liked: boolean
   isLikePending: boolean
   toggleLiked: () => void
+  onOpenComments?: () => void
+  onShare?: () => void
 }
 
-export function PostEngagement({ post, liked, isLikePending, toggleLiked }: PostEngagementProps) {
+export function PostEngagement({
+  post,
+  liked,
+  isLikePending,
+  toggleLiked,
+  onOpenComments,
+  onShare,
+}: PostEngagementProps) {
   const [composerOpen, setComposerOpen] = useState(false)
 
   async function copyText(text: string) {
@@ -34,6 +43,7 @@ export function PostEngagement({ post, liked, isLikePending, toggleLiked }: Post
   }
 
   async function share() {
+    onShare?.()
     if (typeof navigator.share === 'function') {
       try {
         await navigator.share({ text: post.content })
@@ -61,7 +71,7 @@ export function PostEngagement({ post, liked, isLikePending, toggleLiked }: Post
       </Button>
 
       <Button
-        render={<Link to={`/posts/${post.id}`} />}
+        render={<Link to={`/posts/${post.id}`} onClick={() => onOpenComments?.()} />}
         nativeButton={false}
         variant="ghost"
         size="sm"
@@ -77,7 +87,12 @@ export function PostEngagement({ post, liked, isLikePending, toggleLiked }: Post
           <Share2 /> Chia sẻ
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => setComposerOpen(true)}>
+          <DropdownMenuItem
+            onClick={() => {
+              onShare?.()
+              setComposerOpen(true)
+            }}
+          >
             Viết nội dung kèm theo
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => void share()}>Chia sẻ nhanh</DropdownMenuItem>
