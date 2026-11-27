@@ -5,46 +5,20 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PostSearchForm } from '@/features/post/components/post-search-form'
 import { NearbyMiniMapCard } from '@/features/post/components/nearby-mini-map-card'
-import { postKeys, useFeedPosts, useLatestFeedPosts } from '@/features/post/api/post-queries'
+
 import { useTrendingPostsQuery, useTrendingKeywordsQuery } from '@/features/post/api/trending-queries'
-import { useInfiniteScroll } from '@/features/post/hooks/use-infinite-scroll'
-import { useQueryClient, type InfiniteData, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Spinner } from '@/components/ui/spinner'
 import { useUserLocation } from '@/features/map/hooks/use-user-location'
 import { getPlaceFromGeoPoint } from '../api/google-map-api'
 import { PostCard } from '../components/post-card'
-import { useFeedSSE } from '../hooks/use-feed-sse'
-import type { PostCursorPage, PostSearchItem } from '@/features/post/types/post'
+import type { PostSearchItem } from '@/features/post/types/post'
 import type { TrendingPostDto } from '../types/trending'
 
-function mapTrendingDtoToPostSearchItem(dto: TrendingPostDto): PostSearchItem {
-  let media = null
-  if (dto.mediaJson) {
-    try {
-      media = JSON.parse(dto.mediaJson)
-    } catch {
-      media = null
-    }
-  }
 
-  return {
-    id: dto.postId,
-    author: {
-      id: dto.authorId || '',
-      fullName: dto.authorName || 'Người dùng',
-      avatarUrl: dto.authorAvatarUrl,
-    },
-    content: dto.content || '',
-    media,
-    location: dto.locationName ? { name: dto.locationName } : null,
-    status: 'ACTIVE',
-    likeCount: Math.round(dto.score || 0),
-    commentCount: 0,
-    createdAt: dto.createdAt || new Date().toISOString(),
-  }
-}
 import { NearbyFeed } from '../components/nearby-feed'
 import { FollowingFeed } from '../components/following-feed'
+import { TrendingFeed } from '../components/trending-feed'
 
 type FeedTab = 'nearby' | 'following' | 'trending'
 
@@ -76,9 +50,7 @@ export default function HomeFeed() {
   const trendingKeywordsQuery = useTrendingKeywordsQuery({ limit: 8 })
 
 
-  const trendingPosts = useMemo(() => {
-    return (trendingPostsQuery.data ?? []).map(mapTrendingDtoToPostSearchItem)
-  }, [trendingPostsQuery.data])
+
 
 
   const handleTabChange = (nextValue: string) => {
@@ -139,52 +111,9 @@ export default function HomeFeed() {
 
           {/* TAB 3: THỊNH HÀNH (TRENDING REDIS) */}
           <TabsContent value="trending" className="mt-0 flex flex-col gap-4">
-            {trendingPostsQuery.isPending && (
-              <div role="status" className="flex justify-center py-12">
-                <Spinner />
-                <span className="sr-only">Đang tải bài viết thịnh hành</span>
-              </div>
-            )}
-
-            {trendingPostsQuery.isError && (
-              <div role="alert" className="rounded-2xl border border-destructive/30 bg-card p-5">
-                <p className="text-sm text-destructive">
-                  {trendingPostsQuery.error?.message || 'Không thể tải danh sách thịnh hành.'}
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() => void trendingPostsQuery.refetch()}
-                >
-                  Thử lại
-                </Button>
-              </div>
-            )}
-
-            {!trendingPostsQuery.isPending &&
-              !trendingPostsQuery.isError &&
-              trendingPosts.length === 0 && (
-                <div className="rounded-2xl border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">
-                  <Flame className="mx-auto mb-2 size-8 text-orange-500/60" />
-                  <p className="font-medium text-foreground">Chưa có bài viết thịnh hành nào.</p>
-                  <p className="mt-1 text-xs">
-                    Hãy bấm Like hoặc tạo bài viết mới để hệ thống tính điểm Trending theo thời gian thực!
-                  </p>
-                </div>
-              )}
-
-            {trendingPosts.map((post, index) => (
-              <div key={post.id} className="relative flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5 px-1 text-xs font-semibold text-orange-500">
-                  <Flame className="size-3.5 fill-orange-500" />
-                  <span>
-                    Top #{index + 1} Thịnh hành · {post.likeCount} điểm tương tác
-                  </span>
-                </div>
-                <PostCard post={post} />
-              </div>
-            ))}
+            <TrendingFeed
+              trendingPostsQuery={trendingPostsQuery}
+            />
           </TabsContent>
         </Tabs>
       </section>
