@@ -70,6 +70,7 @@ function makeCreatedPost(content: string): Post {
       description: '',
       h3Index: '',
       locationType: '',
+      coordinates: { latitude: 21.0362, longitude: 105.7906 },
     },
     status: 'PUBLISHED',
     createdAt: now,

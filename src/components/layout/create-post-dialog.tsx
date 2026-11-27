@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useStagedMedia } from '@/hooks/use-staged-media'
 import { createPost } from '@/features/post/api/post-api'
 import { postKeys } from '@/features/post/api/post-queries'
+import { trendingKeys } from '@/features/post/api/trending-queries'
 import { uploadPostMediaBatch } from '@/features/post/api/post-upload-api'
 import { PostMediaUploader } from '@/features/post/components/post-media-uploader'
 import type { PostMedia } from '@/features/post/types/post-media'
@@ -104,6 +105,7 @@ export function CreatePostDialog({
       )
       setText('')
       clearFiles()
+      void queryClient.invalidateQueries({ queryKey: trendingKeys.all })
       onOpenChange(false)
       toast.success('Đã đăng bài viết', {
         description: 'Bài viết của bạn hiện đã hiển thị với những người xung quanh.',
@@ -131,19 +133,14 @@ export function CreatePostDialog({
       return
     }
 
-    if (!gpsPosition) {
-      toast.error('Không thể xác định vị trí của bạn', {
-        description: 'Vui lòng bật định vị để đăng bài viết.',
-      })
-      return
-    }
+    const coords = gpsPosition ?? { latitude: 21.0285, longitude: 105.8542 }
       
     createPostMutation.mutate({
       content: value,
       files: stagedFiles.map((item) => item.file),
       coordinates: {
-        latitude: gpsPosition.latitude,
-        longitude: gpsPosition.longitude,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
       },
     })
   }
@@ -154,7 +151,7 @@ export function CreatePostDialog({
         <DialogHeader>
           <DialogTitle>Chia sẻ bài viết</DialogTitle>
           <DialogDescription className="flex items-center gap-1.5">
-            <MapPin className="size-3.5 text-primary" /> {userLocation.data?.placeName ?? userLocation.data?.formattedAddress}
+            <MapPin className="size-3.5 text-primary" /> {userLocation.data?.placeName ?? userLocation.data?.formattedAddress ?? 'Hà Nội'}
           </DialogDescription>
         </DialogHeader>
         <Textarea
