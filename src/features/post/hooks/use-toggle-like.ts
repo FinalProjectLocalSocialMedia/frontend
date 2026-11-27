@@ -1,9 +1,9 @@
 import { InfiniteData, useMutation, useQueryClient } from "@tanstack/react-query"
-import { likePost,  unlikePost } from "../api/post-interaction-api"
+import { likePost, unlikePost } from "../api/post-interaction-api"
 import { postKeys } from "../api/post-queries"
+import { trendingKeys } from "../api/trending-queries"
 import { Post, PostCursorPage, PostSearchItem } from "../types/post"
 import { toast } from "sonner"
-
 
 function updatePostPages(
     current: InfiniteData<PostCursorPage, string | undefined> | undefined,
@@ -80,8 +80,8 @@ export const useToggleLike = (post: PostSearchItem) => {
         onSettled: () => {
             void queryClient.invalidateQueries({ queryKey: postKeys.all })
             void queryClient.invalidateQueries({ queryKey: postKeys.detail(post.id) })
+            void queryClient.invalidateQueries({ queryKey: trendingKeys.all })
         },
     })
     return likeMutation
-
 }
