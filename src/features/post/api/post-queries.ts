@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { getFeed, getMiniMapPreview, getLatestFeed } from './post-api'
+import { getFeed, getMiniMapPreview, getLatestFeed, getFollowingFeed } from './post-api'
 import { getLikedPosts, getSavedPosts, getUserPosts } from './post-interaction-api'
 import type { PostCursorPage } from '../types/post'
 
@@ -16,6 +16,12 @@ export const postKeys = {
       'feed',
       'latest',
     ] as const,
+  followingFeed: () =>
+  [
+    ...postKeys.all,
+    'feed',
+    'following'
+  ],
   profile: (userId: string | undefined) => [...postKeys.all, 'profile', userId] as const,
   liked: () => [...postKeys.all, 'liked'] as const,
   saved: () => [...postKeys.all, 'saved'] as const,
@@ -80,6 +86,20 @@ export function useLatestFeedPosts(
     getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
     staleTime: 0,
     enabled: false,
+  })
+}
+
+export function useFollowingPosts(){
+  return useInfiniteQuery({
+    queryKey: postKeys.followingFeed(),
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
+      getFollowingFeed({
+        cursor: pageParam,
+        limit: FEED_PAGE_SIZE,
+      }),
+    getNextPageParam: (lastPage) => lastPage.page.nextCursor || undefined,
+    staleTime: 0,
   })
 }
 

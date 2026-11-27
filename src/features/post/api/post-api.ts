@@ -79,6 +79,15 @@ export async function getLatestFeed({ cursor, limit = 5, coordinates, radiusKm, 
   return response.data
 }
 
+export async function getFollowingFeed({cursor, limit = 5}:{cursor:string | undefined,limit:number}) {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    throw new RangeError('Feed limit must be an integer between 1 and 50')
+  }
+  const response= await postHttp.get<PostCursorPage>('feed/feed/following',{
+    params:{cursor,limit}
+  })
+  return response.data
+}
 
 export async function searchPosts({
   q = '',
