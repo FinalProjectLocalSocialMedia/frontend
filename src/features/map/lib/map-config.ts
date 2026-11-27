@@ -26,22 +26,22 @@ export const MAP_CONFIG = {
   // Chế độ hiển thị mật độ (Pha 2B)
   DENSITY_MODE_DEFAULT: 'HEATMAP' as 'HEATMAP' | 'HEX',
   HEATMAP: {
-    RADIUS_METERS: 450, // Bán kính ảnh hưởng ≈ cạnh ô H3 res 8; đổi sang pixel theo zoom (6.3b)
-    RADIUS_PX_MIN: 24,
-    RADIUS_PX_MAX: 80,
-    INTENSITY: 1.2,
-    THRESHOLD: 0.05, // THRESHOLD cao hơn → ẩn quầng mờ ở vùng ít bài
+    RADIUS_METERS: 520, // Bán kính ảnh hưởng ≈ cạnh ô H3 res 8; đổi sang pixel theo zoom 
+    RADIUS_PX_MIN: 38,
+    RADIUS_PX_MAX: 85,
+    INTENSITY: 1.05,
+    THRESHOLD: 0.06, // THRESHOLD cao hơn → ẩn quầng mờ ở vùng ít bài
     DEBOUNCE_MS: 250, // debounceTimeout của HeatmapLayer
     MAX_POINTS: 3000,
     WEIGHT_TRANSFORM: 'sqrt' as const, // Nén ngoại lệ để một điểm nóng không làm "cháy" cả bản đồ
-    // Thang sáng: alpha 0 ở mức thấp nhất để nền bản đồ lộ ra (RGBA)
+    // Thang màu dịu nhẹ: giảm alpha và hạ tông đỏ gắt ở mức cao nhất (RGBA)
     COLOR_RANGE: [
       [255, 255, 178, 0],
-      [254, 217, 118, 120],
-      [254, 178, 76, 160],
-      [253, 141, 60, 190],
-      [240, 59, 32, 210],
-      [189, 0, 38, 230],
+      [254, 227, 145, 70],
+      [254, 196, 79, 100],
+      [254, 153, 41, 125],
+      [247, 104, 60, 145],
+      [227, 74, 51, 165],
     ] as [number, number, number, number][],
   },
   HOTSPOT_DOT_MIN_ZOOM: 10, // Chấm hotspot (không tên) để vào modal từ zoom thấp (10-12)

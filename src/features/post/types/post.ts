@@ -29,9 +29,16 @@ export type PostSearchItem = {
     avatarUrl?: string | null
   }
   content: string
+  sharedPostId?: string | null
   media?: PostMedia[] | null
   location?: {
+    id?: string
     name: string
+    coordinates?: {
+      latitude: number
+      longitude: number
+    } | null
+    h3Index?: string
   } | null
   status: string
   likeCount?: number

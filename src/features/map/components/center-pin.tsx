@@ -12,6 +12,7 @@ export function CenterPin({ position, label = 'Tâm khu vực' }: CenterPinProps
     <AdvancedMarker
       position={{ lat: position.latitude, lng: position.longitude }}
       title={label}
+      zIndex={5}
     >
       <div className="flex flex-col items-center -translate-y-1/2">
         <div className="flex size-9 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110">

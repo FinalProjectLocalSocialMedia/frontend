@@ -2,6 +2,20 @@ import { postHttp } from './http-client'
 import type { Post, PostCursorPage, PostUploadSignature } from '../types/post'
 import { GeoPoint } from '../types/geo-point'
 import { PostMedia } from '../types/post-media'
+import { radiusToBounds } from '@/components/map/geo'
+
+export type MiniMapHotspot = {
+  id: string
+  name: string
+  center: { latitude: number; longitude: number }
+  postCount: number
+  trendScore: number
+}
+
+export type MiniMapPreviewData = {
+  places: MiniMapHotspot[]
+  totalNewPosts: number
+}
 
 
 
@@ -10,6 +24,8 @@ export type GetFeedParams = {
   limit?: number
   coordinates?: GeoPoint
   radiusKm?: number
+  lastSeenId?: string
+  lastSeenCreatedAt?: string
 }
 
 export type SearchPostsParams = {
@@ -41,16 +57,28 @@ export async function createPost(request: CreatePostRequest): Promise<Post> {
   return response.data
 }
 
-export async function getFeed({ cursor, limit = 5, coordinates, radiusKm }: GetFeedParams): Promise<PostCursorPage> {
+export async function getFeed({ cursor, limit = 5, coordinates, radiusKm, lastSeenId, lastSeenCreatedAt }: GetFeedParams): Promise<PostCursorPage> {
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
     throw new RangeError('Feed limit must be an integer between 1 and 50')
   }
 
   const response = await postHttp.get<PostCursorPage>('feed/feed/local', {
-    params: { cursor, limit, latitude: coordinates?.latitude, longitude: coordinates?.longitude, radiusKm },
+    params: { cursor, limit, latitude: coordinates?.latitude, longitude: coordinates?.longitude, radiusKm, lastSeenId, lastSeenCreatedAt },
   })
   return response.data
 }
+
+export async function getLatestFeed({ cursor, limit = 5, coordinates, radiusKm, lastSeenId, lastSeenCreatedAt }: GetFeedParams): Promise<PostCursorPage> {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    throw new RangeError('Feed limit must be an integer between 1 and 50')
+  }
+
+  const response = await postHttp.get<PostCursorPage>('feed/feed/latest', {
+    params: { cursor, limit, latitude: coordinates?.latitude, longitude: coordinates?.longitude, radiusKm, lastSeenId, lastSeenCreatedAt },
+  })
+  return response.data
+}
+
 
 export async function searchPosts({
   q = '',
@@ -99,4 +127,47 @@ export async function getPostById(postId: string): Promise<Post> {
 
 export async function deletePost(postId: string): Promise<void> {
   await postHttp.delete(`/post/posts/${postId}`)
+}
+
+/**
+ * Lấy dữ liệu xem trước bản đồ quanh vị trí hiện tại cho Mini-Map Card trên trang chủ:
+ * - Danh sách địa điểm nổi bật gần đây (tối đa 6 điểm)
+ * - Tổng số bài viết mới trong 24h quanh khu vực
+ */
+export async function getMiniMapPreview(
+  center: { latitude: number; longitude: number },
+  signal?: AbortSignal,
+): Promise<MiniMapPreviewData> {
+  const bounds = radiusToBounds(center, 2)
+  const params = {
+    north: bounds.north,
+    south: bounds.south,
+    east: bounds.east,
+    west: bounds.west,
+    zoom: 14,
+    window: '1d',
+  }
+
+  const [placesRes, heatRes] = await Promise.allSettled([
+    postHttp.get<MiniMapHotspot[]>('/map/places', {
+      params: { ...params, limit: 8 },
+      signal,
+    }),
+    postHttp.get<{ totalPosts?: number }>('/map/heat-points', {
+      params: { ...params, limit: 300 },
+      signal,
+    }),
+  ])
+
+  const places = placesRes.status === 'fulfilled' && Array.isArray(placesRes.value.data)
+    ? [...placesRes.value.data].sort((a, b) => b.trendScore - a.trendScore).slice(0, 6)
+    : []
+
+  const heatTotal = heatRes.status === 'fulfilled' ? heatRes.value.data?.totalPosts : undefined
+  const fallbackTotal = places.reduce((sum, p) => sum + (p.postCount || 0), 0)
+
+  return {
+    places,
+    totalNewPosts: typeof heatTotal === 'number' ? heatTotal : fallbackTotal,
+  }
 }

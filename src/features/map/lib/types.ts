@@ -63,7 +63,6 @@ export type PlaceCounts = {
 export type PlaceSummary = {
   place: MapPlace & { description?: string }
   counts: PlaceCounts
-  latestPostAt?: IsoDateTime // thời gian bài MỚI NHẤT
   trendingTopics: TrendingTopic[] // top ~10, cửa sổ 7 ngày
 }
 

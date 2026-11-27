@@ -1,7 +1,6 @@
 import { useState, useTransition } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Clock,
   Flame,
   Hash,
   MapPin,
@@ -14,8 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePlacePostsQuery, usePlaceSummaryQuery } from '../api/map.queries'
 import { formatLocationType } from '../lib/labels'
-import { formatFullDateTimeVi, formatRelativeVi } from '../lib/relative-time'
-import type { PostSort, TimeFilterValue } from '../lib/types'
+import type { PlaceCounts, PostSort, StatsWindow, TimeFilterValue } from '../lib/types'
 import { PostCardCompact } from './post-card-compact'
 import { TimeFilter } from './time-filter'
 import { MapSidePanel } from './map-side-panel'
@@ -27,6 +25,45 @@ export type PlaceDetailModalProps = {
   isOpen: boolean
   /** Callback khi đóng panel */
   onClose: () => void
+  /** Cửa sổ thời gian đang chọn trên bản đồ (mặc định 7d) */
+  statsWindow?: StatsWindow
+}
+
+function formatWindowPostSummary(
+  counts: PlaceCounts,
+  statsWindow: StatsWindow = '7d',
+  timeFilter?: TimeFilterValue,
+  filteredTotal?: number,
+): string {
+  if (timeFilter?.kind === 'preset') {
+    if (timeFilter.preset === '1d') {
+      return `${counts.last1d} bài viết mới trong 24 giờ qua`
+    }
+    if (timeFilter.preset === '7d') {
+      return `${counts.last7d} bài viết mới trong tuần qua`
+    }
+    if (timeFilter.preset === '30d') {
+      return `${counts.last30d} bài viết mới trong 30 ngày qua`
+    }
+    if (timeFilter.preset === '3h') {
+      const cnt = filteredTotal ?? counts.last1d
+      return `${cnt} bài viết mới trong 3 giờ qua`
+    }
+  }
+
+  if (timeFilter?.kind === 'date') {
+    const [year, month, day] = timeFilter.date.split('-')
+    const dateLabel = year && month && day ? `${day}/${month}/${year}` : timeFilter.date
+    return `${filteredTotal ?? 0} bài viết trong ngày ${dateLabel}`
+  }
+
+  if (statsWindow === '1d') {
+    return `${counts.last1d} bài viết mới trong 24 giờ qua`
+  }
+  if (statsWindow === '30d') {
+    return `${counts.last30d} bài viết mới trong 30 ngày qua`
+  }
+  return `${counts.last7d} bài viết mới trong tuần qua`
 }
 
 /**
@@ -39,7 +76,12 @@ export type PlaceDetailModalProps = {
  * - Bộ lọc thời gian TimeFilter và chuyển đổi sắp xếp Xu hướng / Mới nhất
  * - Danh sách bài viết dạng PostCardCompact phân trang, tối ưu bố cục 1 cột không có thanh cuộn ngang
  */
-export function PlaceDetailModal({ placeId, isOpen, onClose }: PlaceDetailModalProps) {
+export function PlaceDetailModal({
+  placeId,
+  isOpen,
+  onClose,
+  statsWindow = '7d',
+}: PlaceDetailModalProps) {
   const navigate = useNavigate()
   const [, startTransition] = useTransition()
 
@@ -165,35 +207,16 @@ export function PlaceDetailModal({ placeId, isOpen, onClose }: PlaceDetailModalP
             </div>
           </div>
 
-          {/* 2. Thống kê bài viết: 3 ô đếm (1 ngày · 7 ngày · 30 ngày) và mốc bài mới nhất */}
-          <div className="min-w-0">
-            <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/40 p-2.5 border border-border/60 min-w-0">
-              <div className="flex flex-col items-center text-center">
-                <span className="text-[10px] font-medium text-muted-foreground">Hôm nay</span>
-                <span className="text-base font-bold text-foreground">{summary.counts.last1d}</span>
-              </div>
-              <div className="flex flex-col items-center text-center border-x border-border/50">
-                <span className="text-[10px] font-medium text-muted-foreground">7 ngày</span>
-                <span className="text-base font-bold text-primary">{summary.counts.last7d}</span>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <span className="text-[10px] font-medium text-muted-foreground">30 ngày</span>
-                <span className="text-base font-bold text-foreground">{summary.counts.last30d}</span>
-              </div>
-            </div>
-
-            {summary.latestPostAt && (
-              <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground min-w-0">
-                <Clock className="size-3.5 text-primary shrink-0" />
-                <span className="truncate">
-                  Bài mới nhất:{' '}
-                  <strong className="text-foreground font-semibold">
-                    {formatRelativeVi(summary.latestPostAt)}
-                  </strong>{' '}
-                  ({formatFullDateTimeVi(summary.latestPostAt)})
-                </span>
-              </div>
-            )}
+          {/* 2. Dòng thông báo số lượng bài viết trong time window được chọn (mặc định 7 ngày) */}
+          <div className="rounded-xl border border-border/60 bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground">
+            <span className="font-semibold text-foreground">
+              {formatWindowPostSummary(
+                summary.counts,
+                statsWindow,
+                timeFilter,
+                postsData?.total,
+              )}
+            </span>
           </div>
 
           {/* 3. Chủ đề xu hướng dạng chip có số lượng bài */}

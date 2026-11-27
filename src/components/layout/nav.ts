@@ -1,4 +1,4 @@
-import { Bell, Home, MessageCircle, Search, UserRound, type LucideIcon } from 'lucide-react'
+import { Bell, Home, Map, MessageCircle, UserRound, type LucideIcon } from 'lucide-react'
 
 export type NavItem = {
   to: string
@@ -12,7 +12,7 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
   { to: '/', label: 'Trang chủ', icon: Home, end: true },
-  { to: '/explore', label: 'Khám phá', icon: Search },
+  { to: '/explore', label: 'Khám phá', icon: Map },
   { to: '/notifications', label: 'Thông báo', icon: Bell },
   { to: '/messages', label: 'Tin nhắn', icon: MessageCircle },
   { to: '/profile', label: 'Trang cá nhân', icon: UserRound },

@@ -4,11 +4,14 @@ import { PostMediaGrid } from './post-media-grid'
 import { PostEngagement } from './post-engagement'
 import { PostContent } from './post-content'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import type { PostSearchItem } from '../types/post'
 import { useAuth } from '@/features/auth/context/auth-context'
 import { useToggleLike } from '../hooks/use-toggle-like'
 import { useToggleSavePost } from '../hooks/use-toggle-save-post'
 import { useDeletePost } from '../hooks/use-delete-post'
+import { getPostById } from '../api/post-api'
+import { postKeys } from '../api/post-queries'
 
 interface PostCardProps {
   post: PostSearchItem
@@ -25,8 +28,25 @@ export function PostCard({ post }: PostCardProps) {
   const likeMutation = useToggleLike(post)
   const savePostMutation = useToggleSavePost(post)
   const deletePostMutation = useDeletePost()
+  const sharedPostId = post.sharedPostId ?? null
+  const sharedPostQuery = useQuery({
+    queryKey: postKeys.detail(sharedPostId ?? ''),
+    queryFn: () => {
+      if (sharedPostId === null) {
+        throw new Error('Shared post ID is required')
+      }
 
-  
+      return getPostById(sharedPostId)
+    },
+    enabled: sharedPostId !== null,
+    staleTime: 30_000,
+  })
+  const sharedPost = sharedPostQuery.data
+    ? {
+        ...sharedPostQuery.data,
+        sharedPostId: sharedPostQuery.data.sharedPost?.id ?? null,
+      }
+    : null
 
   return (
     <article
@@ -34,7 +54,7 @@ export function PostCard({ post }: PostCardProps) {
       onClick={() => navigate(`/posts/${post.id}`)}
     >
       <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()} >
           <PostHeader post={post} />
         </div>
 
@@ -52,6 +72,22 @@ export function PostCard({ post }: PostCardProps) {
       <div className="mt-4 text-[15px] leading-6 text-foreground/90">
         <PostContent content={post.content} />
       </div>
+
+      {sharedPostId !== null && (
+        <div className="mt-4" onClick={(event) => event.stopPropagation()}>
+          {sharedPostQuery.isPending && (
+            <p role="status" className="text-sm text-muted-foreground">
+              Đang tải bài viết được chia sẻ...
+            </p>
+          )}
+          {sharedPostQuery.isError && (
+            <p role="alert" className="text-sm text-destructive">
+              Không thể tải bài viết được chia sẻ.
+            </p>
+          )}
+          {sharedPost && <PostCard post={sharedPost} />}
+        </div>
+      )}
 
       <div onClick={(e) => e.stopPropagation()}>
         <PostMediaGrid media={post.media} />

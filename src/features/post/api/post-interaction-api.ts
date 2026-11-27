@@ -1,5 +1,7 @@
 import { postHttp } from "./http-client"
 import type { PostCursorPage } from "../types/post"
+import { GeoPoint } from "../types/geo-point"
+import { core } from "zod"
 
 export type CursorPostsParams = {
     cursor?: string
@@ -68,5 +70,12 @@ export const getLikedPosts = async ({
     const response = await postHttp.get<PostCursorPage>(`/post/users/me/liked-posts`, {
         params: { cursor, limit },
     })
+    return response.data
+}
+
+export const sharePost = async (postId: string, content: string, gpsPosition: GeoPoint | null) => {
+    const coordinates = gpsPosition ? { latitude: gpsPosition.latitude, longitude: gpsPosition.longitude } : null
+    const message= content.trim()
+    const response = await postHttp.post(`/post/posts/${postId}/share`, { message, coordinates })
     return response.data
 }

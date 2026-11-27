@@ -43,6 +43,7 @@ export function CreatePostDialog({
     allowedTypes: POST_MEDIA_TYPES,
   })
   const { gpsPosition, isLoadingGps } = useUserLocation({})
+  const hasGPS = gpsPosition?.latitude != null && gpsPosition?.longitude != null
 
   const userLocation= useQuery({
     queryKey: ['user-location', gpsPosition?.latitude, gpsPosition?.longitude],
@@ -53,7 +54,7 @@ export function CreatePostDialog({
       }
       return getPlaceFromGeoPoint(gpsPosition)
     },
-    enabled: !!gpsPosition,
+    enabled: !!hasGPS,
   })
 
   const createPostMutation = useMutation({
