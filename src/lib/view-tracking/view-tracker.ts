@@ -168,13 +168,27 @@ export class ViewTracker {
     this.sendKeepalive = options.sendKeepalive
     this.getUserIdOption = options.getUserId
     this.now = options.now ?? (() => Date.now())
+    this.attachLifecycleListeners()
+  }
 
+  private attachLifecycleListeners(): void {
     if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+      document.removeEventListener('visibilitychange', this.handleVisibilityChange)
       document.addEventListener('visibilitychange', this.handleVisibilityChange)
     }
     if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.removeEventListener('pagehide', this.handlePageHide)
       window.addEventListener('pagehide', this.handlePageHide)
     }
+  }
+
+  /**
+   * Kích hoạt lại `ViewTracker` nếu bị `destroy()` trước đó bởi chu kỳ double-effect của React `<StrictMode>`.
+   */
+  activate(): void {
+    if (!this.destroyed) return
+    this.destroyed = false
+    this.attachLifecycleListeners()
   }
 
   /**
@@ -189,13 +203,28 @@ export class ViewTracker {
 
   /**
    * Cập nhật `userId` khi trạng thái đăng nhập thay đổi.
-   * Nếu người dùng đăng xuất hoặc đổi sang tài khoản khác, tự động gọi `reset()` để chốt và xoá dữ liệu phiên cũ.
+   * - Nếu người dùng đăng xuất hoặc đổi sang tài khoản khác, tự động gọi `reset()` để chốt và xoá dữ liệu phiên cũ.
+   * - Nếu lúc đầu trang tải xong mà `useMeQuery` chưa kịp trả về (`currentUserId === null`), sau đó mới có `userId`,
+   *   hàm này sẽ tự động kích hoạt phiên đo cho các bài viết đã nằm sẵn trên màn hình (`visiblePosts`).
    */
   setUserId(userId: string | null): void {
-    if (this.currentUserId !== null && this.currentUserId !== userId) {
+    const previousUserId = this.currentUserId
+    if (previousUserId !== null && previousUserId !== userId) {
       this.reset()
     }
     this.currentUserId = userId
+
+    if (userId !== null && previousUserId !== userId) {
+      // Nếu có bài của chính mình từng được đăng ký lúc chưa biết userId thì dọn phiên (nếu có)
+      for (const postId of this.visiblePosts) {
+        const authorId = this.postAuthors.get(postId)
+        if (this.isOwnPost(authorId)) {
+          this.handlePostLeaveVisible(postId)
+        } else if (!this.seen.has(postId) && !this.sessions.has(postId)) {
+          this.handlePostEnterVisible(postId, authorId)
+        }
+      }
+    }
   }
 
   /**

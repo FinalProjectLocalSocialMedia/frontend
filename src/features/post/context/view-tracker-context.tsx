@@ -38,6 +38,7 @@ export function ViewTrackerProvider({ children }: { children: ReactNode }) {
   }, [activeUserId, tracker])
 
   useEffect(() => {
+    tracker.activate()
     return () => {
       tracker.destroy()
     }

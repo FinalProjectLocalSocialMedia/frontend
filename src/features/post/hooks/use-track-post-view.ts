@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useViewTracker } from '../context/view-tracker-context'
 
 export function useTrackPostView({
@@ -8,10 +9,13 @@ export function useTrackPostView({
   authorId: string
 }) {
   const tracker = useViewTracker()
+  const ref = useRef<HTMLElement | null>(null)
 
-  // Ref callback inline, trả về cleanup (React 19). Không thêm useCallback/useMemo.
-  const ref = (el: HTMLElement | null) =>
-    el ? tracker.observe(el, { postId, authorId }) : undefined
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    return tracker.observe(el, { postId, authorId })
+  }, [tracker, postId, authorId])
 
   const trackActive = () => tracker.trackActive(postId, authorId)
 
