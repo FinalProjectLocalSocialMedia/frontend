@@ -11,3 +11,5 @@ docs/explore-map-plan.md
 *.test.ts
 *.test.tsx
 *.tsbuildinfo
+docs/post-view-tracking-plan.md
+src/test-setup.ts

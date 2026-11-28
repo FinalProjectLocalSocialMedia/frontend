@@ -6,6 +6,7 @@ import { QueryClient, QueryClientContext, QueryClientProvider } from '@tanstack/
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { NotificationStreamBridge } from './notification-stream-bridge'
 import { NavBadgesBridge } from './nav-badges-bridge'
+import { ViewTrackerProvider } from '@/features/post/context/view-tracker-context'
 
 export function Providers({ children }: { children: ReactNode }) {
   const existingClient = useContext(QueryClientContext)
@@ -16,9 +17,11 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <NotificationStreamBridge />
-          <NavBadgesBridge>{children}</NavBadgesBridge>
-          <Toaster position="top-center" />
+          <ViewTrackerProvider>
+            <NotificationStreamBridge />
+            <NavBadgesBridge>{children}</NavBadgesBridge>
+            <Toaster position="top-center" />
+          </ViewTrackerProvider>
         </AuthProvider>
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />

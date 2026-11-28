@@ -1,14 +1,24 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+
+export const POST_CONTENT_TRUNCATE_LENGTH = 280
 
 type PostContentProps = {
   content: string
+  onExpand?: () => void
 }
 
-export function PostContent({ content }: PostContentProps) {
+export function PostContent({ content, onExpand }: PostContentProps) {
+  const [expanded, setExpanded] = useState(false)
+  const shouldTruncate = !expanded && content.length > POST_CONTENT_TRUNCATE_LENGTH
+  const displayedContent = shouldTruncate
+    ? `${content.slice(0, POST_CONTENT_TRUNCATE_LENGTH).trimEnd()}…`
+    : content
+
   const regex =
     /(https?:\/\/[^\s]+|www\.[^\s]+|#[\p{L}\p{N}_]+|[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,})/gu
 
-  const parts = content.split(regex)
+  const parts = displayedContent.split(regex)
 
   return (
     <div className="whitespace-pre-wrap break-words">
@@ -64,6 +74,22 @@ export function PostContent({ content }: PostContentProps) {
 
         return <span key={index}>{part}</span>
       })}
+      {shouldTruncate && (
+        <>
+          {' '}
+          <button
+            type="button"
+            className="cursor-pointer font-semibold text-primary hover:underline"
+            onClick={(e) => {
+              e.stopPropagation()
+              onExpand?.()
+              setExpanded(true)
+            }}
+          >
+            Xem thêm
+          </button>
+        </>
+      )}
     </div>
   )
 }

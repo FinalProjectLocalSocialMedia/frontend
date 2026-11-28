@@ -16,9 +16,15 @@ type PostMediaModalProps = {
   media: PostMedia[]
   initialIndex: number
   onClose: () => void
+  onSlideChange?: (index: number) => void
 }
 
-export function PostMediaModal({ media, initialIndex, onClose }: PostMediaModalProps) {
+export function PostMediaModal({
+  media,
+  initialIndex,
+  onClose,
+  onSlideChange,
+}: PostMediaModalProps) {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [activeIndex, setActiveIndex] = useState(initialIndex)
 
@@ -29,17 +35,22 @@ export function PostMediaModal({ media, initialIndex, onClose }: PostMediaModalP
   useEffect(() => {
     if (!carouselApi) return
 
+    let currentSnap = initialIndex
     carouselApi.scrollTo(initialIndex, true)
-    setActiveIndex(initialIndex)
 
     const updateActiveIndex = () => {
-      setActiveIndex(carouselApi.selectedScrollSnap())
+      const nextIndex = carouselApi.selectedScrollSnap()
+      setActiveIndex(nextIndex)
+      if (nextIndex !== currentSnap) {
+        currentSnap = nextIndex
+        onSlideChange?.(nextIndex)
+      }
     }
     carouselApi.on('select', updateActiveIndex)
     return () => {
       carouselApi.off('select', updateActiveIndex)
     }
-  }, [carouselApi, initialIndex])
+  }, [carouselApi, initialIndex, onSlideChange])
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>

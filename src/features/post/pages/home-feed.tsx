@@ -57,7 +57,7 @@ export default function HomeFeed() {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeTab = parseFeedTab(searchParams.get('tab'))
 
-  const { gpsPosition, isLoadingGps } = useUserLocation({})
+  const { gpsPosition, isLoadingGps, gpsError, requestGps } = useUserLocation({})
   const userLocation = useQuery({
     queryKey: ['user-location', gpsPosition?.latitude, gpsPosition?.longitude],
     queryFn: async () => {
@@ -197,6 +197,35 @@ export default function HomeFeed() {
               </div>
             </button>
 
+            {gpsError && (
+              <div
+                role="status"
+                className="mt-4 flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 size-5 shrink-0 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Không truy cập được vị trí của bạn để hiện bài viết gần đây
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Hãy cấp quyền truy cập vị trí trên trình duyệt để xem các bài viết xung quanh bạn.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={requestGps}
+                  disabled={isLoadingGps}
+                  className="shrink-0 self-start sm:self-center"
+                >
+                  {isLoadingGps ? 'Đang thử lại...' : 'Thử lại'}
+                </Button>
+              </div>
+            )}
+
             {hasNewPosts && latestFeed.hasNextPage && (
               <div className="sticky top-2 z-20 mt-5 flex justify-center">
                 <Button
@@ -246,7 +275,7 @@ export default function HomeFeed() {
                 />
               ))}
 
-              {feed.isPending && (
+              {feed.isPending && !gpsError && (
                 <div role="status" className="flex justify-center py-12">
                   <Spinner />
                   <span className="sr-only">Đang tải bảng tin</span>

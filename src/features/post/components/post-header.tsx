@@ -5,9 +5,10 @@ import { UserAvatar } from './user-avatar'
 
 interface PostHeaderProps {
   post: PostSearchItem
+  onOpenDetail?: () => void
 }
 
-export function PostHeader({ post }: PostHeaderProps) {
+export function PostHeader({ post, onOpenDetail }: PostHeaderProps) {
   const navigate = useNavigate()
 
   const handleLocationClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -67,6 +68,7 @@ export function PostHeader({ post }: PostHeaderProps) {
         <div className="mt-0.5 flex flex-wrap items-center text-xs text-muted-foreground">
           <Link
             to={`/posts/${post.id}`}
+            onClick={() => onOpenDetail?.()}
             className="hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xs"
           >
             {formatRelativeTime(post.createdAt)}

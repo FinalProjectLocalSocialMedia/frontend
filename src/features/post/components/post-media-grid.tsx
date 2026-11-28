@@ -6,9 +6,11 @@ import { PostSearchItem } from '../types/post'
 
 interface PostMediaGridProps {
   media?: PostSearchItem['media']
+  onOpenMedia?: () => void
+  onSlideChange?: () => void
 }
 
-export function PostMediaGrid({ media }: PostMediaGridProps) {
+export function PostMediaGrid({ media, onOpenMedia, onSlideChange }: PostMediaGridProps) {
   const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null)
   const visibleMedia = media?.slice(0, 4) ?? []
   const remainingMediaCount = (media?.length ?? 0) - visibleMedia.length
@@ -31,7 +33,10 @@ export function PostMediaGrid({ media }: PostMediaGridProps) {
             type="button"
             aria-label={`Mở phương tiện ${index + 1}`}
             className="relative block w-full overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => setActiveMediaIndex(index)}
+            onClick={() => {
+              onOpenMedia?.()
+              setActiveMediaIndex(index)
+            }}
           >
             <PostMediaItem media={item} controls={false} />
             {index === 3 && remainingMediaCount > 0 && (
@@ -50,6 +55,7 @@ export function PostMediaGrid({ media }: PostMediaGridProps) {
           media={media}
           initialIndex={activeMediaIndex}
           onClose={() => setActiveMediaIndex(null)}
+          onSlideChange={onSlideChange}
         />
       )}
     </>

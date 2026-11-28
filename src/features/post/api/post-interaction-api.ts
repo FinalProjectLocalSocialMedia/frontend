@@ -79,3 +79,5 @@ export const sharePost = async (postId: string, content: string, gpsPosition: Ge
     const response = await postHttp.post(`/post/posts/${postId}/share`, { message, coordinates })
     return response.data
 }
+
+export { sendViewBatch, sendViewBatchKeepalive } from './interaction-api'
