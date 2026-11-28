@@ -345,7 +345,9 @@ export function ChatPage() {
           conversations: [conv, ...prev.conversations],
         }
       })
-      toast.info(`Có cuộc trò chuyện mới từ ${displayName}`)
+      toast.info(`Có cuộc trò chuyện mới từ ${displayName}`, {
+        id: 'new conversation toast'
+      })
     },
     [user],
   )
@@ -546,7 +548,6 @@ export function ChatPage() {
     )
     if (existing) {
       selectConversation(existing.id)
-      toast.info(`Đã mở cuộc trò chuyện có sẵn với ${targetUser.fullName}`)
       return
     }
 

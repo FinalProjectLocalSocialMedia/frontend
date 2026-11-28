@@ -22,6 +22,7 @@ export function useUserLocation({
 }: UseUserLocationOptions) {
   const [gpsPosition, setGpsPosition] = useState<GeoPoint | null>(null)
   const [isLoadingGps, setIsLoadingGps] = useState(false)
+  const [gpsError, setGpsError] = useState(false)
   const hasAttemptedGpsRef = useRef(false)
 
   const userHasInteractedRef = useRef(userHasInteracted)
@@ -35,6 +36,7 @@ export function useUserLocation({
   const requestGps = useCallback(
     (isAutoTrigger = false) => {
       if (typeof window === 'undefined' || !navigator.geolocation) {
+        setGpsError(true)
         if (!isAutoTrigger) {
           toast.info('Trình duyệt không hỗ trợ định vị GPS')
         }
@@ -46,6 +48,7 @@ export function useUserLocation({
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setIsLoadingGps(false)
+          setGpsError(false)
           const point: GeoPoint = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -58,12 +61,12 @@ export function useUserLocation({
         },
         () => {
           setIsLoadingGps(false)
-          if (isAutoTrigger) {
-            toast.info('Không lấy được vị trí GPS, đang dùng vị trí mặc định / đã lưu', {
-              duration: 3500,
+          setGpsError(true)
+
+          if (!isAutoTrigger) {
+            toast.error('Không thể truy cập vị trí GPS của bạn', {
+              id: 'gps-error-toast',
             })
-          } else {
-            toast.error('Không thể truy cập vị trí GPS của bạn')
           }
         },
         {
@@ -86,6 +89,7 @@ export function useUserLocation({
   return {
     gpsPosition,
     isLoadingGps,
+    gpsError,
     requestGps: () => requestGps(false),
   }
 }

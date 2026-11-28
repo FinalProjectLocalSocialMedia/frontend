@@ -41,7 +41,9 @@ export function UserMenu({ className, align = 'end' }: UserMenuProps) {
     try {
       setLoggingOut(true)
       await logout()
-      toast.info('Đã đăng xuất thành công')
+      toast.info('Đã đăng xuất thành công', {
+        id: "logout toast"
+      })
       navigate(`${ADMIN_BASE}/login`, { replace: true })
     } catch {
       toast.error('Có lỗi khi đăng xuất')
